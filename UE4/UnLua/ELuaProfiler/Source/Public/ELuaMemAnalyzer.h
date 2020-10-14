@@ -77,6 +77,7 @@ private:
 
 	TSharedPtr<FELuaMemInfoNode> getnode(const void* p);
 	const char* key_tostring(lua_State* L, int index, char* buffer);
+	void update_node_desc(const void* p, const char* desc);
 	const void* record(lua_State* L, const char* desc, int level, const void* parent);
 
 	/* count the node size */
@@ -84,13 +85,13 @@ private:
 	/* count total size */
 	int32 sizeoftree();
 
-	void travel_table(lua_State* L, lua_State* dL, const char* desc, int level, const void* parent);
-	void travel_userdata(lua_State* L, lua_State* dL, const char* desc, int level, const void* parent);
-	void travel_function(lua_State* L, lua_State* dL, const char* desc, int level, const void* parent);
-	void travel_thread(lua_State* L, lua_State* dL, const char* desc, int level, const void* parent);
+	void travel_table(lua_State* L, const char* desc, int level, const void* parent);
+	void travel_userdata(lua_State* L, const char* desc, int level, const void* parent);
+	void travel_function(lua_State* L, const char* desc, int level, const void* parent);
+	void travel_thread(lua_State* L, const char* desc, int level, const void* parent);
 
 public:
-	void travel_object(lua_State* L, lua_State* dL, const char* desc, int level, const void* parent);
+	void travel_object(lua_State* L, const char* desc, int level, const void* parent);
 	
 	void snapshot(lua_State* L);
 

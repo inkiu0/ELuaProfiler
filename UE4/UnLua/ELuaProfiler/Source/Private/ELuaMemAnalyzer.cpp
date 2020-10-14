@@ -28,11 +28,6 @@
 #include "lapi.h"
 #include "lstring.h"
 
-using namespace std;
-
-#define ROOT 1
-#define MARK 2
-
 #define isdummy(t)		((t)->lastfree == NULL)
 
 /* value at a non-valid index */

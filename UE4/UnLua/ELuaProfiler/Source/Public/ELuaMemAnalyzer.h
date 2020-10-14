@@ -42,10 +42,14 @@ struct ELUAPROFILER_API FELuaMemInfoNode
 	int32 count;
 	/* the type name of this lua object */
 	FString type;
-	/* parent node */
-	TSharedPtr<FELuaMemInfoNode> parent;
+	/* the address of lua object */
+	const void* address = nullptr;
+	/* last recorded parent node */
+	TSharedPtr<FELuaMemInfoNode> parent = nullptr;
 	/* all child nodes */
 	TArray<TSharedPtr<FELuaMemInfoNode>> children;
+	/* all parent nodes. a node may be referenced by multi other nodes */
+	TMap<const void*, TSharedPtr<FELuaMemInfoNode>> parents;
 
 	void Empty()
 	{
@@ -55,6 +59,7 @@ struct ELUAPROFILER_API FELuaMemInfoNode
 		level = 0;
 		count = 0;
 		type = 0;
+		address = nullptr;
 		parent = nullptr;
 		children.Empty();
 	}
@@ -70,12 +75,14 @@ private:
 	static TValue* index2addr(lua_State* L, int idx);
 	static size_t lua_sizeof(lua_State* L, int idx);
 
-	bool ismarked(lua_State* dL, lua_State* L, const void* p);
+	TSharedPtr<FELuaMemInfoNode> getnode(const void* p);
 	const char* key_tostring(lua_State* L, int index, char* buffer);
-	const void* record(lua_State* L, lua_State* dL, const char* desc, int level, const void* parent);
+	const void* record(lua_State* L, const char* desc, int level, const void* parent);
 
-	lua_Integer resizeNode();
-	void resize(lua_State* L);
+	/* count the node size */
+	int32 sizeofnode(TSharedPtr<FELuaMemInfoNode> node);
+	/* count total size */
+	int32 sizeoftree();
 
 	void travel_table(lua_State* L, lua_State* dL, const char* desc, int level, const void* parent);
 	void travel_userdata(lua_State* L, lua_State* dL, const char* desc, int level, const void* parent);
@@ -90,4 +97,5 @@ public:
 private:
 	lua_State* sL = nullptr;
 	TSharedPtr<FELuaMemInfoNode> mem_info_root;
+	TMap<const void*, TSharedPtr<FELuaMemInfoNode>> object_node_map;
 };

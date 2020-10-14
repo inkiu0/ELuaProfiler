@@ -43,12 +43,12 @@ using namespace std;
 
 FELuaMemAnalyzer::FELuaMemAnalyzer()
 {
-
+	mem_info_root = TSharedPtr<FELuaMemInfoNode>(new FELuaMemInfoNode());
 }
 
 FELuaMemAnalyzer::~FELuaMemAnalyzer()
 {
-
+	mem_info_root = nullptr;
 }
 
 TValue* FELuaMemAnalyzer::index2addr(lua_State* L, int idx)
@@ -97,8 +97,6 @@ size_t FELuaMemAnalyzer::lua_sizeof(lua_State* L, int idx)
 	{
 		luaL_checkstack(L, LUA_MINSTACK, NULL);
 		Table* h = hvalue(o);
-		//            return (sizeof(Table) + sizeof(TValue) * h->sizearray +
-		//                    sizeof(Node) * cast(size_t, sizenode(h)));
 		return (sizeof(Table) + sizeof(TValue) * h->sizearray +
 			sizeof(Node) * (isdummy(h) ? 0 : sizenode(h)));
 		break;
@@ -167,18 +165,16 @@ size_t FELuaMemAnalyzer::lua_sizeof(lua_State* L, int idx)
 	}
 }
 
-bool FELuaMemAnalyzer::ismarked(lua_State* dL, lua_State* L, const void* p)
+TSharedPtr<FELuaMemInfoNode> FELuaMemAnalyzer::getnode(const void* p)
 {
-	lua_rawgetp(dL, MARK, p);
-	if (lua_isnil(dL, -1))
+	if (object_node_map.Contains(p))
 	{
-		lua_pop(dL, 1);
-		lua_pushboolean(dL, 1);
-		lua_rawsetp(dL, MARK, p);
-		return false;
+		return object_node_map[p];
+	} 
+	else
+	{
+		return nullptr;
 	}
-	lua_pop(dL, 1);
-	return true;
 }
 
 const char* FELuaMemAnalyzer::key_tostring(lua_State* L, int index, char* buffer)
@@ -204,94 +200,45 @@ const char* FELuaMemAnalyzer::key_tostring(lua_State* L, int index, char* buffer
 	return buffer;
 }
 
-const void* FELuaMemAnalyzer::record(lua_State* L, lua_State* dL, const char* desc, int level, const void* parent)
+const void* FELuaMemAnalyzer::record(lua_State* L, const char* desc, int level, const void* parent)
 {
 	int t = lua_type(L, -1);
 	const void* p = lua_topointer(L, -1);
-	if (ismarked(dL, L, p))
-	{
-		lua_rawgetp(dL, ROOT, p);
-		if (!lua_isnil(dL, -1))
-		{
-			lua_getfield(dL, -1, "level");
-			lua_Integer oldLv = lua_tointeger(dL, -1);
-			lua_pop(dL, 1);
-			if (oldLv > level)
-			{
-				lua_pushinteger(dL, level);
-				lua_setfield(dL, -2, "level");
-				lua_pushlightuserdata(dL, cast(void*, parent));
-				lua_setfield(dL, -2, "parent");
-
-				lua_getfield(dL, -1, "infos");
-				lua_pushstring(dL, desc);
-				lua_rawseti(dL, -2, 1);
-				lua_setfield(dL, -2, "infos");
-			}
-			else
-			{
-				lua_getfield(dL, -1, "count");
-				lua_Integer count = lua_tointeger(dL, -1) + 1;
-				lua_pop(dL, 1);
-				lua_pushinteger(dL, count);
-				lua_setfield(dL, -2, "count");
-
-				lua_getfield(dL, -1, "infos");
-				lua_pushstring(dL, desc);
-				lua_rawseti(dL, -2, count);
-				lua_setfield(dL, -2, "infos");
-			}
-			lua_rawsetp(dL, ROOT, p);
-		}
-		//        lua_pop(dL, 1);
-		lua_pop(L, 1);
-		return NULL;
-	}
 	int size = cast_int(lua_sizeof(L, -1));
-
-	lua_rawgetp(dL, ROOT, parent);
-	if (!lua_isnil(dL, -1))
+	if (TSharedPtr<FELuaMemInfoNode> pnode = getnode(parent))
 	{
-		lua_getfield(dL, -1, "child_list");
-		lua_pushboolean(dL, 1);
-		lua_rawsetp(dL, -2, p);
-		lua_pop(dL, 2);
+		if (TSharedPtr<FELuaMemInfoNode> node = getnode(p))
+		{
+			if (node->parent != pnode)
+			{
+				node->count += 1;
+			}
+			node->parent = pnode;
+			node->desc = desc;
+			node->level = level;
+			node->parents.Add(parent, pnode);
+			return nullptr;		// stop expanding tree
+		}
+		else
+		{
+			TSharedPtr<FELuaMemInfoNode> nnode = TSharedPtr<FELuaMemInfoNode>(new FELuaMemInfoNode());
+			nnode->parent = pnode;
+			nnode->level = level;
+			nnode->desc = desc;
+			nnode->size = size;
+			nnode->count = 1;
+			nnode->address = p;
+			nnode->type = lua_typename(L, t);
+			pnode->children.Add(nnode);
+		}
 	}
-	else
-	{
-		lua_pop(dL, 1);
-	}
-
-	lua_newtable(dL);
-	lua_newtable(dL);
-	lua_setfield(dL, -2, "child_list");
-
-	lua_newtable(dL);
-	lua_pushstring(dL, desc);
-	lua_rawseti(dL, -2, 1);
-	lua_setfield(dL, -2, "infos");
-
-	lua_newtable(dL);
-	lua_pushinteger(dL, size);
-	lua_rawseti(dL, -2, 1);
-	lua_setfield(dL, -2, "size");
-
-	lua_pushlightuserdata(dL, cast(void*, parent));
-	lua_setfield(dL, -2, "parent");
-	lua_pushinteger(dL, level);
-	lua_setfield(dL, -2, "level");
-	lua_pushinteger(dL, 1);
-	lua_setfield(dL, -2, "count");
-	lua_pushstring(dL, lua_typename(L, t));
-	lua_setfield(dL, -2, "type");
-	lua_rawsetp(dL, ROOT, p);
-	return p;
+	return p;			// continue to expanding this object
 }
 
 void FELuaMemAnalyzer::travel_table(lua_State* L, lua_State* dL, const char* desc, int level, const void* parent)
 {
 	luaL_checkstack(dL, LUA_MINSTACK, NULL);
-	const void* p = record(L, dL, desc, level, parent);
+	const void* p = record(L, desc, level, parent);
 	if (p == NULL)
 		return;
 
@@ -315,8 +262,6 @@ void FELuaMemAnalyzer::travel_table(lua_State* L, lua_State* dL, const char* des
 		}
 		lua_pop(L, 1);
 
-		//        char tmp[128];
-		//        sprintf(tmp,"%s.%s", desc, "metatable");
 		luaL_checkstack(L, LUA_MINSTACK, NULL);
 		travel_table(L, dL, "[table]metatable", level + 1, p);
 	}
@@ -346,13 +291,11 @@ void FELuaMemAnalyzer::travel_table(lua_State* L, lua_State* dL, const char* des
 void FELuaMemAnalyzer::travel_userdata(lua_State* L, lua_State* dL, const char* desc, int level, const void* parent)
 {
 	luaL_checkstack(dL, LUA_MINSTACK, NULL);
-	const void* p = record(L, dL, desc, level, parent);
+	const void* p = record(L, desc, level, parent);
 	if (p == NULL)
 		return;
 	if (lua_getmetatable(L, -1))
 	{
-		//        char tmp[32];
-		//        sprintf(tmp,"%s.%s", desc, "[userdata]metatable");
 		travel_table(L, dL, "[userdata]metatable", level + 1, p);
 	}
 
@@ -363,8 +306,6 @@ void FELuaMemAnalyzer::travel_userdata(lua_State* L, lua_State* dL, const char* 
 	}
 	else
 	{
-		//        char temp[32];
-		//        sprintf(temp,"%s.%s", desc, "uservalue");
 		travel_table(L, dL, "uservalue", level + 1, p);
 		lua_pop(L, 1);
 	}
@@ -373,7 +314,7 @@ void FELuaMemAnalyzer::travel_userdata(lua_State* L, lua_State* dL, const char* 
 void FELuaMemAnalyzer::travel_function(lua_State* L, lua_State* dL, const char* desc, int level, const void* parent)
 {
 	luaL_checkstack(dL, LUA_MINSTACK, NULL);
-	const void* p = record(L, dL, desc, level, parent);
+	const void* p = record(L, desc, level, parent);
 	if (p == NULL)
 		return;
 
@@ -393,8 +334,6 @@ void FELuaMemAnalyzer::travel_function(lua_State* L, lua_State* dL, const char* 
 		{
 			lua_rawgetp(dL, ROOT, p);
 			lua_getfield(dL, -1, "infos");
-			//            char tmp[64];
-			//            sprintf(tmp, "[cfunction]%s", desc);
 			lua_pushstring(dL, "cfunction");
 			lua_rawseti(dL, -2, 1);
 			lua_setfield(dL, -2, "infos");
@@ -423,8 +362,7 @@ void FELuaMemAnalyzer::travel_function(lua_State* L, lua_State* dL, const char* 
 
 void FELuaMemAnalyzer::travel_thread(lua_State* L, lua_State* dL, const char* desc, int level, const void* parent)
 {
-	luaL_checkstack(dL, LUA_MINSTACK, NULL);
-	const void* p = record(L, dL, desc, level, parent);
+	const void* p = record(L, desc, level, parent);
 	if (p == NULL)
 		return;
 	int lv = 0;
@@ -508,63 +446,44 @@ void FELuaMemAnalyzer::travel_object(lua_State* L, lua_State* dL, const char* de
 	}
 }
 
-lua_Integer FELuaMemAnalyzer::resizeNode()
+int32 FELuaMemAnalyzer::sizeofnode(TSharedPtr<FELuaMemInfoNode> node)
 {
-	lua_rawget(sL, ROOT);
-
-	lua_getfield(sL, -1, "size");
-	lua_rawgeti(sL, -1, 1);
-	lua_Integer size = lua_tointeger(sL, -1);
-	lua_pop(sL, 2);
-
-	lua_getfield(sL, -1, "child_list");
-	lua_pushnil(sL);
-	while (lua_next(sL, -2) != 0)
+	int32 size = node->size;
+	if (node)
 	{
-		lua_pop(sL, 1);
-		lua_pushvalue(sL, -1);
-		luaL_checkstack(sL, LUA_MINSTACK, NULL);
-		size += resizeNode();
+		for (int32 i = 0; i < node->children.Num(); i++)
+		{
+			size += sizeofnode(node->children[i]);
+		}
 	}
-	lua_pop(sL, 1);
-
-	lua_getfield(sL, -1, "size");
-	lua_pushinteger(sL, size);
-	lua_rawseti(sL, -2, 1);
-	lua_pop(sL, 1);
-
-	lua_pop(sL, 1);
 	return size;
 }
 
-//µ›πÈº∆À„size
-void FELuaMemAnalyzer::resize(lua_State* L)
+int32 FELuaMemAnalyzer::sizeoftree()
 {
-	lua_pushglobaltable(L);
-	const void* p = lua_topointer(L, -1);
-	lua_pop(L, 1);
-	lua_pushlightuserdata(sL, cast(void*, p));
-	luaL_checkstack(sL, LUA_MINSTACK, NULL);
-	resizeNode();
+	/* travel all nodes*/
+	sizeofnode(mem_info_root);
+
+	/* accurately count the total size */
+	int32 size = 0;
+	for (TPair<const void*, TSharedPtr<FELuaMemInfoNode>> Entry : object_node_map)
+	{
+		TSharedPtr<FELuaMemInfoNode> node = Entry.Value;
+		if (node)
+		{
+			size += node->size;
+		}
+	}
+	mem_info_root->size = size;
+	return size;
 }
 
 void FELuaMemAnalyzer::snapshot(lua_State* L)
 {
-	if (sL == nullptr)
-	{
-		sL = luaL_newstate();
-	}
-
-	for (int i = 0; i < MARK; i++)
-	{
-		lua_newtable(sL);
-		lua_insert(sL, 1);
-	}
-
 	lua_settop(L, 0);
 	lua_pushglobaltable(L);
+
 	travel_table(L, sL, "Global", 1, NULL);
 
-	resize(L);
-	lua_remove(sL, MARK);
+	sizeoftree();
 }

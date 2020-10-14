@@ -1,0 +1,33 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "ELuaProfiler",
+	"Description": "Easy Lua Profiler",
+	"Category": "Other",
+	"CreatedBy": "HankShu",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "ELuaProfiler",
+			"Type": "Editor",
+			"LoadingPhase": "PreDefault",
+			"AdditionalDependencies": [
+				"Lua",
+				"UnLua"
+			]
+		}
+	],
+    "Plugins": [
+        {
+            "Name": "UnLua",
+            "Enabled": true
+        }
+    ]
+}

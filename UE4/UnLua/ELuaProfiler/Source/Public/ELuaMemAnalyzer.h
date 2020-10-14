@@ -84,6 +84,8 @@ private:
 	int32 sizeofnode(TSharedPtr<FELuaMemInfoNode> node);
 	/* count total size */
 	int32 sizeoftree();
+	/* create snapshoot root */
+	TSharedPtr<FELuaMemInfoNode> CreateSnapshootRoot();
 
 	void travel_table(lua_State* L, const char* desc, int level, const void* parent);
 	void travel_userdata(lua_State* L, const char* desc, int level, const void* parent);
@@ -95,8 +97,12 @@ public:
 	
 	void snapshot(lua_State* L);
 
+	void popsnapshoot();
+
 private:
 	lua_State* sL = nullptr;
-	TSharedPtr<FELuaMemInfoNode> mem_info_root;
-	TMap<const void*, TSharedPtr<FELuaMemInfoNode>> object_node_map;
+	TSharedPtr<FELuaMemInfoNode> cur_snapshoot_root;
+	TArray<TSharedPtr<FELuaMemInfoNode>> snapshoots;
+	TMap<const void*, TSharedPtr<FELuaMemInfoNode>> cur_object_node_map;
+	TMap<TSharedPtr<FELuaMemInfoNode>, TMap<const void*, TSharedPtr<FELuaMemInfoNode>>> all_snapshoot_node_maps;
 };

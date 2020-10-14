@@ -43,12 +43,13 @@ using namespace std;
 
 FELuaMemAnalyzer::FELuaMemAnalyzer()
 {
-	mem_info_root = TSharedPtr<FELuaMemInfoNode>(new FELuaMemInfoNode());
+
 }
 
 FELuaMemAnalyzer::~FELuaMemAnalyzer()
 {
-	mem_info_root = nullptr;
+	cur_snapshoot_root = nullptr;
+	snapshoots.Empty();
 }
 
 TValue* FELuaMemAnalyzer::index2addr(lua_State* L, int idx)
@@ -167,9 +168,9 @@ size_t FELuaMemAnalyzer::lua_sizeof(lua_State* L, int idx)
 
 TSharedPtr<FELuaMemInfoNode> FELuaMemAnalyzer::getnode(const void* p)
 {
-	if (object_node_map.Contains(p))
+	if (cur_object_node_map.Contains(p))
 	{
-		return object_node_map[p];
+		return cur_object_node_map[p];
 	} 
 	else
 	{
@@ -230,6 +231,7 @@ const void* FELuaMemAnalyzer::record(lua_State* L, const char* desc, int level, 
 			nnode->address = p;
 			nnode->type = lua_typename(L, t);
 			pnode->children.Add(nnode);
+			cur_object_node_map.Add(p, nnode);
 		}
 	}
 	return p;			// continue to expanding this object
@@ -448,11 +450,11 @@ int32 FELuaMemAnalyzer::sizeofnode(TSharedPtr<FELuaMemInfoNode> node)
 int32 FELuaMemAnalyzer::sizeoftree()
 {
 	/* travel all nodes*/
-	sizeofnode(mem_info_root);
+	sizeofnode(cur_snapshoot_root);
 
 	/* accurately count the total size */
 	int32 size = 0;
-	for (TPair<const void*, TSharedPtr<FELuaMemInfoNode>> Entry : object_node_map)
+	for (TPair<const void*, TSharedPtr<FELuaMemInfoNode>> Entry : cur_object_node_map)
 	{
 		TSharedPtr<FELuaMemInfoNode> node = Entry.Value;
 		if (node)
@@ -460,7 +462,7 @@ int32 FELuaMemAnalyzer::sizeoftree()
 			size += node->size;
 		}
 	}
-	mem_info_root->size = size;
+	cur_snapshoot_root->size = size;
 	return size;
 }
 
@@ -469,7 +471,37 @@ void FELuaMemAnalyzer::snapshot(lua_State* L)
 	lua_settop(L, 0);
 	lua_pushglobaltable(L);
 
+	CreateSnapshootRoot();
+
 	travel_table(L, "Global", 1, NULL);
 
 	sizeoftree();
+}
+
+TSharedPtr<FELuaMemInfoNode> FELuaMemAnalyzer::CreateSnapshootRoot()
+{
+	cur_object_node_map = TMap<const void*, TSharedPtr<FELuaMemInfoNode>>();
+	cur_snapshoot_root = TSharedPtr<FELuaMemInfoNode>(new FELuaMemInfoNode());
+	snapshoots.Add(cur_snapshoot_root);
+	all_snapshoot_node_maps.Add(cur_snapshoot_root, cur_object_node_map);
+}
+
+void FELuaMemAnalyzer::popsnapshoot()
+{
+	if (snapshoots.Num() > 0)
+	{
+		TSharedPtr<FELuaMemInfoNode> poproot = snapshoots.Pop();
+		all_snapshoot_node_maps.Remove(poproot);
+	}
+
+	if (snapshoots.Num() > 0)
+	{
+		cur_snapshoot_root = snapshoots[0];
+		cur_object_node_map = all_snapshoot_node_maps[cur_snapshoot_root];
+	}
+	else
+	{
+		cur_snapshoot_root = nullptr;
+		cur_object_node_map = TMap<const void*, TSharedPtr<FELuaMemInfoNode>>();
+	}
 }

@@ -1,6 +1,6 @@
 # ELuaProfiler
 Easy LuaProfiler
-## 各解决方案支持情况
+## Supported Solutions
 | Solution | Supported |
 | ---      | ---       |
 | *unlua-ue4* | √ |

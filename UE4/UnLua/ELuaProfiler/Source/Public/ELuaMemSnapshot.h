@@ -23,39 +23,39 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "lua.hpp"
-#include "lstate.h"
-#include "lobject.h"
 #include "ELuaMemInfoNode.h"
-#include "ELuaMemSnapshot.h"
+#include "lobject.h"
 
-class ELUAPROFILER_API FELuaMemAnalyzer
+class ELUAPROFILER_API FELuaMemSnapshot
 {
 public:
-	FELuaMemAnalyzer();
-	~FELuaMemAnalyzer();
-
-private:
-
-	const char* key_tostring(lua_State* L, int index, char* buffer);
-	void update_node_desc(const void* p, const char* desc);
-
-	/* create snapshot */
-	TSharedPtr<FELuaMemSnapshot> CreateSnapshot();
-
-	void travel_table(lua_State* L, const char* desc, int level, const void* parent);
-	void travel_userdata(lua_State* L, const char* desc, int level, const void* parent);
-	void travel_function(lua_State* L, const char* desc, int level, const void* parent);
-	void travel_thread(lua_State* L, const char* desc, int level, const void* parent);
+	FELuaMemSnapshot();
+	~FELuaMemSnapshot();
 
 public:
-	void travel_object(lua_State* L, const char* desc, int level, const void* parent);
-	
-	void Snapshot(lua_State* L);
+	/* recount size of all the nodes */
+	int32 RecountSize();
 
-	void PopSnapshot();
+	/* get FELuaMemInfoNode by LuaObjAddress */
+	TSharedPtr<FELuaMemInfoNode> GetMemNode(const void* LuaObjAddress);
+
+	/* record the object at the top of luavm stack */
+	const void* Record(lua_State* L, const char* Desc, int32 Level, const void* Parent);
+
+	/* record the object at the top of luavm stack */
+	const void* Record(const void* Address, const char* Type, int32 Size, const char* Desc, int Level, const void* Parent);
+
+	//void Sort();
+	//void Compare(const FELuaMemSnapshot& OtherSnapshoot);
 
 private:
-	TSharedPtr<FELuaMemSnapshot> CurSnapshot;
-	TArray<TSharedPtr<FELuaMemSnapshot>> Snapshots;
+	/* accurately count the total size */
+	int32 GetTotalSize();
+
+	/* count the node size */
+	int32 RecountNode(TSharedPtr<FELuaMemInfoNode> Node);
+
+private:
+	TSharedPtr<FELuaMemInfoNode> Root = nullptr;
+	TMap<const void*, TSharedPtr<FELuaMemInfoNode>> LuaObjectMemNodeMap;
 };

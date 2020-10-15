@@ -23,39 +23,40 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "lua.hpp"
-#include "lstate.h"
-#include "lobject.h"
-#include "ELuaMemInfoNode.h"
-#include "ELuaMemSnapshot.h"
 
-class ELUAPROFILER_API FELuaMemAnalyzer
+struct ELUAPROFILER_API FELuaMemInfoNode
 {
-public:
-	FELuaMemAnalyzer();
-	~FELuaMemAnalyzer();
+	/* show name */
+	FString name;
+	/* detail description */
+	FString desc;
+	/* self size */
+	int32 size;
+	/* the depth of this node */
+	int32 level;
+	/* the reference count of this lua object */
+	int32 count;
+	/* the type name of this lua object */
+	FString type;
+	/* the address of lua object */
+	const void* address = nullptr;
+	/* last recorded parent node */
+	TSharedPtr<FELuaMemInfoNode> parent = nullptr;
+	/* all child nodes */
+	TArray<TSharedPtr<FELuaMemInfoNode>> children;
+	/* all parent nodes. a node may be referenced by multi other nodes */
+	TMap<const void*, TSharedPtr<FELuaMemInfoNode>> parents;
 
-private:
-
-	const char* key_tostring(lua_State* L, int index, char* buffer);
-	void update_node_desc(const void* p, const char* desc);
-
-	/* create snapshot */
-	TSharedPtr<FELuaMemSnapshot> CreateSnapshot();
-
-	void travel_table(lua_State* L, const char* desc, int level, const void* parent);
-	void travel_userdata(lua_State* L, const char* desc, int level, const void* parent);
-	void travel_function(lua_State* L, const char* desc, int level, const void* parent);
-	void travel_thread(lua_State* L, const char* desc, int level, const void* parent);
-
-public:
-	void travel_object(lua_State* L, const char* desc, int level, const void* parent);
-	
-	void Snapshot(lua_State* L);
-
-	void PopSnapshot();
-
-private:
-	TSharedPtr<FELuaMemSnapshot> CurSnapshot;
-	TArray<TSharedPtr<FELuaMemSnapshot>> Snapshots;
+	void Empty()
+	{
+		name.Empty();
+		desc.Empty();
+		size = 0;
+		level = 0;
+		count = 0;
+		type = 0;
+		address = nullptr;
+		parent = nullptr;
+		children.Empty();
+	}
 };

@@ -23,39 +23,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "lua.hpp"
-#include "lstate.h"
 #include "lobject.h"
-#include "ELuaMemInfoNode.h"
-#include "ELuaMemSnapshot.h"
 
-class ELUAPROFILER_API FELuaMemAnalyzer
-{
-public:
-	FELuaMemAnalyzer();
-	~FELuaMemAnalyzer();
+static TValue* index2addr(lua_State* L, int idx);
 
-private:
-
-	const char* key_tostring(lua_State* L, int index, char* buffer);
-	void update_node_desc(const void* p, const char* desc);
-
-	/* create snapshot */
-	TSharedPtr<FELuaMemSnapshot> CreateSnapshot();
-
-	void travel_table(lua_State* L, const char* desc, int level, const void* parent);
-	void travel_userdata(lua_State* L, const char* desc, int level, const void* parent);
-	void travel_function(lua_State* L, const char* desc, int level, const void* parent);
-	void travel_thread(lua_State* L, const char* desc, int level, const void* parent);
-
-public:
-	void travel_object(lua_State* L, const char* desc, int level, const void* parent);
-	
-	void Snapshot(lua_State* L);
-
-	void PopSnapshot();
-
-private:
-	TSharedPtr<FELuaMemSnapshot> CurSnapshot;
-	TArray<TSharedPtr<FELuaMemSnapshot>> Snapshots;
-};
+static size_t lua_sizeof(lua_State* L, int32 idx);

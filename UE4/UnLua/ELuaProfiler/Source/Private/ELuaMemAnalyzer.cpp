@@ -22,19 +22,9 @@
 
 #include "ELuaMemAnalyzer.h"
 #include <stdio.h>
-#include "lauxlib.h"
-#include "lua.h"
 #include "lfunc.h"
 #include "lapi.h"
 #include "lstring.h"
-
-#define isdummy(t)		((t)->lastfree == NULL)
-
-/* value at a non-valid index */
-#define NONVALIDVALUE		nullptr//cast(TValue *, luaO_nilobject)
-
-/* test for pseudo index */
-#define ispseudo(i)		((i) <= LUA_REGISTRYINDEX)
 
 FELuaMemAnalyzer::FELuaMemAnalyzer()
 {
@@ -43,134 +33,7 @@ FELuaMemAnalyzer::FELuaMemAnalyzer()
 
 FELuaMemAnalyzer::~FELuaMemAnalyzer()
 {
-	cur_snapshoot_root = nullptr;
-	snapshoots.Empty();
-}
-
-TValue* FELuaMemAnalyzer::index2addr(lua_State* L, int idx)
-{
-	CallInfo* ci = L->ci;
-	if (idx > 0)
-	{
-		TValue* o = ci->func + idx;
-		api_check(L, idx <= ci->top - (ci->func + 1), "unacceptable index");
-		if (o >= L->top) return NONVALIDVALUE;
-		else return o;
-	}
-	else if (!ispseudo(idx))
-	{
-		/* negative index */
-		api_check(L, idx != 0 && -idx <= L->top - (ci->func + 1), "invalid index");
-		return L->top + idx;
-	}
-	else if (idx == LUA_REGISTRYINDEX)
-		return &G(L)->l_registry;
-	else
-	{
-		/* upvalues */
-		idx = LUA_REGISTRYINDEX - idx;
-		api_check(L, idx <= MAXUPVAL + 1, "upvalue index too large");
-		if (ttislcf(ci->func))
-			return NONVALIDVALUE;
-		else
-		{
-			CClosure* func = clCvalue(ci->func);
-			return (idx <= func->nupvalues) ? &func->upvalue[idx - 1] : NONVALIDVALUE;
-		}
-	}
-}
-
-size_t FELuaMemAnalyzer::lua_sizeof(lua_State* L, int idx)
-{
-	TValue* o = index2addr(L, idx);
-	if (!o)
-		return 0;
-
-	switch (ttnov(o))
-	{
-
-	case LUA_TTABLE:
-	{
-		luaL_checkstack(L, LUA_MINSTACK, NULL);
-		Table* h = hvalue(o);
-		return (sizeof(Table) + sizeof(TValue) * h->sizearray +
-			sizeof(Node) * (isdummy(h) ? 0 : sizenode(h)));
-		break;
-	}
-	case LUA_TLCL:
-	{
-		LClosure* cl = clLvalue(o);
-		return sizeLclosure(cl->nupvalues);
-		break;
-	}
-	case LUA_TCCL:
-	{
-		CClosure* cl = clCvalue(o);
-		return sizeCclosure(cl->nupvalues);
-		break;
-	}
-	case LUA_TTHREAD:
-	{
-		lua_State* th = thvalue(o);
-		return (sizeof(lua_State) + sizeof(TValue) * th->stacksize +
-			sizeof(CallInfo) * th->nci);
-		break;
-	}
-	case LUA_TPROTO:
-	{
-		Proto* p = (Proto*)pvalue(o);
-		return (sizeof(Proto) + sizeof(Instruction) * p->sizecode +
-			sizeof(Proto*) * p->sizep +
-			sizeof(TValue) * p->sizek +
-			sizeof(int) * p->sizelineinfo +
-			sizeof(LocVar) * p->sizelocvars +
-			sizeof(TString*) * p->sizeupvalues);
-		break;
-	}
-
-	case LUA_TUSERDATA:
-	{
-		return sizeudata(uvalue(o));
-		break;
-	}
-	case LUA_TSHRSTR:
-	{
-		TString* ts = tsvalue(o);
-		return sizelstring(ts->shrlen);
-		break;
-	}
-	case LUA_TLNGSTR:
-	{
-		TString* ts = tsvalue(o);
-		return sizelstring(ts->u.lnglen);
-		break;
-	}
-	case LUA_TNUMBER:
-	{
-		return sizeof(lua_Number);
-	}
-	case LUA_TBOOLEAN:
-	{
-		return sizeof(int);
-	}
-	case LUA_TLIGHTUSERDATA:
-	{
-		return sizeof(void*);
-	}
-	default: return 0;
-	}
-}
-
-TSharedPtr<FELuaMemInfoNode> FELuaMemAnalyzer::getnode(const void* p)
-{
-	if (cur_object_node_map.Contains(p))
-	{
-		return cur_object_node_map[p];
-	} 
-	else
-	{
-		return nullptr;
-	}
+	Snapshots.Empty();
 }
 
 const char* FELuaMemAnalyzer::key_tostring(lua_State* L, int index, char* buffer)
@@ -196,45 +59,9 @@ const char* FELuaMemAnalyzer::key_tostring(lua_State* L, int index, char* buffer
 	return buffer;
 }
 
-const void* FELuaMemAnalyzer::record(lua_State* L, const char* desc, int level, const void* parent)
-{
-	int t = lua_type(L, -1);
-	const void* p = lua_topointer(L, -1);
-	int size = cast_int(lua_sizeof(L, -1));
-	if (TSharedPtr<FELuaMemInfoNode> pnode = getnode(parent))
-	{
-		if (TSharedPtr<FELuaMemInfoNode> node = getnode(p))
-		{
-			if (node->parent != pnode)
-			{
-				node->count += 1;
-			}
-			node->parent = pnode;
-			node->desc = desc;
-			node->level = level;
-			node->parents.Add(parent, pnode);
-			return nullptr;		// stop expanding tree
-		}
-		else
-		{
-			TSharedPtr<FELuaMemInfoNode> nnode = TSharedPtr<FELuaMemInfoNode>(new FELuaMemInfoNode());
-			nnode->parent = pnode;
-			nnode->level = level;
-			nnode->desc = desc;
-			nnode->size = size;
-			nnode->count = 1;
-			nnode->address = p;
-			nnode->type = lua_typename(L, t);
-			pnode->children.Add(nnode);
-			cur_object_node_map.Add(p, nnode);
-		}
-	}
-	return p;			// continue to expanding this object
-}
-
 void FELuaMemAnalyzer::travel_table(lua_State* L, const char* desc, int level, const void* parent)
 {
-	const void* p = record(L, desc, level, parent);						// [table]
+	const void* p = CurSnapshot->Record(L, desc, level, parent);						// [table]
 	if (p == NULL)
 		return;
 
@@ -286,7 +113,7 @@ void FELuaMemAnalyzer::travel_table(lua_State* L, const char* desc, int level, c
 
 void FELuaMemAnalyzer::travel_userdata(lua_State* L, const char* desc, int level, const void* parent)
 {
-	const void* p = record(L, desc, level, parent);						// [userdata]
+	const void* p = CurSnapshot->Record(L, desc, level, parent);						// [userdata]
 	if (p == NULL)
 		return;
 
@@ -309,7 +136,7 @@ void FELuaMemAnalyzer::travel_userdata(lua_State* L, const char* desc, int level
 
 void FELuaMemAnalyzer::travel_function(lua_State* L, const char* desc, int level, const void* parent)
 {
-	const void* p = record(L, desc, level, parent);						// [function]
+	const void* p = CurSnapshot->Record(L, desc, level, parent);						// [function]
 	if (p == NULL)
 		return;
 
@@ -345,7 +172,7 @@ void FELuaMemAnalyzer::travel_function(lua_State* L, const char* desc, int level
 
 void FELuaMemAnalyzer::travel_thread(lua_State* L, const char* desc, int level, const void* parent)
 {
-	const void* p = record(L, desc, level, parent);						// [thread]
+	const void* p = CurSnapshot->Record(L, desc, level, parent);						// [thread]
 	if (p == NULL)
 		return;
 
@@ -423,81 +250,44 @@ void FELuaMemAnalyzer::travel_object(lua_State* L, const char* desc, int level, 
 
 void FELuaMemAnalyzer::update_node_desc(const void* p, const char* desc)
 {
-	if (TSharedPtr<FELuaMemInfoNode> node = getnode(p))
+	if (TSharedPtr<FELuaMemInfoNode> node = CurSnapshot->GetMemNode(p))
 	{
 		node->desc = desc;
 	}
 }
 
-int32 FELuaMemAnalyzer::sizeofnode(TSharedPtr<FELuaMemInfoNode> node)
-{
-	int32 size = node->size;
-	if (node)
-	{
-		for (int32 i = 0; i < node->children.Num(); i++)
-		{
-			size += sizeofnode(node->children[i]);
-		}
-	}
-	return size;
-}
-
-int32 FELuaMemAnalyzer::sizeoftree()
-{
-	/* travel all nodes*/
-	sizeofnode(cur_snapshoot_root);
-
-	/* accurately count the total size */
-	int32 size = 0;
-	for (TPair<const void*, TSharedPtr<FELuaMemInfoNode>> Entry : cur_object_node_map)
-	{
-		TSharedPtr<FELuaMemInfoNode> node = Entry.Value;
-		if (node)
-		{
-			size += node->size;
-		}
-	}
-	cur_snapshoot_root->size = size;
-	return size;
-}
-
-void FELuaMemAnalyzer::snapshot(lua_State* L)
+void FELuaMemAnalyzer::Snapshot(lua_State* L)
 {
 	lua_settop(L, 0);
 	lua_pushglobaltable(L);
 
-	CreateSnapshootRoot();
+	CreateSnapshot();
 
 	travel_table(L, "Global", 1, NULL);
 
-	sizeoftree();
+	CurSnapshot->RecountSize();
 }
 
-TSharedPtr<FELuaMemInfoNode> FELuaMemAnalyzer::CreateSnapshootRoot()
+TSharedPtr<FELuaMemSnapshot> FELuaMemAnalyzer::CreateSnapshot()
 {
-	cur_object_node_map = TMap<const void*, TSharedPtr<FELuaMemInfoNode>>();
-	cur_snapshoot_root = TSharedPtr<FELuaMemInfoNode>(new FELuaMemInfoNode());
-	snapshoots.Add(cur_snapshoot_root);
-	all_snapshoot_node_maps.Add(cur_snapshoot_root, cur_object_node_map);
-	return cur_snapshoot_root;
+	CurSnapshot = TSharedPtr<FELuaMemSnapshot>(new FELuaMemSnapshot());
+	Snapshots.Add(CurSnapshot);
+	return CurSnapshot;
 }
 
-void FELuaMemAnalyzer::popsnapshoot()
+void FELuaMemAnalyzer::PopSnapshot()
 {
-	if (snapshoots.Num() > 0)
+	if (Snapshots.Num() > 0)
 	{
-		TSharedPtr<FELuaMemInfoNode> poproot = snapshoots.Pop();
-		all_snapshoot_node_maps.Remove(poproot);
+		TSharedPtr<FELuaMemSnapshot> poproot = Snapshots.Pop();
 	}
 
-	if (snapshoots.Num() > 0)
+	if (Snapshots.Num() > 0)
 	{
-		cur_snapshoot_root = snapshoots[0];
-		cur_object_node_map = all_snapshoot_node_maps[cur_snapshoot_root];
+		CurSnapshot = Snapshots[0];
 	}
 	else
 	{
-		cur_snapshoot_root = nullptr;
-		cur_object_node_map = TMap<const void*, TSharedPtr<FELuaMemInfoNode>>();
+		CurSnapshot = nullptr;
 	}
 }

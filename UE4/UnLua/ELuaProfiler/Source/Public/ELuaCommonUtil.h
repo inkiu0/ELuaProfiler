@@ -25,6 +25,6 @@
 #include "CoreMinimal.h"
 #include "lobject.h"
 
-static TValue* index2addr(lua_State* L, int idx);
+TValue* index2addr(lua_State* L, int idx);
 
-static size_t lua_sizeof(lua_State* L, int32 idx);
+size_t lua_sizeof(lua_State* L, int32 idx);

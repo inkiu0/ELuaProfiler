@@ -43,7 +43,7 @@ public class ELuaProfiler : ModuleRules
         PublicIncludePaths.AddRange(
             new string []
             {
-                //"ELuaProfiler/Public",
+                "ELuaProfiler/Public",
                 //"UnLua/Public",
             }
         );

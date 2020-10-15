@@ -61,7 +61,7 @@ const char* FELuaMemAnalyzer::key_tostring(lua_State* L, int index, char* buffer
 
 void FELuaMemAnalyzer::travel_table(lua_State* L, const char* desc, int level, const void* parent)
 {
-	const void* p = CurSnapshot->Record(L, desc, level, parent);						// [table]
+	const void* p = CurSnapshot->Record(L, desc, level, parent);		// [table]
 	if (p == NULL)
 		return;
 
@@ -113,7 +113,7 @@ void FELuaMemAnalyzer::travel_table(lua_State* L, const char* desc, int level, c
 
 void FELuaMemAnalyzer::travel_userdata(lua_State* L, const char* desc, int level, const void* parent)
 {
-	const void* p = CurSnapshot->Record(L, desc, level, parent);						// [userdata]
+	const void* p = CurSnapshot->Record(L, desc, level, parent);		// [userdata]
 	if (p == NULL)
 		return;
 
@@ -136,7 +136,7 @@ void FELuaMemAnalyzer::travel_userdata(lua_State* L, const char* desc, int level
 
 void FELuaMemAnalyzer::travel_function(lua_State* L, const char* desc, int level, const void* parent)
 {
-	const void* p = CurSnapshot->Record(L, desc, level, parent);						// [function]
+	const void* p = CurSnapshot->Record(L, desc, level, parent);		// [function]
 	if (p == NULL)
 		return;
 
@@ -172,7 +172,7 @@ void FELuaMemAnalyzer::travel_function(lua_State* L, const char* desc, int level
 
 void FELuaMemAnalyzer::travel_thread(lua_State* L, const char* desc, int level, const void* parent)
 {
-	const void* p = CurSnapshot->Record(L, desc, level, parent);						// [thread]
+	const void* p = CurSnapshot->Record(L, desc, level, parent);		// [thread]
 	if (p == NULL)
 		return;
 
@@ -284,7 +284,7 @@ void FELuaMemAnalyzer::PopSnapshot()
 
 	if (Snapshots.Num() > 0)
 	{
-		CurSnapshot = Snapshots[0];
+		CurSnapshot = Snapshots[Snapshots.Num() - 1];
 	}
 	else
 	{

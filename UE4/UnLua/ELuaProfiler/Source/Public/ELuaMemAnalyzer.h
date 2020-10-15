@@ -26,6 +26,7 @@
 #include "lua.hpp"
 #include "lstate.h"
 #include "lobject.h"
+#include <string.h>
 #include "ELuaMemInfoNode.h"
 #include "ELuaMemSnapshot.h"
 

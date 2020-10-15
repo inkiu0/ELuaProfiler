@@ -479,6 +479,7 @@ TSharedPtr<FELuaMemInfoNode> FELuaMemAnalyzer::CreateSnapshootRoot()
 	cur_snapshoot_root = TSharedPtr<FELuaMemInfoNode>(new FELuaMemInfoNode());
 	snapshoots.Add(cur_snapshoot_root);
 	all_snapshoot_node_maps.Add(cur_snapshoot_root, cur_object_node_map);
+	return cur_snapshoot_root;
 }
 
 void FELuaMemAnalyzer::popsnapshoot()

@@ -24,6 +24,16 @@
 #include "ELuaCommonUtil.h"
 #include "lua.h"
 
+FELuaMemSnapshot::FELuaMemSnapshot()
+{
+
+}
+
+FELuaMemSnapshot::~FELuaMemSnapshot()
+{
+
+}
+
 TSharedPtr<FELuaMemInfoNode> FELuaMemSnapshot::GetMemNode(const void* LuaObjAddress)
 {
 	if (LuaObjectMemNodeMap.Contains(LuaObjAddress))

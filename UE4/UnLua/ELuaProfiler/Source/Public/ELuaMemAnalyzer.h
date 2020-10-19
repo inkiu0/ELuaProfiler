@@ -23,10 +23,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "lua.hpp"
-#include "lstate.h"
 #include "lobject.h"
-#include <string.h>
 #include "ELuaMemInfoNode.h"
 #include "ELuaMemSnapshot.h"
 
@@ -56,7 +53,18 @@ public:
 
 	void PopSnapshot();
 
+	FELuaMemAnalyzer* GetInstance()
+	{
+		if (!SingletonInstance)
+		{
+			SingletonInstance = new FELuaMemAnalyzer();
+		}
+		return SingletonInstance;
+	}
+
 private:
 	TSharedPtr<FELuaMemSnapshot> CurSnapshot;
 	TArray<TSharedPtr<FELuaMemSnapshot>> Snapshots;
+
+	static FELuaMemAnalyzer* SingletonInstance;
 };

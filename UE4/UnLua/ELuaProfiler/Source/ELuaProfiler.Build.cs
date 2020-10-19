@@ -32,7 +32,6 @@ public class ELuaProfiler : ModuleRules
         bEnableExceptions = true;
         bEnforceIWYU = false;
         bEnableUndefinedIdentifierWarnings = false;
-        var ExternalLib = Path.Combine(ModuleDirectory, "../../UnLua/Binaries");
 #if UE_4_21_OR_LATER
         PublicDefinitions.Add("ENABLE_ELUAPROFILER");
 #else

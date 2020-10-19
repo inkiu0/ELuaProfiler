@@ -69,7 +69,6 @@ public class ELuaProfiler : ModuleRules
                 "Sockets",
                 "Lua",
                 "UnLua",
-                "LuaSocket"
 				// ... add private dependencies that you statically link with here ...	
 			}
         );
@@ -81,7 +80,6 @@ public class ELuaProfiler : ModuleRules
                 "UMG",
                 "Lua",
                 "UnLua",
-                "LuaSocket",
 				// ... add other public dependencies that you statically link with here ...
 			}
         );

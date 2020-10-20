@@ -23,11 +23,14 @@
 #include "ELuaMemAnalyzer.h"
 #include <stdio.h>
 #include <string.h>
-#include "lua.hpp"
+extern "C"
+{
+#include "lobject.h"
 #include "lstate.h"
 #include "lfunc.h"
 #include "lapi.h"
 #include "lstring.h"
+}
 
 FELuaMemAnalyzer* FELuaMemAnalyzer::SingletonInstance = nullptr;
 

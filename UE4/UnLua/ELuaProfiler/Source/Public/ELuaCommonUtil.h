@@ -22,9 +22,6 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "lobject.h"
-
-TValue* index2addr(lua_State* L, int idx);
+#include "ELuaBase.h"
 
 size_t lua_sizeof(lua_State* L, int32 idx);

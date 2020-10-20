@@ -22,8 +22,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "lobject.h"
+#include "ELuaBase.h"
 #include "ELuaMemInfoNode.h"
 #include "ELuaMemSnapshot.h"
 

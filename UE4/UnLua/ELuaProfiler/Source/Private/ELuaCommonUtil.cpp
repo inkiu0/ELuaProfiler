@@ -21,10 +21,12 @@
 // THE SOFTWARE.
 
 #include "ELuaCommonUtil.h"
-#include "lua.hpp"
+extern "C"
+{
 #include "lstate.h"
 #include "lfunc.h"
 #include "lstring.h"
+}
 
 #define isdummy(t)		((t)->lastfree == NULL)
 
@@ -34,7 +36,7 @@
 /* test for pseudo index */
 #define ispseudo(i)		((i) <= LUA_REGISTRYINDEX)
 
-TValue* index2addr(lua_State* L, int idx)
+static TValue* lua_index2addr(lua_State* L, int idx)
 {
 	CallInfo* ci = L->ci;
 	if (idx > 0)
@@ -69,7 +71,7 @@ TValue* index2addr(lua_State* L, int idx)
 
 size_t lua_sizeof(lua_State* L, int32 idx)
 {
-	TValue* o = index2addr(L, idx);
+	TValue* o = lua_index2addr(L, idx);
 	if (!o)
 		return 0;
 

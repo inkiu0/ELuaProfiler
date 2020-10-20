@@ -22,7 +22,6 @@
 
 #include "ELuaMemSnapshot.h"
 #include "ELuaCommonUtil.h"
-#include "lua.h"
 
 FELuaMemSnapshot::FELuaMemSnapshot()
 {

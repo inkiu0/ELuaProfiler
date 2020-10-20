@@ -22,9 +22,8 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "ELuaBase.h"
 #include "ELuaMemInfoNode.h"
-#include "lobject.h"
 
 class ELUAPROFILER_API FELuaMemSnapshot
 {

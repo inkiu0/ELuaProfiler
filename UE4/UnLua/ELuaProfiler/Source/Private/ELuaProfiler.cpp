@@ -21,11 +21,6 @@
 // THE SOFTWARE.
 
 #include "ELuaProfiler.h"
-#include "Framework/MultiBox/MultiBoxBuilder.h"
-#include "FileManager.h"
-#include "Engine/GameEngine.h"
-#include "Containers/Ticker.h"
-#include "UnLuaBase.h"
 #if WITH_EDITOR
 #include "LevelEditor.h"
 #include "ELuaProfilerCommands.h"
@@ -72,8 +67,6 @@ void FELuaProfilerModule::StartupModule()
 void FELuaProfilerModule::ShutdownModule()
 {
 #if WITH_EDITOR
-	ClearCurProfiler();
-
 	FELuaProfilerCommands::Unregister();
 
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(ELuaProfiler::ELuaProfilerTabName);
@@ -87,7 +80,7 @@ void FELuaProfilerModule::PluginButtonClicked()
 
 bool FELuaProfilerModule::Tick(float DeltaTime)
 {
-	if (!tabOpened)
+	if (!m_bTabOpened)
 	{
 		return true;
 	}
@@ -100,11 +93,6 @@ TSharedRef<class SDockTab> FELuaProfilerModule::OnSpawnPluginTab(const FSpawnTab
 	return SNew(SDockTab).TabRole(ETabRole::NomadTab);
 }
 
-void FELuaProfilerModule::ClearCurProfiler()
-{
-	ELuaProfiler::currentLayer = 0;
-}
-
 void FELuaProfilerModule::AddMenuExtension(FMenuBuilder & Builder)
 {
 #if WITH_EDITOR
@@ -112,9 +100,9 @@ void FELuaProfilerModule::AddMenuExtension(FMenuBuilder & Builder)
 #endif
 }
 
-void FELuaProfilerModule::OnTabClosed(TSharedRef<SDockTab>)
+void FELuaProfilerModule::OnTabClosed(TSharedRef<SDockTab> Tab)
 {
-	tabOpened = false;
+	m_bTabOpened = false;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -22,7 +22,6 @@
 // THE SOFTWARE.
 
 #include "ELuaProfilerCommands.h"
-#include "ELuaProfiler.h"
 #if WITH_EDITOR
 #include "EditorStyle.h"
 #endif

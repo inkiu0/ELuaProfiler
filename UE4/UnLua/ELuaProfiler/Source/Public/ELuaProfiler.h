@@ -22,13 +22,9 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "Containers/Ticker.h"
-#include "InputCoreTypes.h"
+#include "ELuaBase.h"
 #include "ModuleManager.h"
-#include "Commands.h"
 #include "Widgets/Docking/SDockTab.h"
-#include "Framework/Commands/Commands.h"
 
 /** Declares a log category for this module. */
 DECLARE_LOG_CATEGORY_EXTERN(LogELuaProfiler, Log, All);
@@ -36,35 +32,23 @@ DECLARE_LOG_CATEGORY_EXTERN(LogELuaProfiler, Log, All);
 #ifdef ENABLE_ELUAPROFILER
 #endif
 
-namespace ELuaProfiler
-{
-	static const FName ELuaProfilerTabName(TEXT("ELuaProfiler"));
-
-	uint32_t currentLayer = 0;
-}
-
 class FELuaProfilerModule : public IModuleInterface
 {
 public:
-
-	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
-
     
 	void PluginButtonClicked();
-private:
-	// fields
-	FTickerDelegate TickDelegate;
-	FDelegateHandle TickDelegateHandle;
-	bool tabOpened = false;
-	TSharedPtr<class FUICommandList> PluginCommands;
 
-	// functions
-	void OnTabClosed(TSharedRef<SDockTab> tab);
-    
+private:
+	void OnTabClosed(TSharedRef<SDockTab> Tab);
 	TSharedRef<class SDockTab> OnSpawnPluginTab(const class FSpawnTabArgs& SpawnTabArgs);
 	bool Tick(float DeltaTime);
-	void ClearCurProfiler();
 	void AddMenuExtension(FMenuBuilder& Builder);
+
+private:
+	FTickerDelegate TickDelegate;
+	FDelegateHandle TickDelegateHandle;
+	bool m_bTabOpened = false;
+	TSharedPtr<class FUICommandList> PluginCommands;
 };

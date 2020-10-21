@@ -26,4 +26,9 @@
 #include "CoreUObject.h"
 #include "lua.hpp"
 
+namespace ELuaProfiler
+{
+	static const FName ELuaProfilerTabName(TEXT("ELuaProfiler"));
+}
+
 //struct lua_State;

@@ -28,23 +28,24 @@
 #include "UnLuaBase.h"
 #if WITH_EDITOR
 #include "LevelEditor.h"
-#include "EditorStyle.h"
+#include "ELuaProfilerCommands.h"
 #endif
 
 DEFINE_LOG_CATEGORY(LogELuaProfiler)
 #define LOCTEXT_NAMESPACE "FELuaProfilerModule"
 
-namespace {
-	static const FName ELuaProfilerTabName(TEXT("ELuaProfiler"));
-
-	uint32_t currentLayer = 0;
-}
-
 void FELuaProfilerModule::StartupModule()
 {
 #if WITH_EDITOR
 
+	FELuaProfilerCommands::Register();
+
 	PluginCommands = MakeShareable(new FUICommandList);
+
+	PluginCommands->MapAction(
+		FELuaProfilerCommands::Get().OpenWindow,
+		FExecuteAction::CreateRaw(this, &FELuaProfilerModule::PluginButtonClicked),
+		FCanExecuteAction());
 
 	FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
 
@@ -58,7 +59,7 @@ void FELuaProfilerModule::StartupModule()
 
 	if (GIsEditor && !IsRunningCommandlet())
 	{
-		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ELuaProfilerTabName,
+		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ELuaProfiler::ELuaProfilerTabName,
 			FOnSpawnTab::CreateRaw(this, &FELuaProfilerModule::OnSpawnPluginTab))
 			.SetDisplayName(LOCTEXT("Flua_wrapperTabTitle", "Easy Lua Profiler"))
 			.SetMenuType(ETabSpawnerMenuType::Hidden);
@@ -73,13 +74,15 @@ void FELuaProfilerModule::ShutdownModule()
 #if WITH_EDITOR
 	ClearCurProfiler();
 
-	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(ELuaProfilerTabName);
+	FELuaProfilerCommands::Unregister();
+
+	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(ELuaProfiler::ELuaProfilerTabName);
 #endif
 }
 
 void FELuaProfilerModule::PluginButtonClicked()
 {
-	FGlobalTabmanager::Get()->InvokeTab(ELuaProfilerTabName);
+	FGlobalTabmanager::Get()->InvokeTab(ELuaProfiler::ELuaProfilerTabName);
 }
 
 bool FELuaProfilerModule::Tick(float DeltaTime)
@@ -99,11 +102,14 @@ TSharedRef<class SDockTab> FELuaProfilerModule::OnSpawnPluginTab(const FSpawnTab
 
 void FELuaProfilerModule::ClearCurProfiler()
 {
-	currentLayer = 0;
+	ELuaProfiler::currentLayer = 0;
 }
 
 void FELuaProfilerModule::AddMenuExtension(FMenuBuilder & Builder)
 {
+#if WITH_EDITOR
+	Builder.AddMenuEntry(FELuaProfilerCommands::Get().OpenWindow);
+#endif
 }
 
 void FELuaProfilerModule::OnTabClosed(TSharedRef<SDockTab>)

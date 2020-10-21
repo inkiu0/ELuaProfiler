@@ -1,3 +1,4 @@
+
 // The MIT License (MIT)
 
 // Copyright 2020 HankShu inkiu0@gmail.com
@@ -20,51 +21,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#pragma once
-
-#include "CoreMinimal.h"
-#include "Containers/Ticker.h"
-#include "InputCoreTypes.h"
-#include "ModuleManager.h"
-#include "Commands.h"
-#include "Widgets/Docking/SDockTab.h"
-#include "Framework/Commands/Commands.h"
-
-/** Declares a log category for this module. */
-DECLARE_LOG_CATEGORY_EXTERN(LogELuaProfiler, Log, All);
-
-#ifdef ENABLE_ELUAPROFILER
+#include "ELuaProfilerCommands.h"
+#include "ELuaProfiler.h"
+#if WITH_EDITOR
+#include "EditorStyle.h"
 #endif
 
-namespace ELuaProfiler
-{
-	static const FName ELuaProfilerTabName(TEXT("ELuaProfiler"));
+#define LOCTEXT_NAMESPACE "FELuaProfilerModule"
 
-	uint32_t currentLayer = 0;
+#if WITH_EDITOR
+using namespace ELuaProfiler;
+
+FELuaProfilerCommands::FELuaProfilerCommands()
+	: TCommands<FELuaProfilerCommands>(ELuaProfiler::ELuaProfilerTabName,
+		NSLOCTEXT("Contexts", "LuaProfiler", "LuaProfiler Plugin"), NAME_None, FEditorStyle::GetStyleSetName())
+{
+
 }
 
-class FELuaProfilerModule : public IModuleInterface
+void FELuaProfilerCommands::RegisterCommands()
 {
-public:
+	UI_COMMAND(OpenWindow, "ELuaProfiler", "Open Easy Lua Profiler", EUserInterfaceActionType::Button, FInputChord());
+}
 
-	/** IModuleInterface implementation */
-	virtual void StartupModule() override;
-	virtual void ShutdownModule() override;
+#endif
 
-    
-	void PluginButtonClicked();
-private:
-	// fields
-	FTickerDelegate TickDelegate;
-	FDelegateHandle TickDelegateHandle;
-	bool tabOpened = false;
-	TSharedPtr<class FUICommandList> PluginCommands;
-
-	// functions
-	void OnTabClosed(TSharedRef<SDockTab> tab);
-    
-	TSharedRef<class SDockTab> OnSpawnPluginTab(const class FSpawnTabArgs& SpawnTabArgs);
-	bool Tick(float DeltaTime);
-	void ClearCurProfiler();
-	void AddMenuExtension(FMenuBuilder& Builder);
-};
+#undef LOCTEXT_NAMESPACE

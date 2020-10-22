@@ -21,7 +21,6 @@
 // THE SOFTWARE.
 
 #include "ELuaMemSnapshot.h"
-#include "ELuaCommonUtil.h"
 
 FELuaMemSnapshot::FELuaMemSnapshot()
 {

@@ -40,8 +40,6 @@ public:
 		return SingletonInstance;
 	}
 
-	void Init();
-
 	void Start();
 
 	void Stop();
@@ -62,7 +60,7 @@ private:
 
 	void OnHookReturn(lua_State* L);
 
-	void CorrectTime();
+	void Init();
 
 private:
 	/* max depth of hook  tracking */

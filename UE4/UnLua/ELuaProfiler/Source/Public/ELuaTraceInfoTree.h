@@ -25,6 +25,15 @@
 #include "ELuaBase.h"
 #include "ELuaTraceInfoNode.h"
 
+#define CORRECT_TIME false
+
+#if CORRECT_TIME
+#define DEVIATION 10	// default deviation 10ns
+#else
+#define DEVIATION 0
+#endif // CORRECT_TIME
+
+
 class ELUAPROFILER_API FELuaTraceInfoTree
 {
 public:
@@ -37,8 +46,12 @@ public:
 
 	bool IsOnRoot() { return CurNode == Root; }
 
+	void CountSelfTime() { CountNodeSelfTime(Root); }
+
 private:
 	TSharedPtr<FELuaTraceInfoNode> GetChild(lua_Debug* ar);
+
+	void CountNodeSelfTime(TSharedPtr<FELuaTraceInfoNode> Node);
 
 private:
 	TSharedPtr<FELuaTraceInfoNode> Root;

@@ -25,8 +25,14 @@
 
 FELuaMonitor* FELuaMonitor::SingletonInstance = nullptr;
 
+void FELuaMonitor::Init()
+{
+	CurTraceTree = TSharedPtr<FELuaTraceInfoTree>(new FELuaTraceInfoTree());
+}
+
 void FELuaMonitor::Start()
 {
+	Init();
 	lua_sethook(UnLua::GetState(), OnHook, ELuaProfiler::HookMask, 0);
 }
 
@@ -42,7 +48,10 @@ void FELuaMonitor::Pause()
 
 void FELuaMonitor::Resume()
 {
-	lua_sethook(UnLua::GetState(), OnHook, ELuaProfiler::HookMask, 0);
+	if (CurTraceTree)
+	{
+		lua_sethook(UnLua::GetState(), OnHook, ELuaProfiler::HookMask, 0);
+	}
 }
 
 /*static*/ void FELuaMonitor::OnHook(lua_State* L, lua_Debug* ar)

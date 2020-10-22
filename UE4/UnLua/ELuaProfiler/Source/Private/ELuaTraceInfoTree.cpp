@@ -24,7 +24,9 @@
 
 FELuaTraceInfoTree::FELuaTraceInfoTree()
 {
-	Root = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode());
+	FString RootName("Root");
+	Root = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(nullptr, RootName, "Root", 0));
+	Root->BeginInvoke();
 	CurNode = Root;
 }
 
@@ -59,4 +61,18 @@ TSharedPtr <FELuaTraceInfoNode> FELuaTraceInfoTree::GetChild(lua_Debug* ar)
 		Child = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(CurNode, ID, ar->name, ar->event));
 	}
 	return Child;
+}
+
+void FELuaTraceInfoTree::CountNodeSelfTime(TSharedPtr<FELuaTraceInfoNode> Node)
+{
+	if (Node)
+	{
+		// ifdef CORRECT_TIME sub profiler's own time overhead
+		Node->SelfTime = Node->TotalTime - DEVIATION * Node->Count;
+		for (int32 i = 0; i < Node->Children.Num(); i++)
+		{
+			Node->SelfTime -= Node->Children[i]->TotalTime;
+			CountNodeSelfTime(Node->Children[i]);
+		}
+	}
 }

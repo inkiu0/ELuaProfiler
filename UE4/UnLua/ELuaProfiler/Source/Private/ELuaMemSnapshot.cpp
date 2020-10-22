@@ -81,7 +81,7 @@ const void* FELuaMemSnapshot::Record(lua_State* L, const char* Desc, int32 Level
 {
 	int32 t = lua_type(L, -1);
 	const void* ObjAddress = lua_topointer(L, -1);
-	int32 Size = cast_int(lua_sizeof(L, -1));
+	int32 Size = lua_sizeof(L, -1);
 	const char* Type = lua_typename(L, t);
 
 	return Record(ObjAddress, Type, Size, Desc, Level, Parent);

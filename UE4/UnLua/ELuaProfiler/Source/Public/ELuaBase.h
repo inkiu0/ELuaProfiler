@@ -27,9 +27,17 @@
 #include "CoreUObject.h"
 #include "lua.hpp"
 
-#define GetTimeNs() std::chrono::high_resolution_clock::now().time_since_epoch().count();
+typedef std::chrono::high_resolution_clock Clock;
 
-#define GetTimeMs() (std::chrono::high_resolution_clock::now().time_since_epoch().count() / 1000);
+int64 GetTimeNs() { return Clock::now().time_since_epoch().count(); }
+
+int64 GetTimeMs() { return Clock::now().time_since_epoch().count() / 1000; }
+
+int32 GetStateMemB();
+
+int32 GetStateMemKB();
+
+int32 lua_sizeof(lua_State* L, int32 idx);
 
 namespace ELuaProfiler
 {
@@ -37,9 +45,3 @@ namespace ELuaProfiler
 
 	const int HookMask = LUA_MASKCALL | LUA_MASKRET;
 }
-
-int GetStateMemB();
-
-int GetStateMemKB();
-
-//struct lua_State;

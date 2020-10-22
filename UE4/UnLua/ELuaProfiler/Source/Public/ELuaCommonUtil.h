@@ -23,5 +23,3 @@
 #pragma once
 
 #include "ELuaBase.h"
-
-size_t lua_sizeof(lua_State* L, int32 idx);

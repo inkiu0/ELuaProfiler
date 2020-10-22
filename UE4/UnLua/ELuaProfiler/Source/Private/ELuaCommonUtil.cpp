@@ -70,7 +70,7 @@ static TValue* lua_index2addr(lua_State* L, int idx)
 	}
 }
 
-size_t lua_sizeof(lua_State* L, int32 idx)
+int32 lua_sizeof(lua_State* L, int32 idx)
 {
 	TValue* o = lua_index2addr(L, idx);
 	if (!o)
@@ -151,12 +151,12 @@ size_t lua_sizeof(lua_State* L, int32 idx)
 	}
 }
 
-int GetStateMemB()
+int32 GetStateMemB()
 {
 	return cast_int(gettotalbytes(G(UnLua::GetState())));
 }
 
-int GetStateMemKB()
+int32 GetStateMemKB()
 {
 	return cast_int(gettotalbytes(G(UnLua::GetState()))) / 1000;
 }

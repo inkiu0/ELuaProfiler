@@ -22,13 +22,24 @@
 
 #pragma once
 
+#include <chrono>
 #include "CoreMinimal.h"
 #include "CoreUObject.h"
 #include "lua.hpp"
 
+#define GetTimeNs() std::chrono::high_resolution_clock::now().time_since_epoch().count();
+
+#define GetTimeMs() (std::chrono::high_resolution_clock::now().time_since_epoch().count() / 1000);
+
 namespace ELuaProfiler
 {
 	static const FName ELuaProfilerTabName(TEXT("ELuaProfiler"));
+
+	const int HookMask = LUA_MASKCALL | LUA_MASKRET;
 }
+
+int GetStateMemB();
+
+int GetStateMemKB();
 
 //struct lua_State;

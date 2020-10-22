@@ -22,50 +22,56 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "ELuaBase.h"
+#include "ELuaTraceInfoTree.h"
 
-struct ELUAPROFILER_API FELuaMemInfoNode
+class ELUAPROFILER_API FELuaMonitor
 {
-	/* show name */
-	FString name;
+public:
+	FELuaMonitor() { };
+	~FELuaMonitor() { };
 
-	/* detail description */
-	FString desc;
-
-	/* self size */
-	int32 size;
-
-	/* the depth of this node */
-	int32 level;
-
-	/* the reference count of this lua object */
-	int32 count;
-
-	/* the type name of this lua object */
-	FString type;
-
-	/* the address of lua object */
-	const void* address = nullptr;
-
-	/* last recorded parent node */
-	TSharedPtr<FELuaMemInfoNode> parent = nullptr;
-
-	/* all child nodes */
-	TArray<TSharedPtr<FELuaMemInfoNode>> children;
-
-	/* all parent nodes. a node may be referenced by multi other nodes */
-	TMap<const void*, TSharedPtr<FELuaMemInfoNode>> parents;
-
-	void Empty()
+	static FELuaMonitor* GetInstance()
 	{
-		name.Empty();
-		desc.Empty();
-		size = 0;
-		level = 0;
-		count = 0;
-		type = 0;
-		address = nullptr;
-		parent = nullptr;
-		children.Empty();
+		if (!SingletonInstance)
+		{
+			SingletonInstance = new FELuaMonitor();
+		}
+		return SingletonInstance;
 	}
+
+	void Init();
+
+	void Start();
+
+	void Stop();
+
+	void Pause();
+
+	void Resume();
+
+	void SetMaxDepth(uint32 Depth) { MaxDepth = Depth; }
+
+	void LoadFile(const FString& Path);
+
+	void PrintToFile(const FString& Path);
+private:
+	static void OnHook(lua_State* L, lua_Debug* ar);
+
+	void OnHookCall(lua_State* L, lua_Debug* ar);
+
+	void OnHookReturn(lua_State* L);
+
+	void CorrectTime();
+
+private:
+	/* max depth of hook  tracking */
+	uint32 MaxDepth = 1;
+
+	/* current depth of hook tracking */
+	uint32 CurDepth = 0;
+
+	TSharedPtr<FELuaTraceInfoTree> CurTraceTree;
+
+	static FELuaMonitor* SingletonInstance;
 };

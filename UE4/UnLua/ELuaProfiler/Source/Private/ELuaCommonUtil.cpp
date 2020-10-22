@@ -21,6 +21,7 @@
 // THE SOFTWARE.
 
 #include "ELuaCommonUtil.h"
+#include "UnLuaBase.h"
 extern "C"
 {
 #include "lstate.h"
@@ -148,4 +149,14 @@ size_t lua_sizeof(lua_State* L, int32 idx)
 	}
 	default: return 0;
 	}
+}
+
+int GetStateMemB()
+{
+	return cast_int(gettotalbytes(G(UnLua::GetState())));
+}
+
+int GetStateMemKB()
+{
+	return cast_int(gettotalbytes(G(UnLua::GetState()))) / 1000;
 }

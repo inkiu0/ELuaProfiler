@@ -22,50 +22,26 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "ELuaBase.h"
+#include "ELuaTraceInfoNode.h"
 
-struct ELUAPROFILER_API FELuaMemInfoNode
+class ELUAPROFILER_API FELuaTraceInfoTree
 {
-	/* show name */
-	FString name;
+public:
+	FELuaTraceInfoTree();
+	~FELuaTraceInfoTree();
 
-	/* detail description */
-	FString desc;
+	void OnHookCall(lua_State* L, lua_Debug* ar);
 
-	/* self size */
-	int32 size;
+	void OnHookReturn();
 
-	/* the depth of this node */
-	int32 level;
+	bool IsOnRoot() { return CurNode == Root; }
 
-	/* the reference count of this lua object */
-	int32 count;
+private:
+	TSharedPtr<FELuaTraceInfoNode> GetChild(lua_Debug* ar);
 
-	/* the type name of this lua object */
-	FString type;
-
-	/* the address of lua object */
-	const void* address = nullptr;
-
-	/* last recorded parent node */
-	TSharedPtr<FELuaMemInfoNode> parent = nullptr;
-
-	/* all child nodes */
-	TArray<TSharedPtr<FELuaMemInfoNode>> children;
-
-	/* all parent nodes. a node may be referenced by multi other nodes */
-	TMap<const void*, TSharedPtr<FELuaMemInfoNode>> parents;
-
-	void Empty()
-	{
-		name.Empty();
-		desc.Empty();
-		size = 0;
-		level = 0;
-		count = 0;
-		type = 0;
-		address = nullptr;
-		parent = nullptr;
-		children.Empty();
-	}
+private:
+	TSharedPtr<FELuaTraceInfoNode> Root;
+	TSharedPtr<FELuaTraceInfoNode> CurNode;
+	uint32 CurDepth = 0;
 };

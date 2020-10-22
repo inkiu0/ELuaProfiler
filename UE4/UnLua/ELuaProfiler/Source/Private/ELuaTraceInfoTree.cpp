@@ -20,52 +20,43 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#pragma once
+#include "ELuaTraceInfoTree.h"
 
-#include "CoreMinimal.h"
-
-struct ELUAPROFILER_API FELuaMemInfoNode
+FELuaTraceInfoTree::FELuaTraceInfoTree()
 {
-	/* show name */
-	FString name;
+	Root = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode());
+	CurNode = Root;
+}
 
-	/* detail description */
-	FString desc;
+FELuaTraceInfoTree::~FELuaTraceInfoTree()
+{
+	Root = nullptr;
+	CurNode = nullptr;
+}
 
-	/* self size */
-	int32 size;
+void FELuaTraceInfoTree::OnHookCall(lua_State* L, lua_Debug* ar)
+{
+	lua_getinfo(L, "nS", ar);
+	TSharedPtr<FELuaTraceInfoNode> Child = GetChild(ar);
+	Child->BeginInvoke();
+	CurNode = Child;
+	++CurDepth;
+}
 
-	/* the depth of this node */
-	int32 level;
+void FELuaTraceInfoTree::OnHookReturn()
+{
+	CurNode->EndInvoke();
+	CurNode = CurNode->Parent;
+	--CurDepth;
+}
 
-	/* the reference count of this lua object */
-	int32 count;
-
-	/* the type name of this lua object */
-	FString type;
-
-	/* the address of lua object */
-	const void* address = nullptr;
-
-	/* last recorded parent node */
-	TSharedPtr<FELuaMemInfoNode> parent = nullptr;
-
-	/* all child nodes */
-	TArray<TSharedPtr<FELuaMemInfoNode>> children;
-
-	/* all parent nodes. a node may be referenced by multi other nodes */
-	TMap<const void*, TSharedPtr<FELuaMemInfoNode>> parents;
-
-	void Empty()
+TSharedPtr <FELuaTraceInfoNode> FELuaTraceInfoTree::GetChild(lua_Debug* ar)
+{
+	FString ID = FString::Printf(TEXT("%s:%d"), ar->short_src, ar->linedefined);
+	TSharedPtr<FELuaTraceInfoNode> Child = CurNode->GetChild(ID);
+	if (!Child)
 	{
-		name.Empty();
-		desc.Empty();
-		size = 0;
-		level = 0;
-		count = 0;
-		type = 0;
-		address = nullptr;
-		parent = nullptr;
-		children.Empty();
+		Child = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(CurNode, ID, ar->name, ar->event));
 	}
-};
+	return Child;
+}

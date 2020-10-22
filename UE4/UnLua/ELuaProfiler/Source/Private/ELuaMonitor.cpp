@@ -20,52 +20,60 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#pragma once
+#include "ELuaMonitor.h"
+#include "UnLuaBase.h"
 
-#include "CoreMinimal.h"
+FELuaMonitor* FELuaMonitor::SingletonInstance = nullptr;
 
-struct ELUAPROFILER_API FELuaMemInfoNode
+void FELuaMonitor::Start()
 {
-	/* show name */
-	FString name;
+	lua_sethook(UnLua::GetState(), OnHook, ELuaProfiler::HookMask, 0);
+}
 
-	/* detail description */
-	FString desc;
+void FELuaMonitor::Stop()
+{
+	lua_sethook(UnLua::GetState(), nullptr, 0, 0);
+}
 
-	/* self size */
-	int32 size;
+void FELuaMonitor::Pause()
+{
+	lua_sethook(UnLua::GetState(), nullptr, 0, 0);
+}
 
-	/* the depth of this node */
-	int32 level;
+void FELuaMonitor::Resume()
+{
+	lua_sethook(UnLua::GetState(), OnHook, ELuaProfiler::HookMask, 0);
+}
 
-	/* the reference count of this lua object */
-	int32 count;
-
-	/* the type name of this lua object */
-	FString type;
-
-	/* the address of lua object */
-	const void* address = nullptr;
-
-	/* last recorded parent node */
-	TSharedPtr<FELuaMemInfoNode> parent = nullptr;
-
-	/* all child nodes */
-	TArray<TSharedPtr<FELuaMemInfoNode>> children;
-
-	/* all parent nodes. a node may be referenced by multi other nodes */
-	TMap<const void*, TSharedPtr<FELuaMemInfoNode>> parents;
-
-	void Empty()
+/*static*/ void FELuaMonitor::OnHook(lua_State* L, lua_Debug* ar)
+{
+	switch (ar->event)
 	{
-		name.Empty();
-		desc.Empty();
-		size = 0;
-		level = 0;
-		count = 0;
-		type = 0;
-		address = nullptr;
-		parent = nullptr;
-		children.Empty();
+	case LUA_HOOKCALL:
+		FELuaMonitor::GetInstance()->OnHookCall(L, ar);
+		break;
+	case LUA_MASKRET:
+		FELuaMonitor::GetInstance()->OnHookReturn(L);
+		break;
+	default:
+		break;
 	}
-};
+}
+
+void FELuaMonitor::OnHookCall(lua_State* L, lua_Debug* ar)
+{
+	if (CurDepth < MaxDepth)
+	{
+		CurTraceTree->OnHookCall(L, ar);
+	}
+	CurDepth++;
+}
+
+void FELuaMonitor::OnHookReturn(lua_State* L)
+{
+	if (CurDepth <= MaxDepth && !CurTraceTree->IsOnRoot())
+	{
+		CurTraceTree->OnHookReturn();
+	}
+	CurDepth--;
+}

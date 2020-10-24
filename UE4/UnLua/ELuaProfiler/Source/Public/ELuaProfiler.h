@@ -24,6 +24,7 @@
 
 #include "ELuaBase.h"
 #include "ModuleManager.h"
+#include "ELuaMonitorPanel.h"
 #include "Widgets/Docking/SDockTab.h"
 
 /** Declares a log category for this module. */
@@ -51,4 +52,5 @@ private:
 	FDelegateHandle TickDelegateHandle;
 	bool m_bTabOpened = false;
 	TSharedPtr<class FUICommandList> PluginCommands;
+	TSharedPtr<SELuaMonitorPanel> MonitorPanel;
 };

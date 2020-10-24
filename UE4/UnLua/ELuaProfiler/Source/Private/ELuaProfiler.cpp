@@ -21,6 +21,7 @@
 // THE SOFTWARE.
 
 #include "ELuaProfiler.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
 #if WITH_EDITOR
 #include "LevelEditor.h"
 #include "ELuaProfilerCommands.h"
@@ -54,6 +55,7 @@ void FELuaProfilerModule::StartupModule()
 
 	if (GIsEditor && !IsRunningCommandlet())
 	{
+		MonitorPanel = MakeShareable(new SELuaMonitorPanel);
 		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ELuaProfiler::ELuaProfilerTabName,
 			FOnSpawnTab::CreateRaw(this, &FELuaProfilerModule::OnSpawnPluginTab))
 			.SetDisplayName(LOCTEXT("Flua_wrapperTabTitle", "Easy Lua Profiler"))
@@ -67,6 +69,8 @@ void FELuaProfilerModule::StartupModule()
 void FELuaProfilerModule::ShutdownModule()
 {
 #if WITH_EDITOR
+	MonitorPanel = nullptr;
+
 	FELuaProfilerCommands::Unregister();
 
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(ELuaProfiler::ELuaProfilerTabName);
@@ -90,7 +94,16 @@ bool FELuaProfilerModule::Tick(float DeltaTime)
 
 TSharedRef<class SDockTab> FELuaProfilerModule::OnSpawnPluginTab(const FSpawnTabArgs& SpawnTabArgs)
 {
-	return SNew(SDockTab).TabRole(ETabRole::NomadTab);
+	if (MonitorPanel.IsValid())
+	{
+		TSharedRef<SDockTab> DockTab = MonitorPanel->GetSDockTab();
+		DockTab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateRaw(this, &FELuaProfilerModule::OnTabClosed));
+		return DockTab;
+	}
+	else
+	{
+		return SNew(SDockTab).TabRole(ETabRole::NomadTab);
+	}
 }
 
 void FELuaProfilerModule::AddMenuExtension(FMenuBuilder & Builder)

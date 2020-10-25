@@ -89,6 +89,8 @@ bool FELuaProfilerModule::Tick(float DeltaTime)
 		return true;
 	}
 
+	MonitorPanel->Tick(DeltaTime);
+
 	return true;
 }
 
@@ -98,6 +100,7 @@ TSharedRef<class SDockTab> FELuaProfilerModule::OnSpawnPluginTab(const FSpawnTab
 	{
 		TSharedRef<SDockTab> DockTab = MonitorPanel->GetSDockTab();
 		DockTab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateRaw(this, &FELuaProfilerModule::OnTabClosed));
+		m_bTabOpened = true;
 		return DockTab;
 	}
 	else

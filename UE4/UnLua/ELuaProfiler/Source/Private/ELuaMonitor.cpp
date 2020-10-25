@@ -25,31 +25,65 @@
 
 FELuaMonitor* FELuaMonitor::SingletonInstance = nullptr;
 
+FELuaMonitor::FELuaMonitor()
+{
+	Init();
+}
+
+FELuaMonitor::~FELuaMonitor()
+{
+	CurTraceTree = nullptr;
+}
+
 void FELuaMonitor::Init()
 {
-	CurTraceTree = TSharedPtr<FELuaTraceInfoTree>(new FELuaTraceInfoTree());
+	if (UnLua::GetState())
+	{
+		State |= INITED;
+	}
+	else
+	{
+		State &= (~INITED);
+	}
+	if (!CurTraceTree)
+	{
+		CurTraceTree = TSharedPtr<FELuaTraceInfoTree>(new FELuaTraceInfoTree());
+	}
 }
 
 void FELuaMonitor::Start()
 {
 	Init();
-	lua_sethook(UnLua::GetState(), OnHook, ELuaProfiler::HookMask, 0);
+	if ((State & INITED) > 0)
+	{
+		lua_sethook(UnLua::GetState(), OnHook, ELuaProfiler::HookMask, 0);
+	}
+	State |=STARTED;
 }
 
 void FELuaMonitor::Stop()
 {
-	lua_sethook(UnLua::GetState(), nullptr, 0, 0);
+	if (State == RUNING)
+	{
+		lua_sethook(UnLua::GetState(), nullptr, 0, 0);
+	}
+	State &= (~STARTED);
 }
 
 void FELuaMonitor::Pause()
 {
-	lua_sethook(UnLua::GetState(), nullptr, 0, 0);
+	if (State == RUNING)
+	{
+		lua_sethook(UnLua::GetState(), nullptr, 0, 0);
+	}
+	State |= PAUSE;
 }
 
 void FELuaMonitor::Resume()
 {
-	if (CurTraceTree)
+	if ((State & PAUSE) > 0)
 	{
+		State &= (~PAUSE);
 		lua_sethook(UnLua::GetState(), OnHook, ELuaProfiler::HookMask, 0);
 	}
 }
@@ -85,4 +119,33 @@ void FELuaMonitor::OnHookReturn(lua_State* L)
 		CurTraceTree->OnHookReturn();
 	}
 	CurDepth--;
+}
+
+TSharedPtr<FELuaTraceInfoNode> FELuaMonitor::GetRoot(uint32 Index /* = 0 */)
+{
+	if (Index == 0)
+	{
+		return CurTraceTree->GetRoot();
+	}
+	return CurTraceTree->GetRoot();
+}
+
+void FELuaMonitor::Tick(float DeltaTime)
+{
+	if (State == RUNING)
+	{
+		// game stop
+		if (!UnLua::GetState())
+		{
+			Stop();
+		}
+	}
+	else if(State == STARTED)
+	{
+		// waiting game start
+		if (UnLua::GetState())
+		{
+			Init();
+		}
+	}
 }

@@ -25,11 +25,21 @@
 #include "ELuaBase.h"
 #include "ELuaTraceInfoTree.h"
 
+enum EMonitorState : uint32
+{
+	CREATED = 0,
+	STARTED = 1 << 0,
+	INITED = 1 << 1,
+	RUNING = STARTED | INITED,
+	PAUSE = 1 << 2,
+	//PAUSE = 1 << 3,
+};
+
 class ELUAPROFILER_API FELuaMonitor
 {
 public:
-	FELuaMonitor() { };
-	~FELuaMonitor() { };
+	FELuaMonitor();
+	~FELuaMonitor();
 
 	static FELuaMonitor* GetInstance()
 	{
@@ -48,7 +58,11 @@ public:
 
 	void Resume();
 
+	void Tick(float DeltaTime);
+
 	void SetMaxDepth(uint32 Depth) { MaxDepth = Depth; }
+
+	TSharedPtr<FELuaTraceInfoNode> GetRoot(uint32 Index = 0);
 
 	void LoadFile(const FString& Path);
 
@@ -70,6 +84,12 @@ private:
 	uint32 CurDepth = 0;
 
 	TSharedPtr<FELuaTraceInfoTree> CurTraceTree;
+
+	bool Started = false;
+
+	bool Inited = false;
+
+	uint32 State = CREATED;
 
 	static FELuaMonitor* SingletonInstance;
 };

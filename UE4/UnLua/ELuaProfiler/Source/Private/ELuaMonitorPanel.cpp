@@ -21,6 +21,7 @@
 // THE SOFTWARE.
 
 #include "ELuaMonitorPanel.h"
+#include "ELuaMonitor.h"
 #include "EditorStyleSet.h"
 #include "Widgets/Layout/SScrollBox.h"
 
@@ -36,10 +37,14 @@ SELuaMonitorPanel::~SELuaMonitorPanel()
 
 TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 {
+	CurRootTINode = FELuaMonitor::GetInstance()->GetRoot();
+	ShowRootList = { CurRootTINode };
+
+
 	// Init TreeViewWidget
 	SAssignNew(TreeViewWidget, STreeView<TSharedPtr<FELuaTraceInfoNode>>)
 		.ItemHeight(800)
-		.TreeItemsSource(&CurTINodeList)
+		.TreeItemsSource(&ShowRootList)
 		.OnGenerateRow_Raw(this, &SELuaMonitorPanel::OnGenerateRow)
 		.OnGetChildren_Raw(this, &SELuaMonitorPanel::OnGetChildrenRaw)
 		.SelectionMode(ESelectionMode::None)
@@ -78,12 +83,17 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 
 TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfoNode> TINode, const TSharedRef<STableViewBase>& OwnerTable)
 {
+	int64 TotalTime = CurRootTINode->TotalTime;
+	int64 SelfTime = CurRootTINode->SelfTime;
+	int32 AllocSize = CurRootTINode->AllocSize;
+	int32 GCSize = CurRootTINode->GCSize;
+
 	return
-		SNew(STableRow<TSharedPtr<FELuaTraceInfoNode>>, OwnerTable)
-		.Padding(2.0f)/*.Visibility_Lambda([=]() {
-			return EVisibility::Visible;
-		})*/
-		[
+	SNew(STableRow<TSharedPtr<FELuaTraceInfoNode>>, OwnerTable)
+	.Padding(2.0f)/*.Visibility_Lambda([=]() {
+		return EVisibility::Visible;
+	})*/
+	[
 		SNew(SHeaderRow)
 		+ SHeaderRow::Column("Name").DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::FromString(TINode->Name);
@@ -101,13 +111,13 @@ TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfo
 			return FText::AsNumber(TINode->TotalTime / 1000.f);
 		}))
 		+ SHeaderRow::Column("TotalTime(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->TotalTime / CurRootTINode->TotalTime);
-			}))
+			return FText::AsNumber(TINode->TotalTime / TotalTime);
+		}))
 		+ SHeaderRow::Column("SelfTime(ms)").DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->SelfTime / 1000.f);
 		}))
 		+ SHeaderRow::Column("SelfTime(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->SelfTime / CurRootTINode->SelfTime);
+			return FText::AsNumber(TINode->SelfTime / SelfTime);
 		}))
 		+ SHeaderRow::Column("Average(ms)").DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->TotalTime / TINode->Count);
@@ -116,20 +126,20 @@ TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfo
 			return FText::AsNumber(TINode->AllocSize / 1000.f);
 		}))
 		+ SHeaderRow::Column("Alloc(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->AllocSize / CurRootTINode->AllocSize);
+			return FText::AsNumber(TINode->AllocSize / AllocSize);
 		}))
 		+ SHeaderRow::Column("GC(kb)").DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->GCSize / 1000.f);
 		}))
 		+ SHeaderRow::Column("GC(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->GCSize / CurRootTINode->GCSize);
+			return FText::AsNumber(TINode->GCSize / GCSize);
 		}))
 		.FixedWidth(COL_WIDTH)
 		+ SHeaderRow::Column("Calls").DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->Count);
 		}))
 		.FixedWidth(COL_WIDTH)
-		];
+	];
 }
 
 void SELuaMonitorPanel::OnGetChildrenRaw(TSharedPtr<FELuaTraceInfoNode> TINode, TArray<TSharedPtr<FELuaTraceInfoNode>>& OutChildren)
@@ -138,4 +148,16 @@ void SELuaMonitorPanel::OnGetChildrenRaw(TSharedPtr<FELuaTraceInfoNode> TINode, 
 	{
 		OutChildren = TINode->Children;
 	}
+}
+
+void SELuaMonitorPanel::Tick(float DeltaTime)
+{
+	FELuaMonitor::GetInstance()->Tick(DeltaTime);
+
+	if (false/*NeedReGenerate*/)
+	{
+		TreeViewWidget->RebuildList();
+	}
+
+	TreeViewWidget->RequestTreeRefresh();
 }

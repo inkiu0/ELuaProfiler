@@ -24,39 +24,29 @@
 
 #include "CoreMinimal.h"
 #include "ELuaTraceInfoNode.h"
-#include "ELuaTraceInfoTree.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Views/STreeView.h"
 #include "Widgets/Docking/SDockTab.h"
 
-class SELuaMonitorPanel// : public SCompoundWidget
+class SELuaMonitorPanel
 {
 public:
 	SELuaMonitorPanel();
 	~SELuaMonitorPanel();
-	//SLATE_BEGIN_ARGS(SELuaMonitorPanel)
-	//:_StdLineVisibility(EVisibility::Visible)
-	//{}
-
-	//SLATE_ATTRIBUTE(EVisibility, StdLineVisibility)
-
-	//SLATE_END_ARGS()
-
-	//void Construct(const FArguments& InArgs);
-
- //   void Refresh(FELuaTraceInfoTree& InfoTree);
 
     TSharedRef<class SDockTab> GetSDockTab();
 
 	TSharedRef<ITableRow> OnGenerateRow(TSharedPtr<FELuaTraceInfoNode> TINode, const TSharedRef<STableViewBase>& OwnerTable);
 
 	void OnGetChildrenRaw(TSharedPtr<FELuaTraceInfoNode> Parent, TArray<TSharedPtr<FELuaTraceInfoNode>>& OutChildren);
+
+	void Tick(float DeltaTime);
 private:
 	TSharedPtr<STreeView<TSharedPtr<FELuaTraceInfoNode>>> TreeViewWidget;
 
-	TArray<TSharedPtr<FELuaTraceInfoNode>> CurTINodeList;
-
 	TSharedPtr<FELuaTraceInfoNode> CurRootTINode;
+
+	TArray<TSharedPtr<FELuaTraceInfoNode>> ShowRootList;
 
 	const static int COL_WIDTH = 80;
 };

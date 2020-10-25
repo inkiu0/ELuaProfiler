@@ -59,6 +59,7 @@ TSharedPtr <FELuaTraceInfoNode> FELuaTraceInfoTree::GetChild(lua_Debug* ar)
 	if (!Child)
 	{
 		Child = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(CurNode, ID, ar->name, ar->event));
+		CurNode->AddChild(Child);
 	}
 	return Child;
 }

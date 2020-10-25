@@ -30,28 +30,28 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 	FString Name = "anonymous";
 
 	/* call time */
-	int64 CallTime;
+	int64 CallTime = 0;
 
 	/* self time */
-	int64 SelfTime;
+	int64 SelfTime = 0;
 
 	/* total time */
-	int64 TotalTime;
+	int64 TotalTime = 0;
 
 	/* the total size of lua_State when this node invoke */
-	int32 CallSize;
+	int32 CallSize = 0;
 
 	/* the total size of lua_State when this node return */
 	//int32 ReturnSize;
 
 	/* the size of this node alloc */
-	int32 AllocSize;
+	int32 AllocSize = 0;
 
 	/* the size of this node release */
-	int32 GCSize;
+	int32 GCSize = 0;
 
 	/* the num of calls */
-	int32 Count;
+	int32 Count = 0;
 
 	/* debug info event 
 	 * LUA_HOOKCALL
@@ -60,7 +60,7 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 	 * LUA_HOOKLINE
 	 * LUA_HOOKCOUNT
 	 */
-	int32 Event;
+	int32 Event = -1;
 
 	/* node id */
 	FString ID;
@@ -80,6 +80,12 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 		Name = Name;
 		Event = Event;
 		Parent = P;
+	}
+
+	void AddChild(TSharedPtr<FELuaTraceInfoNode> Child)
+	{
+		Children.Add(Child);
+		ChildIDMap.Add(Child->ID, Child);
 	}
 
 	void BeginInvoke()

@@ -48,6 +48,8 @@ public:
 
 	void CountSelfTime() { CountNodeSelfTime(Root); }
 
+	TSharedPtr<FELuaTraceInfoNode> GetRoot() { return Root; }
+
 private:
 	TSharedPtr<FELuaTraceInfoNode> GetChild(lua_Debug* ar);
 

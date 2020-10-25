@@ -83,11 +83,6 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 
 TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfoNode> TINode, const TSharedRef<STableViewBase>& OwnerTable)
 {
-	int64 TotalTime = CurRootTINode->TotalTime;
-	int64 SelfTime = CurRootTINode->SelfTime;
-	int32 AllocSize = CurRootTINode->AllocSize;
-	int32 GCSize = CurRootTINode->GCSize;
-
 	return
 	SNew(STableRow<TSharedPtr<FELuaTraceInfoNode>>, OwnerTable)
 	.Padding(2.0f)/*.Visibility_Lambda([=]() {
@@ -111,28 +106,28 @@ TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfo
 			return FText::AsNumber(TINode->TotalTime / 1000.f);
 		}))
 		+ SHeaderRow::Column("TotalTime(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->TotalTime / TotalTime);
+			return FText::AsNumber(CurRootTINode->TotalTime > 0 ? TINode->TotalTime / CurRootTINode->TotalTime : 0);
 		}))
 		+ SHeaderRow::Column("SelfTime(ms)").DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->SelfTime / 1000.f);
 		}))
 		+ SHeaderRow::Column("SelfTime(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->SelfTime / SelfTime);
+			return FText::AsNumber(CurRootTINode->SelfTime > 0 ? TINode->SelfTime / CurRootTINode->SelfTime : 0);
 		}))
 		+ SHeaderRow::Column("Average(ms)").DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->TotalTime / TINode->Count);
+			return FText::AsNumber(TINode->Count > 0 ? TINode->TotalTime / TINode->Count : 0);
 		}))
 		+ SHeaderRow::Column("Alloc(kb)").DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->AllocSize / 1000.f);
 		}))
 		+ SHeaderRow::Column("Alloc(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->AllocSize / AllocSize);
+			return FText::AsNumber(CurRootTINode->AllocSize > 0 ? TINode->AllocSize / CurRootTINode->AllocSize : 0);
 		}))
 		+ SHeaderRow::Column("GC(kb)").DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->GCSize / 1000.f);
 		}))
 		+ SHeaderRow::Column("GC(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->GCSize / GCSize);
+			return FText::AsNumber(CurRootTINode->GCSize > 0 ? TINode->GCSize / CurRootTINode->GCSize : 0);
 		}))
 		.FixedWidth(COL_WIDTH)
 		+ SHeaderRow::Column("Calls").DefaultLabel(TAttribute<FText>::Create([=]() {

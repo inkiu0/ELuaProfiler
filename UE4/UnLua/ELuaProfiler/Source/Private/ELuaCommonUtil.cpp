@@ -153,10 +153,18 @@ int32 lua_sizeof(lua_State* L, int32 idx)
 
 int32 GetStateMemB()
 {
-	return cast_int(gettotalbytes(G(UnLua::GetState())));
+	if (lua_State* L = UnLua::GetState())
+	{
+		return cast_int(gettotalbytes(G(L)));
+	}
+	return 0;
 }
 
 int32 GetStateMemKB()
 {
-	return cast_int(gettotalbytes(G(UnLua::GetState()))) / 1000;
+	if (lua_State* L = UnLua::GetState())
+	{
+		return cast_int(gettotalbytes(G(L))) / 1000.f;
+	}
+	return 0;
 }

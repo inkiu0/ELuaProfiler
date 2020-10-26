@@ -31,7 +31,7 @@ typedef std::chrono::high_resolution_clock Clock;
 
 int64 GetTimeNs() { return Clock::now().time_since_epoch().count(); }
 
-int64 GetTimeMs() { return Clock::now().time_since_epoch().count() / 1000; }
+int64 GetTimeMs() { return Clock::now().time_since_epoch().count() * 0.000001; }
 
 int32 GetStateMemB();
 

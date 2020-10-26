@@ -93,16 +93,16 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 
 	void BeginInvoke()
 	{
-		CallTime = GetTimeNs();
-		CallSize = GetStateMemB();
+		CallTime = GetTimeMs();
+		CallSize = GetStateMemKb();
 		Count += 1;
 	}
 
 	int32 EndInvoke()
 	{
-		TotalTime += GetTimeNs() - CallTime;
+		TotalTime += GetTimeMs() - CallTime;
 
-		int32 Increment = GetStateMemB() - CallSize;
+		int32 Increment = GetStateMemKb() - CallSize;
 		if (Increment > 0)
 		{
 			AllocSize += Increment;

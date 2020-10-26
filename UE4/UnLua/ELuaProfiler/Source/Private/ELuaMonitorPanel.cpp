@@ -188,28 +188,28 @@ TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfo
 		//	return FText::AsNumber(TINode->SelfTime / CurRootTINode->SelfTime);
 		//}))
 		+SHeaderRow::Column("TotalTime(ms)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->TotalTime / 1000000.f);
+			return FText::AsNumber(TINode->TotalTime);
 		}))
 		+ SHeaderRow::Column("TotalTime(%)").FixedWidth(30).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(CurRootTINode->TotalTime > 0 ? TINode->TotalTime / CurRootTINode->TotalTime : 0);
 		}))
 		+ SHeaderRow::Column("SelfTime(ms)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->SelfTime / 1000000.f);
+			return FText::AsNumber(TINode->SelfTime);
 		}))
 		+ SHeaderRow::Column("SelfTime(%)").FixedWidth(30).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(CurRootTINode->SelfTime > 0 ? TINode->SelfTime / CurRootTINode->SelfTime : 0);
 		}))
 		+ SHeaderRow::Column("Average(ms)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->Count > 0 ? TINode->TotalTime / (TINode->Count * 1000000.f) : 0);
+			return FText::AsNumber(TINode->Count > 0 ? TINode->TotalTime / TINode->Count : 0);
 		}))
 		+ SHeaderRow::Column("Alloc(kb)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->AllocSize / 1000000.f);
+			return FText::AsNumber(TINode->AllocSize);
 		}))
 		+ SHeaderRow::Column("Alloc(%)").FixedWidth(30).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(CurRootTINode->AllocSize > 0 ? TINode->AllocSize / CurRootTINode->AllocSize : 0);
 		}))
 		+ SHeaderRow::Column("GC(kb)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->GCSize / 1000000.f);
+			return FText::AsNumber(TINode->GCSize);
 		}))
 		+ SHeaderRow::Column("GC(%)").FixedWidth(30).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(CurRootTINode->GCSize > 0 ? TINode->GCSize / CurRootTINode->GCSize : 0);

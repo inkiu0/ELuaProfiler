@@ -160,7 +160,7 @@ int32 GetStateMemB()
 	return 0;
 }
 
-int32 GetStateMemKB()
+int32 GetStateMemKb()
 {
 	if (lua_State* L = UnLua::GetState())
 	{

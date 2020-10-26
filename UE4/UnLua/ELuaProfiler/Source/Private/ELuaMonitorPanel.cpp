@@ -191,28 +191,47 @@ TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfo
 			return FText::AsNumber(TINode->TotalTime);
 		}))
 		+ SHeaderRow::Column("TotalTime(%)").FixedWidth(30).DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(CurRootTINode->TotalTime > 0 ? TINode->TotalTime / CurRootTINode->TotalTime : 0);
+			if (TINode->Parent && TINode->Parent->TotalTime > 0)
+			{
+				return FText::AsPercent(TINode->TotalTime / TINode->Parent->TotalTime);
+			} 
+			else
+			{
+				return FText::AsPercent(0.f);
+			}
 		}))
 		+ SHeaderRow::Column("SelfTime(ms)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->SelfTime);
 		}))
 		+ SHeaderRow::Column("SelfTime(%)").FixedWidth(30).DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(CurRootTINode->SelfTime > 0 ? TINode->SelfTime / CurRootTINode->SelfTime : 0);
+			if (TINode->Parent && TINode->Parent->TotalTime > 0)
+			{
+				return FText::AsPercent(TINode->SelfTime / TINode->Parent->TotalTime);
+			}
+			return FText::AsPercent(0.f);
 		}))
-		+ SHeaderRow::Column("Average(ms)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
+		+ SHeaderRow::Column("Avg(ms)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->Count > 0 ? TINode->TotalTime / TINode->Count : 0);
 		}))
 		+ SHeaderRow::Column("Alloc(kb)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->AllocSize);
 		}))
 		+ SHeaderRow::Column("Alloc(%)").FixedWidth(30).DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(CurRootTINode->AllocSize > 0 ? TINode->AllocSize / CurRootTINode->AllocSize : 0);
+			if (TINode->Parent && TINode->Parent->AllocSize > 0)
+			{
+				return FText::AsPercent(TINode->AllocSize / TINode->Parent->AllocSize);
+			}
+			return FText::AsPercent(0.f);
 		}))
 		+ SHeaderRow::Column("GC(kb)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->GCSize);
 		}))
 		+ SHeaderRow::Column("GC(%)").FixedWidth(30).DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(CurRootTINode->GCSize > 0 ? TINode->GCSize / CurRootTINode->GCSize : 0);
+			if (TINode->Parent && TINode->Parent->GCSize > 0)
+			{
+				return FText::AsPercent(TINode->GCSize / TINode->Parent->GCSize);
+			}
+			return FText::AsPercent(0.f);
 		}))
 		+ SHeaderRow::Column("Calls").DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->Count);

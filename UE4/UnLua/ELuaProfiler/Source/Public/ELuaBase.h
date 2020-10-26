@@ -31,11 +31,11 @@ typedef std::chrono::high_resolution_clock Clock;
 
 int64 GetTimeNs() { return Clock::now().time_since_epoch().count(); }
 
-int64 GetTimeMs() { return Clock::now().time_since_epoch().count() * 0.000001; }
+double GetTimeMs() { return Clock::now().time_since_epoch().count() * 0.000001; }
 
 int32 GetStateMemB();
 
-int32 GetStateMemKb();
+float GetStateMemKb();
 
 int32 lua_sizeof(lua_State* L, int32 idx);
 

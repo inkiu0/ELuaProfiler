@@ -160,11 +160,11 @@ int32 GetStateMemB()
 	return 0;
 }
 
-int32 GetStateMemKb()
+float GetStateMemKb()
 {
 	if (lua_State* L = UnLua::GetState())
 	{
-		return cast_int(gettotalbytes(G(L))) * 0.001;
+		return cast_int(gettotalbytes(G(L))) * 0.001f;
 	}
-	return 0;
+	return 0.f;
 }

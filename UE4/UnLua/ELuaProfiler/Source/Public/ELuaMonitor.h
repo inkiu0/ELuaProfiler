@@ -52,6 +52,8 @@ public:
 
 	void OnForward();
 
+	void OnClear();
+
 	void Tick(float DeltaTime);
 
 	void SetMaxDepth(uint32 Depth) { MaxDepth = Depth; }

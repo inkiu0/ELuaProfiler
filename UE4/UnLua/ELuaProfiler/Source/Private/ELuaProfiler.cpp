@@ -69,6 +69,8 @@ void FELuaProfilerModule::StartupModule()
 void FELuaProfilerModule::ShutdownModule()
 {
 #if WITH_EDITOR
+	MonitorPanel->OnDestroy();
+
 	MonitorPanel = nullptr;
 
 	FELuaProfilerCommands::Unregister();

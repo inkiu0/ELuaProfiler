@@ -51,6 +51,8 @@ public:
 
 	void Tick(float DeltaTime);
 
+	void OnDestroy();
+
 private:
 	FReply OnForwardBtnClicked();
 

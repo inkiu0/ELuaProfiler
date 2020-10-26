@@ -150,6 +150,7 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 					.ContentPadding(2.0)
 					.IsFocusable(false)
 					.OnClicked_Raw(this, &SELuaMonitorPanel::OnClearBtnClicked)
+					.ToolTipText(FText::FromName("Clear and stop monitor"))
 					[
 						SNew(SImage)
 						.Image(FEditorStyle::GetBrush("Cross"))
@@ -243,6 +244,10 @@ void SELuaMonitorPanel::UpdateRoot()
 		{
 			ShowRootList = CurRootTINode->Children;
 		}
+		else
+		{
+			ShowRootList = {};
+		}
 		break;
 	}
 }
@@ -276,7 +281,7 @@ FReply SELuaMonitorPanel::OnForwardBtnClicked()
 
 FReply SELuaMonitorPanel::OnClearBtnClicked()
 {
-	//FELuaMonitor::GetInstance()->Stop();
+	FELuaMonitor::GetInstance()->OnClear();
 	return FReply::Handled();
 }
 
@@ -308,4 +313,9 @@ void SELuaMonitorPanel::OnModeChanged(float InMode)
 			MonitorMode = (ELuaMonitorMode)InMode;
 		}
 	}
+}
+
+void SELuaMonitorPanel::OnDestroy()
+{
+	FELuaMonitor::GetInstance()->OnClear();
 }

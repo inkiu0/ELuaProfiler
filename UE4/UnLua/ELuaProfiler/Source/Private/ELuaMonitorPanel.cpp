@@ -43,10 +43,10 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 	UpdateRoot();
 
 
-	TArray<SNumericDropDown<float>::FNamedValue> NamedValuesForMonitorMode;
-	NamedValuesForMonitorMode.Add(SNumericDropDown<float>::FNamedValue(ELuaMonitorMode::PerFrame, FText::FromName("PerFrame"), FText::FromName("PerFrameRecord")));
-	NamedValuesForMonitorMode.Add(SNumericDropDown<float>::FNamedValue(ELuaMonitorMode::Total, FText::FromName("Total"), FText::FromName("RecordTotalInfo")));
-	NamedValuesForMonitorMode.Add(SNumericDropDown<float>::FNamedValue(ELuaMonitorMode::Statistics, FText::FromName("Statistics"), FText::FromName("Tile all node")));
+	TArray<SNumericDropDown<uint8>::FNamedValue> NamedValuesForMonitorMode;
+	NamedValuesForMonitorMode.Add(SNumericDropDown<uint8>::FNamedValue(ELuaMonitorMode::PerFrame, FText::FromName("PerFrame"), FText::FromName("PerFrameRecord")));
+	NamedValuesForMonitorMode.Add(SNumericDropDown<uint8>::FNamedValue(ELuaMonitorMode::Total, FText::FromName("Total"), FText::FromName("RecordTotalInfo")));
+	NamedValuesForMonitorMode.Add(SNumericDropDown<uint8>::FNamedValue(ELuaMonitorMode::Statistics, FText::FromName("Statistics"), FText::FromName("Tile all node")));
 
 
 	// Init TreeViewWidget
@@ -87,14 +87,14 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot().HAlign(HAlign_Left).VAlign(VAlign_Center).AutoWidth()
 				[
-					SNew(SButton)
-					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// 无底图以免按钮发白
-					.ContentPadding(2.0)
-					.IsFocusable(false)
-					[
-						SNew(SImage)
-						.Image(FEditorStyle::GetBrush("Cross"))
-					]
+
+					SNew(SNumericDropDown<uint8>)
+					.LabelText(FText::FromName("Mode:"))
+					.bShowNamedValue(true)
+					.DropDownValues(NamedValuesForMonitorMode)
+					.IsEnabled(true)
+					.Value_Lambda([this]() { return MonitorMode; })
+					.OnValueChanged_Raw(this, &SELuaMonitorPanel::OnModeChanged)
 				]
 
 				+SHorizontalBox::Slot()
@@ -298,4 +298,15 @@ const FSlateBrush* SELuaMonitorPanel::GetForwardIcon() const
 const FSlateBrush* SELuaMonitorPanel::GetNextFrameIcon() const
 {
 	return  &FEditorStyle::Get().GetWidgetStyle<FButtonStyle>("Animation.Forward_Step").Normal;
+}
+
+void SELuaMonitorPanel::OnModeChanged(uint8 InMode)
+{
+	if (InMode > -1 && InMode < ELuaMonitorMode::MAX)
+	{
+		if (MonitorMode != InMode)
+		{
+			MonitorMode = (ELuaMonitorMode)InMode;
+		}
+	}
 }

@@ -33,7 +33,8 @@ enum ELuaMonitorMode : uint8
 {
 	PerFrame,		// Deep Copy TraceInfoTree PerFrame
 	Total,			// Only one TraceInfoTree
-	Statistics		// Unfold TraceInfoTree
+	Statistics,		// Unfold TraceInfoTree
+	MAX
 };
 
 class SELuaMonitorPanel
@@ -62,6 +63,8 @@ private:
 	const FSlateBrush* GetNextFrameIcon() const;
 
 	void UpdateRoot();
+
+	void OnModeChanged(uint8 InMode);
 
 private:
 	TSharedPtr<STreeView<TSharedPtr<FELuaTraceInfoNode>>> TreeViewWidget;

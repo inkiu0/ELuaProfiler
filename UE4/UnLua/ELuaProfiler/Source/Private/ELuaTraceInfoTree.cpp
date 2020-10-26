@@ -91,7 +91,7 @@ void FELuaTraceInfoTree::CountNodeSelfTime(TSharedPtr<FELuaTraceInfoNode> Node)
 	if (Node)
 	{
 		Node->Children.Sort([](const TSharedPtr<FELuaTraceInfoNode>& A, const TSharedPtr <FELuaTraceInfoNode>& B) {
-			return A->TotalTime < B->TotalTime;
+			return A->TotalTime > B->TotalTime;
 		});
 
 		// ifdef CORRECT_TIME sub profiler's own time overhead

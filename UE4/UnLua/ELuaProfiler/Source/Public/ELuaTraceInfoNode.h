@@ -74,12 +74,15 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 	/* id map to FELuaTraceInfoNode */
 	TMap<FString, TSharedPtr<FELuaTraceInfoNode>> ChildIDMap;
 
-	FELuaTraceInfoNode(TSharedPtr<FELuaTraceInfoNode> P, FString& ID, const char* Name, int32 Event)
+	FELuaTraceInfoNode(TSharedPtr<FELuaTraceInfoNode> InParent, FString& InID, const char* InName, int32 InEvent)
 	{
-		ID = ID;
-		Name = Name;
-		Event = Event;
-		Parent = P;
+		ID = InID;
+		if (InName)
+		{
+			Name = InName;
+		}
+		Event = InEvent;
+		Parent = InParent;
 	}
 
 	void AddChild(TSharedPtr<FELuaTraceInfoNode> Child)
@@ -111,11 +114,11 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 		return Event;
 	}
 
-	TSharedPtr<FELuaTraceInfoNode> GetChild(const FString& ID)
+	TSharedPtr<FELuaTraceInfoNode> GetChild(const FString& InID)
 	{
-		if (ChildIDMap.Contains(ID))
+		if (ChildIDMap.Contains(InID))
 		{
-			return ChildIDMap[ID];
+			return ChildIDMap[InID];
 		}
 		return nullptr;
 	}

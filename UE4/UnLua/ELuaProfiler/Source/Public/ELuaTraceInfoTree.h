@@ -40,13 +40,15 @@ public:
 	FELuaTraceInfoTree();
 	~FELuaTraceInfoTree();
 
+	void Init();
+
 	void OnHookCall(lua_State* L, lua_Debug* ar);
 
 	void OnHookReturn();
 
 	bool IsOnRoot() { return CurNode == Root; }
 
-	void CountSelfTime() { CountNodeSelfTime(Root); }
+	void CountSelfTime();
 
 	TSharedPtr<FELuaTraceInfoNode> GetRoot() { return Root; }
 

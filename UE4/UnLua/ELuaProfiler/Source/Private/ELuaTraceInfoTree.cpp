@@ -24,10 +24,7 @@
 
 FELuaTraceInfoTree::FELuaTraceInfoTree()
 {
-	FString RootName("Root");
-	Root = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(nullptr, RootName, "Root", 0));
-	Root->BeginInvoke();
-	CurNode = Root;
+
 }
 
 FELuaTraceInfoTree::~FELuaTraceInfoTree()
@@ -36,25 +33,39 @@ FELuaTraceInfoTree::~FELuaTraceInfoTree()
 	CurNode = nullptr;
 }
 
+void FELuaTraceInfoTree::Init()
+{
+	FString RootName("Root");
+	Root = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(nullptr, RootName, "Root", 0));
+	Root->BeginInvoke();
+	CurNode = Root;
+}
+
 void FELuaTraceInfoTree::OnHookCall(lua_State* L, lua_Debug* ar)
 {
-	lua_getinfo(L, "nS", ar);
-	TSharedPtr<FELuaTraceInfoNode> Child = GetChild(ar);
-	Child->BeginInvoke();
-	CurNode = Child;
-	++CurDepth;
+	if (Root)
+	{
+		lua_getinfo(L, "nS", ar);
+		TSharedPtr<FELuaTraceInfoNode> Child = GetChild(ar);
+		Child->BeginInvoke();
+		CurNode = Child;
+		++CurDepth;
+	}
 }
 
 void FELuaTraceInfoTree::OnHookReturn()
 {
-	CurNode->EndInvoke();
-	CurNode = CurNode->Parent;
-	--CurDepth;
+	if (Root)
+	{
+		CurNode->EndInvoke();
+		CurNode = CurNode->Parent;
+		--CurDepth;
+	}
 }
 
 TSharedPtr <FELuaTraceInfoNode> FELuaTraceInfoTree::GetChild(lua_Debug* ar)
 {
-	FString ID = FString::Printf(TEXT("%s:%d"), ar->short_src, ar->linedefined);
+	FString ID = FString::Printf(TEXT("%s:%d"), UTF8_TO_TCHAR(ar->short_src), ar->linedefined);
 	TSharedPtr<FELuaTraceInfoNode> Child = CurNode->GetChild(ID);
 	if (!Child)
 	{
@@ -62,6 +73,17 @@ TSharedPtr <FELuaTraceInfoNode> FELuaTraceInfoTree::GetChild(lua_Debug* ar)
 		CurNode->AddChild(Child);
 	}
 	return Child;
+}
+
+void FELuaTraceInfoTree::CountSelfTime()
+{
+	if (Root)
+	{
+		Root->EndInvoke();
+		CountNodeSelfTime(Root);
+		Root->BeginInvoke();
+		Root->Count -= 1;
+	}
 }
 
 void FELuaTraceInfoTree::CountNodeSelfTime(TSharedPtr<FELuaTraceInfoNode> Node)

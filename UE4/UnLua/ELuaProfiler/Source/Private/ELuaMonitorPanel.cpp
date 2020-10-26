@@ -23,6 +23,7 @@
 #include "ELuaMonitorPanel.h"
 #include "ELuaMonitor.h"
 #include "EditorStyleSet.h"
+#include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SScrollBox.h"
 
 SELuaMonitorPanel::SELuaMonitorPanel()
@@ -37,8 +38,7 @@ SELuaMonitorPanel::~SELuaMonitorPanel()
 
 TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 {
-	CurRootTINode = FELuaMonitor::GetInstance()->GetRoot();
-	ShowRootList = { CurRootTINode };
+	UpdateRoot();
 
 
 	// Init TreeViewWidget
@@ -70,13 +70,83 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 	.Label(FText::FromName("ELuaMonitor"))
 	[
 		SNew(SVerticalBox)
+		+ SVerticalBox::Slot().MaxHeight(30)
+		[
+			SNew(SBorder)
+			.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
+			//.BorderBackgroundColor(FLinearColor(.50f, .50f, .50f, 1.0f))
+			.HAlign(HAlign_Center)
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot().HAlign(HAlign_Left).VAlign(VAlign_Center).AutoWidth()
+				[
+					SNew(SButton)
+					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// 无底图以免按钮发白
+					.ContentPadding(2.0)
+					.IsFocusable(false)
+					[
+						SNew(SImage)
+						.Image(FEditorStyle::GetBrush("Cross"))
+					]
+				]
+				+ SHorizontalBox::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
+				[
+					SAssignNew(PrevFrameBtn, SButton)
+					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// 无底图以免按钮发白
+					.ContentPadding(2.0)
+					.IsFocusable(false)
+					//.OnClicked_Raw(this, &SELuaMonitorPanel::OnForwardBtnClicked)
+					[
+						SNew(SImage)
+						.Image_Raw(this, &SELuaMonitorPanel::GetPrevFrameIcon)
+					]
+				]
+				+ SHorizontalBox::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
+				[
+					SAssignNew(ForwardBtn, SButton)
+					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// 无底图以免按钮发白
+					.ContentPadding(2.0)
+					.IsFocusable(false)
+					.OnClicked_Raw(this, &SELuaMonitorPanel::OnForwardBtnClicked)
+					[
+						SNew(SImage)
+						.Image_Raw(this, &SELuaMonitorPanel::GetForwardIcon)
+					]
+				]
+				+ SHorizontalBox::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
+				[
+					SAssignNew(NextFrameBtn, SButton)
+					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// 无底图以免按钮发白
+					.ContentPadding(2.0)
+					.IsFocusable(false)
+					//.OnClicked_Raw(this, &SELuaMonitorPanel::OnForwardBtnClicked)
+					[
+						SNew(SImage)
+						.Image_Raw(this, &SELuaMonitorPanel::GetNextFrameIcon)
+					]
+				]
+				+ SHorizontalBox::Slot().HAlign(HAlign_Right).VAlign(VAlign_Center).AutoWidth()
+				[
+					SNew(SButton)
+					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// 无底图以免按钮发白
+					.ContentPadding(2.0)
+					.IsFocusable(false)
+					.OnClicked_Raw(this, &SELuaMonitorPanel::OnClearBtnClicked)
+					[
+						SNew(SImage)
+						.Image(FEditorStyle::GetBrush("Cross"))
+					]
+				]
+			]
+		]
+
 		+ SVerticalBox::Slot()
 		[
-			TreeViewWidget.ToSharedRef()
-			//SNew(SScrollBox)
-			//+ SScrollBox::Slot()
-			//[
-			//]
+			SNew(SScrollBox)
+			+ SScrollBox::Slot()
+			[
+				TreeViewWidget.ToSharedRef()
+			]
 		]
 	];
 }
@@ -85,13 +155,13 @@ TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfo
 {
 	return
 	SNew(STableRow<TSharedPtr<FELuaTraceInfoNode>>, OwnerTable)
-	.Padding(2.0f)/*.Visibility_Lambda([=]() {
+	/*.Padding(2.0f).Visibility_Lambda([=]() {
 		return EVisibility::Visible;
 	})*/
 	[
 		SNew(SHeaderRow)
 		+ SHeaderRow::Column("Name").DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::FromString(TINode->Name);
+			return FText::FromString(TINode->ID);
 		}))
 		.FixedWidth(COL_WIDTH).DefaultTooltip(TAttribute<FText>::Create([=]() {
 			return FText::FromString(TINode->ID);
@@ -102,31 +172,31 @@ TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfo
 		//+ SHeaderRow::Column("Global SelfTime(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
 		//	return FText::AsNumber(TINode->SelfTime / CurRootTINode->SelfTime);
 		//}))
-		+SHeaderRow::Column("TotalTime(ms)").DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->TotalTime / 1000.f);
+		+SHeaderRow::Column("TotalTime(ms)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
+			return FText::AsNumber(TINode->TotalTime / 1000000.f);
 		}))
-		+ SHeaderRow::Column("TotalTime(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
+		+ SHeaderRow::Column("TotalTime(%)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(CurRootTINode->TotalTime > 0 ? TINode->TotalTime / CurRootTINode->TotalTime : 0);
 		}))
-		+ SHeaderRow::Column("SelfTime(ms)").DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->SelfTime / 1000.f);
+		+ SHeaderRow::Column("SelfTime(ms)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
+			return FText::AsNumber(TINode->SelfTime / 1000000.f);
 		}))
-		+ SHeaderRow::Column("SelfTime(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
+		+ SHeaderRow::Column("SelfTime(%)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(CurRootTINode->SelfTime > 0 ? TINode->SelfTime / CurRootTINode->SelfTime : 0);
 		}))
-		+ SHeaderRow::Column("Average(ms)").DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->Count > 0 ? TINode->TotalTime / TINode->Count : 0);
+		+ SHeaderRow::Column("Average(ms)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
+			return FText::AsNumber(TINode->Count > 0 ? TINode->TotalTime / (TINode->Count * 1000000.f) : 0);
 		}))
-		+ SHeaderRow::Column("Alloc(kb)").DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->AllocSize / 1000.f);
+		+ SHeaderRow::Column("Alloc(kb)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
+			return FText::AsNumber(TINode->AllocSize / 1000000.f);
 		}))
-		+ SHeaderRow::Column("Alloc(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
+		+ SHeaderRow::Column("Alloc(%)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(CurRootTINode->AllocSize > 0 ? TINode->AllocSize / CurRootTINode->AllocSize : 0);
 		}))
-		+ SHeaderRow::Column("GC(kb)").DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->GCSize / 1000.f);
+		+ SHeaderRow::Column("GC(kb)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
+			return FText::AsNumber(TINode->GCSize / 1000000.f);
 		}))
-		+ SHeaderRow::Column("GC(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
+		+ SHeaderRow::Column("GC(%)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(CurRootTINode->GCSize > 0 ? TINode->GCSize / CurRootTINode->GCSize : 0);
 		}))
 		.FixedWidth(COL_WIDTH)
@@ -145,14 +215,73 @@ void SELuaMonitorPanel::OnGetChildrenRaw(TSharedPtr<FELuaTraceInfoNode> TINode, 
 	}
 }
 
+void SELuaMonitorPanel::UpdateRoot()
+{
+	switch (MonitorMode)
+	{
+	case PerFrame:
+		break;
+	case Statistics:
+		break;
+	case Total:
+	default:
+		CurRootTINode = FELuaMonitor::GetInstance()->GetRoot();
+		if (CurRootTINode)
+		{
+			ShowRootList = CurRootTINode->Children;
+		}
+		break;
+	}
+}
+
 void SELuaMonitorPanel::Tick(float DeltaTime)
 {
 	FELuaMonitor::GetInstance()->Tick(DeltaTime);
 
-	if (false/*NeedReGenerate*/)
-	{
-		TreeViewWidget->RebuildList();
-	}
+	ElapsedTime += DeltaTime;
 
-	TreeViewWidget->RequestTreeRefresh();
+	if (ElapsedTime > UPDATE_INTERVAL)
+	{
+		UpdateRoot();
+
+		if (TreeViewWidget.IsValid())
+		{
+			//TreeViewWidget->RebuildList();
+
+			TreeViewWidget->RequestTreeRefresh();
+		}
+
+		ElapsedTime = 0.f;
+	}
+}
+
+FReply SELuaMonitorPanel::OnForwardBtnClicked()
+{
+	FELuaMonitor::GetInstance()->OnForward();
+	return FReply::Handled();
+}
+
+FReply SELuaMonitorPanel::OnClearBtnClicked()
+{
+	//FELuaMonitor::GetInstance()->Stop();
+	return FReply::Handled();
+}
+
+const FSlateBrush* SELuaMonitorPanel::GetPrevFrameIcon() const
+{
+	return  &FEditorStyle::Get().GetWidgetStyle<FButtonStyle>("Animation.Backward_Step").Normal;
+}
+
+const FSlateBrush* SELuaMonitorPanel::GetForwardIcon() const
+{
+	if (FELuaMonitor::GetInstance()->IsRuning())
+	{
+		return &FEditorStyle::Get().GetWidgetStyle<FButtonStyle>("Animation.Pause").Normal;
+	}
+	return  &FEditorStyle::Get().GetWidgetStyle<FButtonStyle>("Animation.Forward").Normal;
+}
+
+const FSlateBrush* SELuaMonitorPanel::GetNextFrameIcon() const
+{
+	return  &FEditorStyle::Get().GetWidgetStyle<FButtonStyle>("Animation.Forward_Step").Normal;
 }

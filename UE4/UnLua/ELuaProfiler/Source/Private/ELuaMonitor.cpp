@@ -27,7 +27,10 @@ FELuaMonitor* FELuaMonitor::SingletonInstance = nullptr;
 
 FELuaMonitor::FELuaMonitor()
 {
-	Init();
+	if (!CurTraceTree)
+	{
+		CurTraceTree = TSharedPtr<FELuaTraceInfoTree>(new FELuaTraceInfoTree());
+	}
 }
 
 FELuaMonitor::~FELuaMonitor()
@@ -45,9 +48,22 @@ void FELuaMonitor::Init()
 	{
 		State &= (~INITED);
 	}
-	if (!CurTraceTree)
+	CurTraceTree->Init();
+}
+
+void FELuaMonitor::OnForward()
+{
+	if (State == RUNING)
 	{
-		CurTraceTree = TSharedPtr<FELuaTraceInfoTree>(new FELuaTraceInfoTree());
+		Pause();
+	}
+	else if ((State & PAUSE) > 0)
+	{
+		Resume();
+	}
+	else
+	{
+		Start();
 	}
 }
 
@@ -95,7 +111,7 @@ void FELuaMonitor::Resume()
 	case LUA_HOOKCALL:
 		FELuaMonitor::GetInstance()->OnHookCall(L, ar);
 		break;
-	case LUA_MASKRET:
+	case LUA_HOOKRET:
 		FELuaMonitor::GetInstance()->OnHookReturn(L);
 		break;
 	default:
@@ -105,29 +121,38 @@ void FELuaMonitor::Resume()
 
 void FELuaMonitor::OnHookCall(lua_State* L, lua_Debug* ar)
 {
-	if (CurDepth < MaxDepth)
+	if (CurTraceTree)
 	{
-		CurTraceTree->OnHookCall(L, ar);
+		if (CurDepth < MaxDepth)
+		{
+			CurTraceTree->OnHookCall(L, ar);
+		}
+		CurDepth++;
 	}
-	CurDepth++;
 }
 
 void FELuaMonitor::OnHookReturn(lua_State* L)
 {
-	if (CurDepth <= MaxDepth && !CurTraceTree->IsOnRoot())
+	if (CurTraceTree)
 	{
-		CurTraceTree->OnHookReturn();
+		if (CurDepth <= MaxDepth && !CurTraceTree->IsOnRoot())
+		{
+			CurTraceTree->OnHookReturn();
+		}
+		CurDepth--;
 	}
-	CurDepth--;
 }
 
 TSharedPtr<FELuaTraceInfoNode> FELuaMonitor::GetRoot(uint32 Index /* = 0 */)
 {
-	if (Index == 0)
+	if ((State & INITED) > 0)
 	{
-		return CurTraceTree->GetRoot();
+		if (Index == 0)
+		{
+			return CurTraceTree->GetRoot();
+		}
 	}
-	return CurTraceTree->GetRoot();
+	return nullptr;
 }
 
 void FELuaMonitor::Tick(float DeltaTime)
@@ -147,5 +172,10 @@ void FELuaMonitor::Tick(float DeltaTime)
 		{
 			Init();
 		}
+	}
+
+	if (CurTraceTree)
+	{
+		CurTraceTree->CountSelfTime();
 	}
 }

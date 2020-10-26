@@ -50,19 +50,15 @@ public:
 		return SingletonInstance;
 	}
 
-	void Start();
-
-	void Stop();
-
-	void Pause();
-
-	void Resume();
+	void OnForward();
 
 	void Tick(float DeltaTime);
 
 	void SetMaxDepth(uint32 Depth) { MaxDepth = Depth; }
 
 	TSharedPtr<FELuaTraceInfoNode> GetRoot(uint32 Index = 0);
+
+	bool IsRuning() { return State == RUNING; }
 
 	void LoadFile(const FString& Path);
 
@@ -75,6 +71,14 @@ private:
 	void OnHookReturn(lua_State* L);
 
 	void Init();
+
+	void Start();
+
+	void Stop();
+
+	void Pause();
+
+	void Resume();
 
 private:
 	/* max depth of hook  tracking */

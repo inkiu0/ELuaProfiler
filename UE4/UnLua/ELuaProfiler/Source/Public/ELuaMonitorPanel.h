@@ -24,9 +24,17 @@
 
 #include "CoreMinimal.h"
 #include "ELuaTraceInfoNode.h"
+#include "Widgets/Input/SButton.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Views/STreeView.h"
 #include "Widgets/Docking/SDockTab.h"
+
+enum ELuaMonitorMode : uint8
+{
+	PerFrame,		// Deep Copy TraceInfoTree PerFrame
+	Total,			// Only one TraceInfoTree
+	Statistics		// Unfold TraceInfoTree
+};
 
 class SELuaMonitorPanel
 {
@@ -41,6 +49,20 @@ public:
 	void OnGetChildrenRaw(TSharedPtr<FELuaTraceInfoNode> Parent, TArray<TSharedPtr<FELuaTraceInfoNode>>& OutChildren);
 
 	void Tick(float DeltaTime);
+
+private:
+	FReply OnForwardBtnClicked();
+
+	FReply OnClearBtnClicked();
+
+	const FSlateBrush* GetPrevFrameIcon() const;
+
+	const FSlateBrush* GetForwardIcon() const;
+
+	const FSlateBrush* GetNextFrameIcon() const;
+
+	void UpdateRoot();
+
 private:
 	TSharedPtr<STreeView<TSharedPtr<FELuaTraceInfoNode>>> TreeViewWidget;
 
@@ -48,5 +70,19 @@ private:
 
 	TArray<TSharedPtr<FELuaTraceInfoNode>> ShowRootList;
 
-	const static int COL_WIDTH = 80;
+	TSharedPtr<SButton> PrevFrameBtn;
+
+	TSharedPtr<SButton> ForwardBtn;
+
+	TSharedPtr<SButton> NextFrameBtn;
+
+	TSharedPtr<SButton> ClearBtn;
+
+	ELuaMonitorMode MonitorMode = Total;
+
+	float ElapsedTime = 0.f;
+
+	const static int32 COL_WIDTH = 80;
+
+	const static int32 UPDATE_INTERVAL = 0.5;
 };

@@ -82,7 +82,7 @@ private:
 
 private:
 	/* max depth of hook  tracking */
-	uint32 MaxDepth = 1;
+	uint32 MaxDepth = 100000;
 
 	/* current depth of hook tracking */
 	uint32 CurDepth = 0;

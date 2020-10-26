@@ -56,20 +56,21 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 		.OnGenerateRow_Raw(this, &SELuaMonitorPanel::OnGenerateRow)
 		.OnGetChildren_Raw(this, &SELuaMonitorPanel::OnGetChildrenRaw)
 		.SelectionMode(ESelectionMode::None)
+		.HighlightParentNodesForSelection(true)
 		.HeaderRow
 		(
 			SNew(SHeaderRow)
 			+ SHeaderRow::Column("Name").DefaultLabel(FText::FromName("Name")).HAlignHeader(HAlign_Fill)
-			+ SHeaderRow::Column("TotalTime(ms)").DefaultLabel(FText::FromName("TotalTime(ms)")).FixedWidth(COL_WIDTH)
-			+ SHeaderRow::Column("TotalTime(%)").DefaultLabel(FText::FromName("TotalTime(%)")).FixedWidth(30)
+			+ SHeaderRow::Column("TotalTime(ms)").DefaultLabel(FText::FromName("TotalTime(ms)")).FixedWidth(90)
+			+ SHeaderRow::Column("TotalTime(%)").DefaultLabel(FText::FromName("TotalTime(%)")).FixedWidth(COL_WIDTH)
 			+ SHeaderRow::Column("SelfTime(ms)").DefaultLabel(FText::FromName("SelfTime(ms)")).FixedWidth(COL_WIDTH)
-			+ SHeaderRow::Column("SelfTime(%)").DefaultLabel(FText::FromName("SelfTime(%)")).FixedWidth(30)
+			+ SHeaderRow::Column("SelfTime(%)").DefaultLabel(FText::FromName("SelfTime(%)")).FixedWidth(COL_WIDTH)
 			+ SHeaderRow::Column("Average(ms)").DefaultLabel(FText::FromName("Average(ms)")).FixedWidth(COL_WIDTH)
 			+ SHeaderRow::Column("Alloc(kb)").DefaultLabel(FText::FromName("Alloc(kb)")).FixedWidth(COL_WIDTH)
-			+ SHeaderRow::Column("Alloc(%)").DefaultLabel(FText::FromName("Alloc(%)")).FixedWidth(30)
-			+ SHeaderRow::Column("GC(kb)").DefaultLabel(FText::FromName("GC(kb)")).FixedWidth(COL_WIDTH)
-			+ SHeaderRow::Column("GC(%)").DefaultLabel(FText::FromName("GC(%)")).FixedWidth(30)
-			+ SHeaderRow::Column("Calls").DefaultLabel(FText::FromName("Calls")).FixedWidth(COL_WIDTH)
+			+ SHeaderRow::Column("Alloc(%)").DefaultLabel(FText::FromName("Alloc(%)")).FixedWidth(60)
+			+ SHeaderRow::Column("GC(kb)").DefaultLabel(FText::FromName("GC(kb)")).FixedWidth(60)
+			+ SHeaderRow::Column("GC(%)").DefaultLabel(FText::FromName("GC(%)")).FixedWidth(50)
+			+ SHeaderRow::Column("Calls").DefaultLabel(FText::FromName("Calls")).FixedWidth(60)
 		);
 
 
@@ -78,7 +79,7 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 	.Label(FText::FromName("ELuaMonitor"))
 	[
 		SNew(SVerticalBox)
-		+ SVerticalBox::Slot().MaxHeight(30)
+		+ SVerticalBox::Slot().AutoHeight()
 		[
 			SNew(SBorder)
 			.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
@@ -159,10 +160,11 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 			]
 		]
 
-		+ SVerticalBox::Slot()
+		+ SVerticalBox::Slot().FillHeight(1.f)
 		[
-			SNew(SScrollBox)
-			+ SScrollBox::Slot()
+			SNew(SBorder)
+			.Padding(0)
+			.BorderImage(FCoreStyle::Get().GetBrush("ToolPanel.GroupBorder"))
 			[
 				TreeViewWidget.ToSharedRef()
 			]
@@ -187,10 +189,10 @@ TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfo
 		//+ SHeaderRow::Column("Global SelfTime(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
 		//	return FText::AsNumber(TINode->SelfTime / CurRootTINode->SelfTime);
 		//}))
-		+SHeaderRow::Column("TotalTime(ms)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
+		+SHeaderRow::Column("TotalTime(ms)").FixedWidth(90).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->TotalTime);
 		}))
-		+ SHeaderRow::Column("TotalTime(%)").FixedWidth(30).DefaultLabel(TAttribute<FText>::Create([=]() {
+		+ SHeaderRow::Column("TotalTime(%)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			if (TINode->Parent && TINode->Parent->TotalTime > 0)
 			{
 				return FText::AsPercent(TINode->TotalTime / TINode->Parent->TotalTime);
@@ -203,7 +205,7 @@ TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfo
 		+ SHeaderRow::Column("SelfTime(ms)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->SelfTime);
 		}))
-		+ SHeaderRow::Column("SelfTime(%)").FixedWidth(30).DefaultLabel(TAttribute<FText>::Create([=]() {
+		+ SHeaderRow::Column("SelfTime(%)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			if (TINode->Parent && TINode->Parent->TotalTime > 0)
 			{
 				return FText::AsPercent(TINode->SelfTime / TINode->Parent->TotalTime);
@@ -216,27 +218,27 @@ TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfo
 		+ SHeaderRow::Column("Alloc(kb)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->AllocSize);
 		}))
-		+ SHeaderRow::Column("Alloc(%)").FixedWidth(30).DefaultLabel(TAttribute<FText>::Create([=]() {
+		+ SHeaderRow::Column("Alloc(%)").FixedWidth(60).DefaultLabel(TAttribute<FText>::Create([=]() {
 			if (TINode->Parent && TINode->Parent->AllocSize > 0)
 			{
 				return FText::AsPercent(TINode->AllocSize / TINode->Parent->AllocSize);
 			}
 			return FText::AsPercent(0.f);
 		}))
-		+ SHeaderRow::Column("GC(kb)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
+		+ SHeaderRow::Column("GC(kb)").FixedWidth(60).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->GCSize);
 		}))
-		+ SHeaderRow::Column("GC(%)").FixedWidth(30).DefaultLabel(TAttribute<FText>::Create([=]() {
+		+ SHeaderRow::Column("GC(%)").FixedWidth(50).DefaultLabel(TAttribute<FText>::Create([=]() {
 			if (TINode->Parent && TINode->Parent->GCSize > 0)
 			{
 				return FText::AsPercent(TINode->GCSize / TINode->Parent->GCSize);
 			}
 			return FText::AsPercent(0.f);
 		}))
-		+ SHeaderRow::Column("Calls").DefaultLabel(TAttribute<FText>::Create([=]() {
+		+ SHeaderRow::Column("Calls").FixedWidth(60).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->Count);
 		}))
-		.FixedWidth(COL_WIDTH)
+		
 	];
 }
 

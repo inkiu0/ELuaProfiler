@@ -64,7 +64,7 @@ private:
 
 	void UpdateRoot();
 
-	void OnModeChanged(uint8 InMode);
+	void OnModeChanged(float InMode);
 
 private:
 	TSharedPtr<STreeView<TSharedPtr<FELuaTraceInfoNode>>> TreeViewWidget;

@@ -43,10 +43,10 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 	UpdateRoot();
 
 
-	TArray<SNumericDropDown<uint8>::FNamedValue> NamedValuesForMonitorMode;
-	NamedValuesForMonitorMode.Add(SNumericDropDown<uint8>::FNamedValue(ELuaMonitorMode::PerFrame, FText::FromName("PerFrame"), FText::FromName("PerFrameRecord")));
-	NamedValuesForMonitorMode.Add(SNumericDropDown<uint8>::FNamedValue(ELuaMonitorMode::Total, FText::FromName("Total"), FText::FromName("RecordTotalInfo")));
-	NamedValuesForMonitorMode.Add(SNumericDropDown<uint8>::FNamedValue(ELuaMonitorMode::Statistics, FText::FromName("Statistics"), FText::FromName("Tile all node")));
+	TArray<SNumericDropDown<float>::FNamedValue> NamedValuesForMonitorMode;
+	NamedValuesForMonitorMode.Add(SNumericDropDown<float>::FNamedValue((float)ELuaMonitorMode::PerFrame, FText::FromName("PerFrame"), FText::FromName("PerFrameRecord")));
+	NamedValuesForMonitorMode.Add(SNumericDropDown<float>::FNamedValue((float)ELuaMonitorMode::Total, FText::FromName("Total"), FText::FromName("RecordTotalInfo")));
+	NamedValuesForMonitorMode.Add(SNumericDropDown<float>::FNamedValue((float)ELuaMonitorMode::Statistics, FText::FromName("Statistics"), FText::FromName("Tile all node")));
 
 
 	// Init TreeViewWidget
@@ -87,13 +87,12 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot().HAlign(HAlign_Left).VAlign(VAlign_Center).AutoWidth()
 				[
-
-					SNew(SNumericDropDown<uint8>)
+					SNew(SNumericDropDown<float>)
 					.LabelText(FText::FromName("Mode:"))
 					.bShowNamedValue(true)
 					.DropDownValues(NamedValuesForMonitorMode)
 					.IsEnabled(true)
-					.Value_Lambda([this]() { return MonitorMode; })
+					.Value_Lambda([this]() { return (float)MonitorMode; })
 					.OnValueChanged_Raw(this, &SELuaMonitorPanel::OnModeChanged)
 				]
 
@@ -300,11 +299,11 @@ const FSlateBrush* SELuaMonitorPanel::GetNextFrameIcon() const
 	return  &FEditorStyle::Get().GetWidgetStyle<FButtonStyle>("Animation.Forward_Step").Normal;
 }
 
-void SELuaMonitorPanel::OnModeChanged(uint8 InMode)
+void SELuaMonitorPanel::OnModeChanged(float InMode)
 {
-	if (InMode > -1 && InMode < ELuaMonitorMode::MAX)
+	if (InMode > -1 && InMode < ((uint8)ELuaMonitorMode::MAX))
 	{
-		if (MonitorMode != InMode)
+		if (!FMath::IsNearlyEqual((float)MonitorMode, InMode))
 		{
 			MonitorMode = (ELuaMonitorMode)InMode;
 		}

@@ -164,7 +164,7 @@ int32 GetStateMemKB()
 {
 	if (lua_State* L = UnLua::GetState())
 	{
-		return cast_int(gettotalbytes(G(L))) / 1000.f;
+		return cast_int(gettotalbytes(G(L))) * 0.001;
 	}
 	return 0;
 }

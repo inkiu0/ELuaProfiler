@@ -105,7 +105,7 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 				+ SHorizontalBox::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
 				[
 					SAssignNew(PrevFrameBtn, SButton)
-					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// ÎŞµ×Í¼ÒÔÃâ°´Å¥·¢°×
+					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// æ— åº•å›¾ä»¥å…æŒ‰é’®å‘ç™½
 					.ContentPadding(2.0)
 					.IsFocusable(false)
 					//.OnClicked_Raw(this, &SELuaMonitorPanel::OnForwardBtnClicked)
@@ -117,7 +117,7 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 				+ SHorizontalBox::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
 				[
 					SAssignNew(ForwardBtn, SButton)
-					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// ÎŞµ×Í¼ÒÔÃâ°´Å¥·¢°×
+					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// æ— åº•å›¾ä»¥å…æŒ‰é’®å‘ç™½
 					.ContentPadding(2.0)
 					.IsFocusable(false)
 					.OnClicked_Raw(this, &SELuaMonitorPanel::OnForwardBtnClicked)
@@ -129,7 +129,7 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 				+ SHorizontalBox::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
 				[
 					SAssignNew(NextFrameBtn, SButton)
-					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// ÎŞµ×Í¼ÒÔÃâ°´Å¥·¢°×
+					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// æ— åº•å›¾ä»¥å…æŒ‰é’®å‘ç™½
 					.ContentPadding(2.0)
 					.IsFocusable(false)
 					//.OnClicked_Raw(this, &SELuaMonitorPanel::OnForwardBtnClicked)
@@ -147,7 +147,7 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 				+ SHorizontalBox::Slot().HAlign(HAlign_Right).VAlign(VAlign_Center).AutoWidth()
 				[
 					SNew(SButton)
-					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// ÎŞµ×Í¼ÒÔÃâ°´Å¥·¢°×
+					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// æ— åº•å›¾ä»¥å…æŒ‰é’®å‘ç™½
 					.ContentPadding(2.0)
 					.IsFocusable(false)
 					.OnClicked_Raw(this, &SELuaMonitorPanel::OnClearBtnClicked)
@@ -331,7 +331,7 @@ void SELuaMonitorPanel::OnModeChanged(float InMode)
 	{
 		if (!FMath::IsNearlyEqual((float)MonitorMode, InMode))
 		{
-			MonitorMode = (ELuaMonitorMode)InMode;
+			MonitorMode = (ELuaMonitorMode)((uint8)InMode);
 		}
 	}
 }

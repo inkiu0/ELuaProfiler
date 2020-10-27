@@ -89,5 +89,5 @@ private:
 
 	const static int32 COL_WIDTH = 80;
 
-	const static int32 UPDATE_INTERVAL = 0.5;
+	const float UPDATE_INTERVAL = 0.5f;
 };

@@ -68,7 +68,31 @@ ELuaMonitor主要用于剖析Lua的CPU性能，以及内存频繁开辟引起GC�
 10. Calls
     - 该函数被调用次数
 #### 排序
-目前是按照TotalTime降序排列，后续会支持点选Title进行不同数据的排序。
+目前是按照`TotalTime`降序排列，后续会支持点选Title进行不同数据的排序。
+
+### ELuaMemAnalyzer
+_UI界面开发中..._
+#### Snapshot
+在ELuaMemAnalyzer中点击一次采样，即可生成一个`Snapshot`。`Snapshot`中包含了当前时刻的内存情况，以`_G`为根节点。
+同时`Snapshot`也支持逻辑运算，以方便剖析内存的泄露和增长。
+#### Snapshot Logic Operation
+以`Snapshot`为单元进行逻辑运算，目前支持`&与`和`|或`运算，这两个运算配合强制GC可以很好地查找泄露。
+1. `&` Operation
+    - 两颗`Snapshot`进行与运算，得到两个时刻相同的内存部分。
+2. `|` Operation
+    - 两颗`Snapshot`进行或运算，得到两个时刻总的内存部分，相当于A + B
+3. Memory Leak
+    - 在刚启动游戏时，或强制GC后，采样得到`SnapshotA`
+    - 在游戏内进行游玩时，每隔5分钟采样，得到`SnapshotB`、`SnapshotC`、`SnapshotD`
+    - `常驻内存` = `SnapshotA` & `SnapshotB` & `SnapshotC` & `SnapshotD`
+#### Deviation
+由于种种原因，内存统计的误差都不可避免。误差主要来自于这几方面：
+1. Lua的`Intern机制`
+    - 由于Lua对短字符串和`number`采用了`Intern机制`，所以这部分存在重复统计。
+    - 后续优化考虑做一个去除。
+2. 多重引用，比如A:{B: {D, E}, C: {D, F}}，这样一颗三层的树。
+    - 为了保证单独查看节点B和节点C的正确性，`B = D + E`，`C = D + F`
+    - 所以`A = D + E + D + F`，存在一定的误差。
 ## Roadmap
 ### 1. ELuaMemAnalyzer
 为ELuaMemAnalyzer编写EditorUI界面

@@ -82,5 +82,5 @@ ELuaMonitor主要用于剖析Lua的CPU性能，以及内存频繁开辟引起GC�
 接入slua-unity，并编写Unity版本的EditorUI
 ### 6. Support unlua-unity
 接入unlua-unity
-### 7. support xlua-unity
+### 7. Support xlua-unity
 接入xulua-unity

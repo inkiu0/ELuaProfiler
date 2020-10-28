@@ -67,6 +67,8 @@ ELuaMonitor主要用于剖析Lua的CPU性能，以及内存频繁开辟引起GC�
     - GC / Parent.GC
 10. Calls
     - 该函数被调用次数
+#### 排序
+目前是按照TotalTime降序排列，后续会支持点选Title进行不同数据的排序。
 ## Roadmap
 ### 1. ELuaMemAnalyzer
 为ELuaMemAnalyzer编写EditorUI界面

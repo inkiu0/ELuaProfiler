@@ -38,16 +38,10 @@ enum EMonitorState : uint32
 class ELUAPROFILER_API FELuaMonitor
 {
 public:
-	FELuaMonitor();
-	~FELuaMonitor();
-
 	static FELuaMonitor* GetInstance()
 	{
-		if (!SingletonInstance)
-		{
-			SingletonInstance = new FELuaMonitor();
-		}
-		return SingletonInstance;
+		static FELuaMonitor Instance;
+		return &Instance;
 	}
 
 	void OnForward();
@@ -66,6 +60,9 @@ public:
 
 	void PrintToFile(const FString& Path);
 private:
+	FELuaMonitor();
+	~FELuaMonitor();
+
 	static void OnHook(lua_State* L, lua_Debug* ar);
 
 	void OnHookCall(lua_State* L, lua_Debug* ar);
@@ -96,6 +93,4 @@ private:
 	bool Inited = false;
 
 	uint32 State = CREATED;
-
-	static FELuaMonitor* SingletonInstance;
 };

@@ -338,5 +338,5 @@ void SELuaMonitorPanel::OnModeChanged(float InMode)
 
 void SELuaMonitorPanel::OnDestroy()
 {
-	FELuaMonitor::GetInstance()->OnClear();
+
 }

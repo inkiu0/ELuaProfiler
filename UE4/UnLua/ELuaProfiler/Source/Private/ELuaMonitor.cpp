@@ -23,8 +23,6 @@
 #include "ELuaMonitor.h"
 #include "UnLuaBase.h"
 
-FELuaMonitor* FELuaMonitor::SingletonInstance = nullptr;
-
 FELuaMonitor::FELuaMonitor()
 {
 	CurTraceTree = TSharedPtr<FELuaTraceInfoTree>(new FELuaTraceInfoTree());

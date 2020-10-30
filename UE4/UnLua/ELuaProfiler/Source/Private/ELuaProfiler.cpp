@@ -69,9 +69,12 @@ void FELuaProfilerModule::StartupModule()
 void FELuaProfilerModule::ShutdownModule()
 {
 #if WITH_EDITOR
-	MonitorPanel->OnDestroy();
+	if (MonitorPanel.IsValid())
+	{
+		MonitorPanel->OnDestroy();
 
-	MonitorPanel = nullptr;
+		MonitorPanel = nullptr;
+	}
 
 	FELuaProfilerCommands::Unregister();
 

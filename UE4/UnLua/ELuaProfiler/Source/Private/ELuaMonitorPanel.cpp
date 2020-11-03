@@ -74,6 +74,55 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 		);
 
 
+	SAssignNew(ControllerBar, SHorizontalBox);
+	ControllerBar->AddSlot().HAlign(HAlign_Left).VAlign(VAlign_Center).AutoWidth()
+	[
+		SNew(SNumericDropDown<float>)
+			.LabelText(FText::FromName("Mode:"))
+			.bShowNamedValue(true)
+			.DropDownValues(NamedValuesForMonitorMode)
+			.IsEnabled(true)
+			.Value_Lambda([this]() { return (float)MonitorMode; })
+			.OnValueChanged_Raw(this, &SELuaMonitorPanel::OnModeChanged)
+	];
+	ControllerBar->AddSlot()
+	[
+		SNew(SSpacer)
+	];
+	ControllerBar->AddSlot().HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
+	[
+		SNew(SButton)
+		.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// Œﬁµ◊Õº“‘√‚∞¥≈•∑¢∞◊
+		.ContentPadding(2.0)
+		.IsFocusable(false)
+		.OnClicked_Raw(this, &SELuaMonitorPanel::OnForwardBtnClicked)
+		[
+			SNew(SImage)
+			.Image_Raw(this, &SELuaMonitorPanel::GetForwardIcon)
+		]
+	];
+	ControllerBar->AddSlot()
+	[
+		SNew(SSpacer)
+	];
+
+	ControllerBar->AddSlot().HAlign(HAlign_Right).VAlign(VAlign_Center).AutoWidth()
+	[
+		SNew(SButton)
+		.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// Œﬁµ◊Õº“‘√‚∞¥≈•∑¢∞◊
+		.ContentPadding(2.0)
+		.IsFocusable(false)
+		.OnClicked_Raw(this, &SELuaMonitorPanel::OnClearBtnClicked)
+		.ToolTipText(FText::FromName("Clear and stop monitor"))
+		[
+			SNew(SImage)
+			.Image(FEditorStyle::GetBrush("Cross"))
+		]
+	];
+
+	OnGenerateFrameController();
+
+
 	return SNew(SDockTab)
 	.Icon(FEditorStyle::GetBrush("Kismet.Tabs.Palette"))
 	.Label(FText::FromName("ELuaMonitor"))
@@ -85,78 +134,7 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 			.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
 			//.BorderBackgroundColor(FLinearColor(.50f, .50f, .50f, 1.0f))
 			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot().HAlign(HAlign_Left).VAlign(VAlign_Center).AutoWidth()
-				[
-					SNew(SNumericDropDown<float>)
-					.LabelText(FText::FromName("Mode:"))
-					.bShowNamedValue(true)
-					.DropDownValues(NamedValuesForMonitorMode)
-					.IsEnabled(true)
-					.Value_Lambda([this]() { return (float)MonitorMode; })
-					.OnValueChanged_Raw(this, &SELuaMonitorPanel::OnModeChanged)
-				]
-
-				+SHorizontalBox::Slot()
-				[
-					SNew(SSpacer)
-				]
-
-				+ SHorizontalBox::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
-				[
-					SAssignNew(PrevFrameBtn, SButton)
-					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// Êó†Â∫ïÂõæ‰ª•ÂÖçÊåâÈíÆÂèëÁôΩ
-					.ContentPadding(2.0)
-					.IsFocusable(false)
-					//.OnClicked_Raw(this, &SELuaMonitorPanel::OnForwardBtnClicked)
-					[
-						SNew(SImage)
-						.Image_Raw(this, &SELuaMonitorPanel::GetPrevFrameIcon)
-					]
-				]
-				+ SHorizontalBox::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
-				[
-					SAssignNew(ForwardBtn, SButton)
-					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// Êó†Â∫ïÂõæ‰ª•ÂÖçÊåâÈíÆÂèëÁôΩ
-					.ContentPadding(2.0)
-					.IsFocusable(false)
-					.OnClicked_Raw(this, &SELuaMonitorPanel::OnForwardBtnClicked)
-					[
-						SNew(SImage)
-						.Image_Raw(this, &SELuaMonitorPanel::GetForwardIcon)
-					]
-				]
-				+ SHorizontalBox::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
-				[
-					SAssignNew(NextFrameBtn, SButton)
-					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// Êó†Â∫ïÂõæ‰ª•ÂÖçÊåâÈíÆÂèëÁôΩ
-					.ContentPadding(2.0)
-					.IsFocusable(false)
-					//.OnClicked_Raw(this, &SELuaMonitorPanel::OnForwardBtnClicked)
-					[
-						SNew(SImage)
-						.Image_Raw(this, &SELuaMonitorPanel::GetNextFrameIcon)
-					]
-				]
-
-				+SHorizontalBox::Slot()
-				[
-					SNew(SSpacer)
-				]
-
-				+ SHorizontalBox::Slot().HAlign(HAlign_Right).VAlign(VAlign_Center).AutoWidth()
-				[
-					SNew(SButton)
-					.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// Êó†Â∫ïÂõæ‰ª•ÂÖçÊåâÈíÆÂèëÁôΩ
-					.ContentPadding(2.0)
-					.IsFocusable(false)
-					.OnClicked_Raw(this, &SELuaMonitorPanel::OnClearBtnClicked)
-					.ToolTipText(FText::FromName("Clear and stop monitor"))
-					[
-						SNew(SImage)
-						.Image(FEditorStyle::GetBrush("Cross"))
-					]
-				]
+				ControllerBar.ToSharedRef()
 			]
 		]
 
@@ -306,6 +284,16 @@ FReply SELuaMonitorPanel::OnClearBtnClicked()
 	return FReply::Handled();
 }
 
+FReply SELuaMonitorPanel::OnPrevFrameBtnClicked()
+{
+	return FReply::Handled();
+}
+
+FReply SELuaMonitorPanel::OnNextFrameBtnClicked()
+{
+	return FReply::Handled();
+}
+
 const FSlateBrush* SELuaMonitorPanel::GetPrevFrameIcon() const
 {
 	return  &FEditorStyle::Get().GetWidgetStyle<FButtonStyle>("Animation.Backward_Step").Normal;
@@ -332,6 +320,75 @@ void SELuaMonitorPanel::OnModeChanged(float InMode)
 		if (!FMath::IsNearlyEqual((float)MonitorMode, InMode))
 		{
 			MonitorMode = (ELuaMonitorMode)((uint8)InMode);
+			switch (MonitorMode)
+			{
+			case PerFrame:
+				OnGenerateFrameController();
+				break;
+			case Statistics:
+				OnRemoveFrameController();
+				break;
+			case Total:
+			default:
+				OnRemoveFrameController();
+				break;
+			}
+		}
+	}
+}
+
+void SELuaMonitorPanel::OnGenerateFrameController()
+{
+	if (MonitorMode == PerFrame)
+	{
+		if (!PrevFrameBtn)
+		{
+			SAssignNew(PrevFrameBtn, SButton)
+			.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// Œﬁµ◊Õº“‘√‚∞¥≈•∑¢∞◊
+			.ContentPadding(2.0)
+			.IsFocusable(false)
+			.OnClicked_Raw(this, &SELuaMonitorPanel::OnPrevFrameBtnClicked)
+			[
+				SNew(SImage)
+				.Image_Raw(this, &SELuaMonitorPanel::GetPrevFrameIcon)
+			];
+		}
+
+		if (!NextFrameBtn)
+		{
+			SAssignNew(NextFrameBtn, SButton)
+			.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// Œﬁµ◊Õº“‘√‚∞¥≈•∑¢∞◊
+			.ContentPadding(2.0)
+			.IsFocusable(false)
+			.OnClicked_Raw(this, &SELuaMonitorPanel::OnNextFrameBtnClicked)
+			[
+				SNew(SImage)
+				.Image_Raw(this, &SELuaMonitorPanel::GetNextFrameIcon)
+			];
+		}
+
+		if (ControllerBar.IsValid())
+		{
+			ControllerBar->InsertSlot(2).HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
+			[
+				PrevFrameBtn.ToSharedRef()
+			];
+			ControllerBar->InsertSlot(4).HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
+			[
+				NextFrameBtn.ToSharedRef()
+			];
+		}
+	}
+}
+
+void SELuaMonitorPanel::OnRemoveFrameController()
+{
+	if (PrevFrameBtn && NextFrameBtn && MonitorMode != PerFrame)
+	{
+		if (ControllerBar.IsValid())
+		{
+			ControllerBar->RemoveSlot(PrevFrameBtn.ToSharedRef());
+			ControllerBar->RemoveSlot(NextFrameBtn.ToSharedRef());
 		}
 	}
 }

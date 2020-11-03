@@ -58,6 +58,10 @@ private:
 
 	FReply OnClearBtnClicked();
 
+	FReply OnPrevFrameBtnClicked();
+
+	FReply OnNextFrameBtnClicked();
+
 	const FSlateBrush* GetPrevFrameIcon() const;
 
 	const FSlateBrush* GetForwardIcon() const;
@@ -68,6 +72,10 @@ private:
 
 	void OnModeChanged(float InMode);
 
+	void OnGenerateFrameController();
+
+	void OnRemoveFrameController();
+
 private:
 	TSharedPtr<STreeView<TSharedPtr<FELuaTraceInfoNode>>> TreeViewWidget;
 
@@ -75,13 +83,15 @@ private:
 
 	TArray<TSharedPtr<FELuaTraceInfoNode>> ShowRootList;
 
+	TSharedPtr<SHorizontalBox> ControllerBar;
+
 	TSharedPtr<SButton> PrevFrameBtn;
 
-	TSharedPtr<SButton> ForwardBtn;
+	//TSharedPtr<SButton> ForwardBtn;
 
 	TSharedPtr<SButton> NextFrameBtn;
 
-	TSharedPtr<SButton> ClearBtn;
+	//TSharedPtr<SButton> ClearBtn;
 
 	ELuaMonitorMode MonitorMode = Total;
 

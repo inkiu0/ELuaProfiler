@@ -37,11 +37,17 @@ enum ELuaMonitorMode : uint8
 	MAX
 };
 
-class SELuaMonitorPanel
+class SELuaMonitorPanel : public SCompoundWidget
 {
 public:
-	SELuaMonitorPanel();
-	~SELuaMonitorPanel();
+
+	SLATE_BEGIN_ARGS(SELuaMonitorPanel) {}
+	SLATE_END_ARGS()
+
+	void Construct(const SELuaMonitorPanel::FArguments& InArgs);
+
+	//SELuaMonitorPanel();
+	//~SELuaMonitorPanel();
 
     TSharedRef<class SDockTab> GetSDockTab();
 
@@ -75,6 +81,10 @@ private:
 	void OnGenerateFrameController();
 
 	void OnRemoveFrameController();
+
+	int32 OnGetMaxDepth() const;
+
+	void OnMaxDepthChanged(int32 Depth);
 
 private:
 	TSharedPtr<STreeView<TSharedPtr<FELuaTraceInfoNode>>> TreeViewWidget;

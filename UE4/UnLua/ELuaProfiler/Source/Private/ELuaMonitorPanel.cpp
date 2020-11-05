@@ -24,16 +24,22 @@
 #include "ELuaMonitor.h"
 #include "EditorStyleSet.h"
 #include "Widgets/Images/SImage.h"
+#include "Widgets/Input/SSpinBox.h"
 #include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Input/SNumericDropDown.h"
 
-SELuaMonitorPanel::SELuaMonitorPanel()
-{
+//SELuaMonitorPanel::SELuaMonitorPanel()
+//{
+//
+//}
+//
+//SELuaMonitorPanel::~SELuaMonitorPanel()
+//{
+//
+//}
 
-}
-
-SELuaMonitorPanel::~SELuaMonitorPanel()
+void SELuaMonitorPanel::Construct(const SELuaMonitorPanel::FArguments& InArgs)
 {
 
 }
@@ -53,8 +59,8 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 	SAssignNew(TreeViewWidget, STreeView<TSharedPtr<FELuaTraceInfoNode>>)
 		.ItemHeight(800)
 		.TreeItemsSource(&ShowRootList)
-		.OnGenerateRow_Raw(this, &SELuaMonitorPanel::OnGenerateRow)
-		.OnGetChildren_Raw(this, &SELuaMonitorPanel::OnGetChildrenRaw)
+		.OnGenerateRow(this, &SELuaMonitorPanel::OnGenerateRow)
+		.OnGetChildren(this, &SELuaMonitorPanel::OnGetChildrenRaw)
 		.SelectionMode(ESelectionMode::None)
 		.HighlightParentNodesForSelection(true)
 		.HeaderRow
@@ -83,7 +89,7 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 			.DropDownValues(NamedValuesForMonitorMode)
 			.IsEnabled(true)
 			.Value_Lambda([this]() { return (float)MonitorMode; })
-			.OnValueChanged_Raw(this, &SELuaMonitorPanel::OnModeChanged)
+			.OnValueChanged(this, &SELuaMonitorPanel::OnModeChanged)
 	];
 	ControllerBar->AddSlot()
 	[
@@ -95,10 +101,10 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 		.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// 无底图以免按钮发白
 		.ContentPadding(2.0)
 		.IsFocusable(false)
-		.OnClicked_Raw(this, &SELuaMonitorPanel::OnForwardBtnClicked)
+		.OnClicked(this, &SELuaMonitorPanel::OnForwardBtnClicked)
 		[
 			SNew(SImage)
-			.Image_Raw(this, &SELuaMonitorPanel::GetForwardIcon)
+			.Image(this, &SELuaMonitorPanel::GetForwardIcon)
 		]
 	];
 	ControllerBar->AddSlot()
@@ -108,11 +114,27 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 
 	ControllerBar->AddSlot().HAlign(HAlign_Right).VAlign(VAlign_Center).AutoWidth()
 	[
+		SNew(STextBlock)
+		.Text(FText::FromName("Depth: "))
+	];
+
+	ControllerBar->AddSlot().HAlign(HAlign_Right).VAlign(VAlign_Center).AutoWidth()
+	[
+		SNew(SSpinBox<int32>)
+		.Delta(1)
+		.MinValue(1)
+		.MaxValue(1000)
+		.Value(this, &SELuaMonitorPanel::OnGetMaxDepth)
+		.OnValueChanged(this, &SELuaMonitorPanel::OnMaxDepthChanged)
+	];
+
+	ControllerBar->AddSlot().HAlign(HAlign_Right).VAlign(VAlign_Center).AutoWidth()
+	[
 		SNew(SButton)
 		.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// 无底图以免按钮发白
 		.ContentPadding(2.0)
 		.IsFocusable(false)
-		.OnClicked_Raw(this, &SELuaMonitorPanel::OnClearBtnClicked)
+		.OnClicked(this, &SELuaMonitorPanel::OnClearBtnClicked)
 		.ToolTipText(FText::FromName("Clear and stop monitor"))
 		[
 			SNew(SImage)
@@ -347,10 +369,10 @@ void SELuaMonitorPanel::OnGenerateFrameController()
 			.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// 无底图以免按钮发白
 			.ContentPadding(2.0)
 			.IsFocusable(false)
-			.OnClicked_Raw(this, &SELuaMonitorPanel::OnPrevFrameBtnClicked)
+			.OnClicked(this, &SELuaMonitorPanel::OnPrevFrameBtnClicked)
 			[
 				SNew(SImage)
-				.Image_Raw(this, &SELuaMonitorPanel::GetPrevFrameIcon)
+				.Image(this, &SELuaMonitorPanel::GetPrevFrameIcon)
 			];
 		}
 
@@ -360,10 +382,10 @@ void SELuaMonitorPanel::OnGenerateFrameController()
 			.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// 无底图以免按钮发白
 			.ContentPadding(2.0)
 			.IsFocusable(false)
-			.OnClicked_Raw(this, &SELuaMonitorPanel::OnNextFrameBtnClicked)
+			.OnClicked(this, &SELuaMonitorPanel::OnNextFrameBtnClicked)
 			[
 				SNew(SImage)
-				.Image_Raw(this, &SELuaMonitorPanel::GetNextFrameIcon)
+				.Image(this, &SELuaMonitorPanel::GetNextFrameIcon)
 			];
 		}
 
@@ -391,6 +413,16 @@ void SELuaMonitorPanel::OnRemoveFrameController()
 			ControllerBar->RemoveSlot(NextFrameBtn.ToSharedRef());
 		}
 	}
+}
+
+int32 SELuaMonitorPanel::OnGetMaxDepth() const
+{
+	return FELuaMonitor::GetInstance()->GetMaxDepth();
+}
+
+void SELuaMonitorPanel::OnMaxDepthChanged(int32 Depth)
+{
+	FELuaMonitor::GetInstance()->SetMaxDepth(Depth);
 }
 
 void SELuaMonitorPanel::OnDestroy()

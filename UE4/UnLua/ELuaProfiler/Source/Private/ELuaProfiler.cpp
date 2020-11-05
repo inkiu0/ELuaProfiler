@@ -55,7 +55,8 @@ void FELuaProfilerModule::StartupModule()
 
 	if (GIsEditor && !IsRunningCommandlet())
 	{
-		MonitorPanel = MakeShareable(new SELuaMonitorPanel);
+		SAssignNew(MonitorPanel, SELuaMonitorPanel);
+		//MonitorPanel = MakeShareable(new SELuaMonitorPanel);
 		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ELuaProfiler::ELuaProfilerTabName,
 			FOnSpawnTab::CreateRaw(this, &FELuaProfilerModule::OnSpawnPluginTab))
 			.SetDisplayName(LOCTEXT("Flua_wrapperTabTitle", "Easy Lua Profiler"))

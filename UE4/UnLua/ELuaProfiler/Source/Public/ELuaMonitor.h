@@ -50,7 +50,9 @@ public:
 
 	void Tick(float DeltaTime);
 
-	void SetMaxDepth(uint32 Depth) { MaxDepth = Depth; }
+	int32 GetMaxDepth() { return MaxDepth; }
+
+	void SetMaxDepth(int32 Depth) { MaxDepth = Depth; }
 
 	TSharedPtr<FELuaTraceInfoNode> GetRoot(uint32 Index = 0);
 
@@ -81,7 +83,7 @@ private:
 
 private:
 	/* max depth of hook  tracking */
-	uint32 MaxDepth = 100000;
+	uint32 MaxDepth = 100;
 
 	/* current depth of hook tracking */
 	uint32 CurDepth = 0;

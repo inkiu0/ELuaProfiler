@@ -24,7 +24,6 @@
 #include "ELuaMonitor.h"
 #include "EditorStyleSet.h"
 #include "Widgets/Images/SImage.h"
-#include "Widgets/Input/SSpinBox.h"
 #include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Input/SNumericDropDown.h"
@@ -46,6 +45,8 @@ void SELuaMonitorPanel::Construct(const SELuaMonitorPanel::FArguments& InArgs)
 
 TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 {
+	FELuaMonitor::GetInstance()->SetMonitorMode(MonitorMode);
+
 	UpdateRoot();
 
 
@@ -254,10 +255,9 @@ void SELuaMonitorPanel::UpdateRoot()
 {
 	switch (MonitorMode)
 	{
-	case PerFrame:
-		break;
 	case Statistics:
 		break;
+	case PerFrame:
 	case Total:
 	default:
 		CurRootTINode = FELuaMonitor::GetInstance()->GetRoot();
@@ -279,7 +279,7 @@ void SELuaMonitorPanel::Tick(float DeltaTime)
 
 	ElapsedTime += DeltaTime;
 
-	if (ElapsedTime > UPDATE_INTERVAL)
+	if (MonitorMode == PerFrame || ElapsedTime > UPDATE_INTERVAL)
 	{
 		UpdateRoot();
 
@@ -308,11 +308,13 @@ FReply SELuaMonitorPanel::OnClearBtnClicked()
 
 FReply SELuaMonitorPanel::OnPrevFrameBtnClicked()
 {
+	FELuaMonitor::GetInstance()->SetCurFrameIndex(FELuaMonitor::GetInstance()->GetCurFrameIndex() - 1);
 	return FReply::Handled();
 }
 
 FReply SELuaMonitorPanel::OnNextFrameBtnClicked()
 {
+	FELuaMonitor::GetInstance()->SetCurFrameIndex(FELuaMonitor::GetInstance()->GetCurFrameIndex() + 1);
 	return FReply::Handled();
 }
 
@@ -342,6 +344,7 @@ void SELuaMonitorPanel::OnModeChanged(float InMode)
 		if (!FMath::IsNearlyEqual((float)MonitorMode, InMode))
 		{
 			MonitorMode = (ELuaMonitorMode)((uint8)InMode);
+			FELuaMonitor::GetInstance()->SetMonitorMode(MonitorMode);
 			switch (MonitorMode)
 			{
 			case PerFrame:
@@ -389,6 +392,22 @@ void SELuaMonitorPanel::OnGenerateFrameController()
 			];
 		}
 
+		if (!CurFrameSpin)
+		{
+			SAssignNew(CurFrameSpin, SSpinBox<int32>)
+			.Delta(1)
+			.MinValue(0)
+			.MaxValue(0x7FFFFFFF)
+			.Value(this, &SELuaMonitorPanel::OnGetCurFrameIndex)
+			.OnValueChanged(this, &SELuaMonitorPanel::OnCurFrameIndexChanged);
+		}
+
+		if (!TotalFrameText)
+		{
+			SAssignNew(TotalFrameText, STextBlock)
+			.Text(this, &SELuaMonitorPanel::OnGetTotalFrameText);
+		}
+
 		if (ControllerBar.IsValid())
 		{
 			ControllerBar->InsertSlot(2).HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
@@ -398,6 +417,14 @@ void SELuaMonitorPanel::OnGenerateFrameController()
 			ControllerBar->InsertSlot(4).HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
 			[
 				NextFrameBtn.ToSharedRef()
+			];
+			ControllerBar->InsertSlot(6).HAlign(HAlign_Right).VAlign(VAlign_Center).AutoWidth()
+			[
+				CurFrameSpin.ToSharedRef()
+			];
+			ControllerBar->InsertSlot(7).HAlign(HAlign_Right).VAlign(VAlign_Center).AutoWidth()
+			[
+				TotalFrameText.ToSharedRef()
 			];
 		}
 	}
@@ -423,6 +450,21 @@ int32 SELuaMonitorPanel::OnGetMaxDepth() const
 void SELuaMonitorPanel::OnMaxDepthChanged(int32 Depth)
 {
 	FELuaMonitor::GetInstance()->SetMaxDepth(Depth);
+}
+
+FText SELuaMonitorPanel::OnGetTotalFrameText() const
+{
+	return FText::FromString(FString::Printf(TEXT("/%d"), FELuaMonitor::GetInstance()->GetTotalFrames()));
+}
+
+int32 SELuaMonitorPanel::OnGetCurFrameIndex() const
+{
+	return FELuaMonitor::GetInstance()->GetCurFrameIndex();
+}
+
+void SELuaMonitorPanel::OnCurFrameIndexChanged(int32 Index)
+{
+	FELuaMonitor::GetInstance()->SetCurFrameIndex(Index);
 }
 
 void SELuaMonitorPanel::OnDestroy()

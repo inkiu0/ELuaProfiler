@@ -22,20 +22,13 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "ELuaBase.h"
 #include "ELuaTraceInfoNode.h"
 #include "Widgets/Input/SButton.h"
+#include "Widgets/Input/SSpinBox.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Views/STreeView.h"
 #include "Widgets/Docking/SDockTab.h"
-
-enum ELuaMonitorMode : uint8
-{
-	PerFrame,		// Deep Copy TraceInfoTree PerFrame
-	Total,			// Only one TraceInfoTree
-	Statistics,		// Unfold TraceInfoTree
-	MAX
-};
 
 class SELuaMonitorPanel : public SCompoundWidget
 {
@@ -86,6 +79,12 @@ private:
 
 	void OnMaxDepthChanged(int32 Depth);
 
+	FText OnGetTotalFrameText() const;
+
+	int32 OnGetCurFrameIndex() const;
+
+	void OnCurFrameIndexChanged(int32 Index);
+
 private:
 	TSharedPtr<STreeView<TSharedPtr<FELuaTraceInfoNode>>> TreeViewWidget;
 
@@ -100,6 +99,10 @@ private:
 	//TSharedPtr<SButton> ForwardBtn;
 
 	TSharedPtr<SButton> NextFrameBtn;
+
+	TSharedPtr<SSpinBox<int32>> CurFrameSpin;
+
+	TSharedPtr<STextBlock> TotalFrameText;
 
 	//TSharedPtr<SButton> ClearBtn;
 

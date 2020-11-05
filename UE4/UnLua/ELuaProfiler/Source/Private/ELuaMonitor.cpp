@@ -67,10 +67,7 @@ void FELuaMonitor::Start()
 	Init();
 	if ((State & INITED) > 0)
 	{
-		if (lua_State* L = UnLua::GetState())
-		{
-			lua_sethook(L, OnHook, ELuaProfiler::HookMask, 0);
-		}
+		lua_sethook(UnLua::GetState(), OnHook, ELuaProfiler::HookMask, 0);
 	}
 	State |=STARTED;
 }
@@ -79,10 +76,7 @@ void FELuaMonitor::Stop()
 {
 	if (State == RUNING)
 	{
-		if (lua_State* L = UnLua::GetState())
-		{
-			lua_sethook(L, nullptr, 0, 0);
-		}
+		lua_sethook(UnLua::GetState(), nullptr, 0, 0);
 	}
 	State &= (~STARTED);
 }
@@ -91,10 +85,7 @@ void FELuaMonitor::Pause()
 {
 	if (State == RUNING)
 	{
-		if (lua_State* L = UnLua::GetState())
-		{
-			lua_sethook(L, nullptr, 0, 0);
-		}
+		lua_sethook(UnLua::GetState(), nullptr, 0, 0);
 	}
 	State |= PAUSE;
 }
@@ -104,10 +95,7 @@ void FELuaMonitor::Resume()
 	if ((State & PAUSE) > 0)
 	{
 		State &= (~PAUSE);
-		if (lua_State* L = UnLua::GetState())
-		{
-			lua_sethook(L, OnHook, ELuaProfiler::HookMask, 0);
-		}
+		lua_sethook(UnLua::GetState(), OnHook, ELuaProfiler::HookMask, 0);
 	}
 }
 
@@ -116,6 +104,10 @@ void FELuaMonitor::OnClear()
 	Stop();
 
 	State = CREATED;
+
+	FramesTraceTreeList.Empty();
+
+	CurFrameIndex = 0;
 
 	CurTraceTree = TSharedPtr<FELuaTraceInfoTree>(new FELuaTraceInfoTree());
 }
@@ -159,16 +151,47 @@ void FELuaMonitor::OnHookReturn(lua_State* L)
 	}
 }
 
-TSharedPtr<FELuaTraceInfoNode> FELuaMonitor::GetRoot(uint32 Index /* = 0 */)
+TSharedPtr<FELuaTraceInfoNode> FELuaMonitor::GetRoot(uint32 FrameIndex /* = 0 */)
 {
 	if ((State & INITED) > 0)
 	{
-		if (Index == 0)
+		if (MonitorMode == PerFrame)
 		{
+			int32 Index = GetCurFrameIndex() < GetTotalFrames() ? CurFrameIndex - 1 : CurFrameIndex - 2;
+			return FramesTraceTreeList[Index]->GetRoot();
+		}
+		else
+		{
+			CurTraceTree->CountSelfTime();
 			return CurTraceTree->GetRoot();
 		}
 	}
 	return nullptr;
+}
+
+void FELuaMonitor::SetCurFrameIndex(int32 Index)
+{
+	if (Index > 0 && Index < GetTotalFrames())
+	{
+		CurFrameIndex = Index;
+	}
+	else
+	{
+		CurFrameIndex = GetTotalFrames();
+	}
+}
+
+void FELuaMonitor::PerFrameModeUpdate(bool Manual /* = false */)
+{
+	CurTraceTree->CountSelfTime();
+	FramesTraceTreeList.Add(CurTraceTree);
+	CurTraceTree = TSharedPtr<FELuaTraceInfoTree>(new FELuaTraceInfoTree());
+	CurTraceTree->Init();
+
+	if (CurFrameIndex == FramesTraceTreeList.Num() - 1)
+	{
+		CurFrameIndex = FramesTraceTreeList.Num();
+	}
 }
 
 void FELuaMonitor::Tick(float DeltaTime)
@@ -180,6 +203,11 @@ void FELuaMonitor::Tick(float DeltaTime)
 		{
 			Stop();
 		}
+
+		if (MonitorMode == PerFrame && !ManualUpdated)
+		{
+			PerFrameModeUpdate();
+		}
 	}
 	else if(State == STARTED)
 	{
@@ -188,10 +216,5 @@ void FELuaMonitor::Tick(float DeltaTime)
 		{
 			Init();
 		}
-	}
-
-	if (CurTraceTree)
-	{
-		CurTraceTree->CountSelfTime();
 	}
 }

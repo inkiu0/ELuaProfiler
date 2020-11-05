@@ -54,13 +54,21 @@ public:
 
 	void SetMaxDepth(int32 Depth) { MaxDepth = Depth; }
 
-	TSharedPtr<FELuaTraceInfoNode> GetRoot(uint32 Index = 0);
+	TSharedPtr<FELuaTraceInfoNode> GetRoot(uint32 FrameIndex = 0);
 
 	bool IsRuning() { return State == RUNING; }
 
 	void LoadFile(const FString& Path);
 
 	void PrintToFile(const FString& Path);
+
+	void SetMonitorMode(ELuaMonitorMode Mode) { MonitorMode = Mode; }
+
+	int32 GetTotalFrames() { return FramesTraceTreeList.Num(); }
+
+	int32 GetCurFrameIndex() { return CurFrameIndex; }
+
+	void SetCurFrameIndex(int32 Index);
 private:
 	FELuaMonitor();
 	~FELuaMonitor();
@@ -81,6 +89,8 @@ private:
 
 	void Resume();
 
+	void PerFrameModeUpdate(bool Manual = false);
+
 private:
 	/* max depth of hook  tracking */
 	uint32 MaxDepth = 100;
@@ -90,9 +100,17 @@ private:
 
 	TSharedPtr<FELuaTraceInfoTree> CurTraceTree;
 
+	TArray<TSharedPtr<FELuaTraceInfoTree>> FramesTraceTreeList;
+
+	uint32 CurFrameIndex = 0;
+
 	bool Started = false;
 
 	bool Inited = false;
 
+	bool ManualUpdated = false;
+
 	uint32 State = CREATED;
+
+	ELuaMonitorMode MonitorMode = Total;
 };

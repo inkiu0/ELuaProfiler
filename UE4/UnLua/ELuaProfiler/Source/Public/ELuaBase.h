@@ -45,3 +45,11 @@ namespace ELuaProfiler
 
 	const int HookMask = LUA_MASKCALL | LUA_MASKRET;
 }
+
+enum ELuaMonitorMode : uint8
+{
+	PerFrame,		// Deep Copy TraceInfoTree PerFrame
+	Total,			// Only one TraceInfoTree
+	Statistics,		// Unfold TraceInfoTree
+	MAX
+};

@@ -85,7 +85,7 @@ end
 ```
 当我们统计到`Counting`函数的时候，会统计到1000次`EmptyFunction`函数的开销。但由于`EmptyFunction`函数的开销过小，甚至比Profiler的GetTime函数的开销还小。所以`Counting`的统计势必存在很大的误差，这个时候我们可以将MaxDepth设定在`Counting`这一层，不再继续展开，不统计过细的分支(在这个例子中指`EmptyFunction`)，我们就能正确地观察到`Counting`的性能开销。
 
-一般我们在实战中，一步步地增加Depth，直到我们停在一个合适的地方。
+一般我们在实战中，从1开始慢慢增加Depth，直到我们停在一个合适的地方。
 #### 排序
 目前是按照`TotalTime`降序排列，后续会支持点选Title进行不同数据的排序。
 

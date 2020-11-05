@@ -77,7 +77,7 @@ private:
 
 	void OnHookCall(lua_State* L, lua_Debug* ar);
 
-	void OnHookReturn(lua_State* L);
+	void OnHookReturn(lua_State* L, lua_Debug* ar);
 
 	void Init();
 

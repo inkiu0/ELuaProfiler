@@ -69,7 +69,7 @@ void FELuaMonitor::Start()
 	{
 		lua_sethook(UnLua::GetState(), OnHook, ELuaProfiler::HookMask, 0);
 	}
-	State |=STARTED;
+	State |= STARTED;
 }
 
 void FELuaMonitor::Stop()
@@ -120,7 +120,7 @@ void FELuaMonitor::OnClear()
 		FELuaMonitor::GetInstance()->OnHookCall(L, ar);
 		break;
 	case LUA_HOOKRET:
-		FELuaMonitor::GetInstance()->OnHookReturn(L);
+		FELuaMonitor::GetInstance()->OnHookReturn(L, ar);
 		break;
 	default:
 		break;
@@ -133,19 +133,19 @@ void FELuaMonitor::OnHookCall(lua_State* L, lua_Debug* ar)
 	{
 		if (CurDepth < MaxDepth)
 		{
-			CurTraceTree->OnHookCall(L, ar);
+			CurTraceTree->OnHookCall(L, ar, MonitorMode == Statistics);
 		}
 		CurDepth++;
 	}
 }
 
-void FELuaMonitor::OnHookReturn(lua_State* L)
+void FELuaMonitor::OnHookReturn(lua_State* L, lua_Debug* ar)
 {
 	if (CurTraceTree)
 	{
-		if (CurDepth <= MaxDepth && !CurTraceTree->IsOnRoot())
+		if (CurDepth <= MaxDepth)
 		{
-			CurTraceTree->OnHookReturn();
+			CurTraceTree->OnHookReturn(L, ar, MonitorMode == Statistics);
 		}
 		CurDepth--;
 	}
@@ -214,7 +214,7 @@ void FELuaMonitor::Tick(float DeltaTime)
 		// waiting game start
 		if (UnLua::GetState())
 		{
-			Init();
+			OnForward();
 		}
 	}
 }

@@ -256,7 +256,6 @@ void SELuaMonitorPanel::UpdateRoot()
 	switch (MonitorMode)
 	{
 	case Statistics:
-		break;
 	case PerFrame:
 	case Total:
 	default:

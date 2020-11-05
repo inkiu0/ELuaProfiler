@@ -42,9 +42,9 @@ public:
 
 	void Init();
 
-	void OnHookCall(lua_State* L, lua_Debug* ar);
+	void OnHookCall(lua_State* L, lua_Debug* ar, bool IsStatistics = false);
 
-	void OnHookReturn();
+	void OnHookReturn(lua_State* L, lua_Debug* ar, bool IsStatistics = false);
 
 	bool IsOnRoot() { return CurNode == Root; }
 

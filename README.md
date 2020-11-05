@@ -34,16 +34,21 @@ ELuaMonitor主要用于剖析Lua的CPU性能，以及内存频繁开辟引起GC�
 2. Clear
     - 最右侧为Clear按钮，点击Clear后会立刻停止Profile，并清空当前Profile数据
 3. NextFrame/PrevFrame
-    - 暂不支持PerFrame
-    - 后续会用作逐帧回溯
+    - 逐帧回溯，分别为上一帧和下一帧。
+4. CurFrameIdx/TotalFrame
+    - 当前帧数/总帧数
+    - CurFrameIdx支持手动输入
+    - 当0 < CurFrameIdx < TotalFrame，会停在CurFrameIdx这一帧
+    - 否则CurFrameIdx会等于TotalFrame，并跟随TotalFrame一起增长
+5. Max Depth
+    - 控制Profile的最大深度，最小值为1，最大值为1000(可在代码中更改)。
+    - Max Depth可以有效的消除Profile误差
 #### MonitorData
 1. TotalTIme(ms)
     - 函数从Call到Return总共消耗的时间，单位为毫秒
     - 该值会受Profiler本身开销影响，主要是Profiler取Time的开销（因为Profiler取Time必须是同步的，但比如自增函数的开销比取Time开销还小，势必会造成误差，可以控制ProfileDepth来消除）
 2. TotalTime(%)
     - 该函数调用时间开销占父节点的百分比
-    - 第一级节点的父节点为Root，由于Root只有CallTime，而没有Return(除非结束LuaVM)。所以Root.TotalTime代表着Profile了多久
-    - 所以这个值一定程度上也可以视为该一级节点占整个游戏的比重
     - TotalTime / Parent.TotalTime
 3. SelfTime(ms)
     - 代表该函数自身的开销
@@ -81,6 +86,8 @@ _UI界面开发中..._
     - 两颗`Snapshot`进行与运算，得到两个时刻相同的内存部分。
 2. `|` Operation
     - 两颗`Snapshot`进行或运算，得到两个时刻总的内存部分，相当于A + B
+3. `^` Operation
+    - 两颗`Snapshot`进行异或预算，得到两个时刻的内存差异部分。
 3. Memory Leak
     - 在刚启动游戏时，或强制GC后，采样得到`SnapshotA`
     - 在游戏内进行游玩时，每隔5分钟采样，得到`SnapshotB`、`SnapshotC`、`SnapshotD`

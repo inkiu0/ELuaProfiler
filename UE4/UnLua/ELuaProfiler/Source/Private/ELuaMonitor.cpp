@@ -67,7 +67,10 @@ void FELuaMonitor::Start()
 	Init();
 	if ((State & INITED) > 0)
 	{
-		lua_sethook(UnLua::GetState(), OnHook, ELuaProfiler::HookMask, 0);
+		if (lua_State* L = UnLua::GetState())
+		{
+			lua_sethook(L, OnHook, ELuaProfiler::HookMask, 0);
+		}
 	}
 	State |= STARTED;
 }
@@ -76,7 +79,10 @@ void FELuaMonitor::Stop()
 {
 	if (State == RUNING)
 	{
-		lua_sethook(UnLua::GetState(), nullptr, 0, 0);
+		if (lua_State* L = UnLua::GetState())
+		{
+			lua_sethook(L, nullptr, 0, 0);
+		}
 	}
 	State &= (~STARTED);
 }
@@ -85,7 +91,10 @@ void FELuaMonitor::Pause()
 {
 	if (State == RUNING)
 	{
-		lua_sethook(UnLua::GetState(), nullptr, 0, 0);
+		if (lua_State* L = UnLua::GetState())
+		{
+			lua_sethook(L, nullptr, 0, 0);
+		}
 	}
 	State |= PAUSE;
 }
@@ -95,7 +104,10 @@ void FELuaMonitor::Resume()
 	if ((State & PAUSE) > 0)
 	{
 		State &= (~PAUSE);
-		lua_sethook(UnLua::GetState(), OnHook, ELuaProfiler::HookMask, 0);
+		if (lua_State* L = UnLua::GetState())
+		{
+			lua_sethook(L, OnHook, ELuaProfiler::HookMask, 0);
+		}
 	}
 }
 
@@ -159,6 +171,11 @@ TSharedPtr<FELuaTraceInfoNode> FELuaMonitor::GetRoot(uint32 FrameIndex /* = 0 */
 		{
 			int32 Index = GetCurFrameIndex() < GetTotalFrames() ? CurFrameIndex - 1 : CurFrameIndex - 2;
 			return FramesTraceTreeList[Index]->GetRoot();
+		}
+		else if (MonitorMode == Statistics)
+		{
+			CurTraceTree->CountSelfTime();
+			return CurTraceTree->Statisticize();
 		}
 		else
 		{

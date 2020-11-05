@@ -136,4 +136,35 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 		Children.Empty();
 		ChildIDMap.Empty();
 	}
+
+	FELuaTraceInfoNode(TSharedPtr<FELuaTraceInfoNode> Other)
+	{
+		ID = Other->ID;
+		Name = Other->Name;
+		CallTime = Other->CallTime;
+		SelfTime = Other->SelfTime;
+		TotalTime = Other->TotalTime;
+		CallSize = Other->CallSize;
+		AllocSize = Other->AllocSize;
+		GCSize = Other->GCSize;
+		Count = Other->Count;
+		Event = Other->Event;
+		Parent = Other->Parent;
+	}
+
+	void StatisticizeOtherNode(TSharedPtr<FELuaTraceInfoNode> Other)
+	{
+		if (ChildIDMap.Contains(Other->ID))
+		{
+			SelfTime += Other->SelfTime;
+			TotalTime += Other->TotalTime;
+			AllocSize += Other->AllocSize;
+			GCSize += Other->GCSize;
+			Count += Other->Count;
+		}
+		else
+		{
+			AddChild(TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(Other)));
+		}
+	}
 };

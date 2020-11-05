@@ -52,6 +52,10 @@ public:
 
 	TSharedPtr<FELuaTraceInfoNode> GetRoot() { return Root; }
 
+	TSharedPtr<FELuaTraceInfoNode> Statisticize();
+
+	void StatisticizeNode(TSharedPtr<FELuaTraceInfoNode> Node, TSharedPtr<FELuaTraceInfoNode> StatisticsNode);
+
 private:
 	TSharedPtr<FELuaTraceInfoNode> GetChild(lua_Debug* ar);
 

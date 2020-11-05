@@ -51,10 +51,7 @@ void FELuaTraceInfoTree::OnHookCall(lua_State* L, lua_Debug* ar, bool IsStatisti
 		lua_getinfo(L, "nS", ar);
 		TSharedPtr<FELuaTraceInfoNode> Child = GetChild(ar);
 		Child->BeginInvoke();
-		if (!IsStatistics)
-		{
-			CurNode = Child;
-		}
+		CurNode = Child;
 		++CurDepth;
 	}
 }
@@ -63,17 +60,11 @@ void FELuaTraceInfoTree::OnHookReturn(lua_State* L, lua_Debug* ar, bool IsStatis
 {
 	if (Root)
 	{
-		if (!IsStatistics)
-		{
-			CurNode->EndInvoke();
-			CurNode = CurNode->Parent;
-		}
-		else
-		{
-			lua_getinfo(L, "nS", ar);
-			TSharedPtr<FELuaTraceInfoNode> Child = GetChild(ar);
-			Child->EndInvoke();
-		}
+		CurNode->EndInvoke();
+		CurNode = CurNode->Parent;
+		lua_getinfo(L, "nS", ar);
+		TSharedPtr<FELuaTraceInfoNode> Child = GetChild(ar);
+		Child->EndInvoke();
 		--CurDepth;
 		if (CurDepth == 0)
 		{
@@ -115,4 +106,22 @@ void FELuaTraceInfoTree::CountNodeSelfTime(TSharedPtr<FELuaTraceInfoNode> Node)
 			CountNodeSelfTime(Node->Children[i]);
 		}
 	}
+}
+
+void FELuaTraceInfoTree::StatisticizeNode(TSharedPtr<FELuaTraceInfoNode> Node, TSharedPtr<FELuaTraceInfoNode> StatisticsNode)
+{
+	if (Node)
+	{
+		for (int32 i = 0; i < Node->Children.Num(); i++)
+		{
+			StatisticsNode->StatisticizeOtherNode(Node->Children[i]);
+		}
+	}
+}
+
+TSharedPtr<FELuaTraceInfoNode> FELuaTraceInfoTree::Statisticize()
+{
+	TSharedPtr<FELuaTraceInfoNode> StatisticsNode = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(Root));
+	StatisticizeNode(Root, StatisticsNode);
+	return StatisticsNode;
 }

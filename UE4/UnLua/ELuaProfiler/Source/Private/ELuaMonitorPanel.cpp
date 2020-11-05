@@ -253,22 +253,14 @@ void SELuaMonitorPanel::OnGetChildrenRaw(TSharedPtr<FELuaTraceInfoNode> TINode, 
 
 void SELuaMonitorPanel::UpdateRoot()
 {
-	switch (MonitorMode)
+	CurRootTINode = FELuaMonitor::GetInstance()->GetRoot();
+	if (CurRootTINode)
 	{
-	case Statistics:
-	case PerFrame:
-	case Total:
-	default:
-		CurRootTINode = FELuaMonitor::GetInstance()->GetRoot();
-		if (CurRootTINode)
-		{
-			ShowRootList = CurRootTINode->Children;
-		}
-		else
-		{
-			ShowRootList = {};
-		}
-		break;
+		ShowRootList = CurRootTINode->Children;
+	}
+	else
+	{
+		ShowRootList = {};
 	}
 }
 

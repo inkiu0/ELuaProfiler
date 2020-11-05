@@ -156,15 +156,19 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 	{
 		if (ChildIDMap.Contains(Other->ID))
 		{
-			SelfTime += Other->SelfTime;
-			TotalTime += Other->TotalTime;
-			AllocSize += Other->AllocSize;
-			GCSize += Other->GCSize;
-			Count += Other->Count;
+			TSharedPtr<FELuaTraceInfoNode> CNode = ChildIDMap[Other->ID];
+			CNode->SelfTime += Other->SelfTime;
+			CNode->TotalTime += Other->TotalTime;
+			CNode->AllocSize += Other->AllocSize;
+			CNode->GCSize += Other->GCSize;
+			CNode->Count += Other->Count;
 		}
 		else
 		{
 			AddChild(TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(Other)));
 		}
+		TotalTime += Other->TotalTime;
+		AllocSize += Other->AllocSize;
+		GCSize += Other->GCSize;
 	}
 };

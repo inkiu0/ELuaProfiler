@@ -115,6 +115,7 @@ void FELuaTraceInfoTree::StatisticizeNode(TSharedPtr<FELuaTraceInfoNode> Node, T
 		for (int32 i = 0; i < Node->Children.Num(); i++)
 		{
 			StatisticsNode->StatisticizeOtherNode(Node->Children[i]);
+			StatisticizeNode(Node->Children[i], StatisticsNode);
 		}
 	}
 }

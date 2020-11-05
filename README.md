@@ -40,9 +40,6 @@ ELuaMonitor主要用于剖析Lua的CPU性能，以及内存频繁开辟引起GC�
     - CurFrameIdx支持手动输入
     - 当0 < CurFrameIdx < TotalFrame，会停在CurFrameIdx这一帧
     - 否则CurFrameIdx会等于TotalFrame，并跟随TotalFrame一起增长
-5. Max Depth
-    - 控制Profile的最大深度，最小值为1，最大值为1000(可在代码中更改)。
-    - Max Depth可以有效的消除Profile误差
 #### MonitorData
 1. TotalTIme(ms)
     - 函数从Call到Return总共消耗的时间，单位为毫秒
@@ -72,6 +69,23 @@ ELuaMonitor主要用于剖析Lua的CPU性能，以及内存频繁开辟引起GC�
     - GC / Parent.GC
 10. Calls
     - 该函数被调用次数
+    
+#### Max Depth
+Max Depth控制Profile的最大深度，最小值为1，最大值为1000(可在代码中更改)，Max Depth可以有效的消除Profile误差。Profile的误差主要来源于Profiler的GetTime，而GetTime必须是同步进行的，所以这部分误差会一直存在。考虑以下代码
+```lua
+function EmptyFunction()
+
+end
+
+function Counting()
+    for i = 1, 1000 do
+        EmptyFunction()
+    end
+end
+```
+当我们统计到`Counting`的时候，同时会统计1000次`EmptyFunction`的开销。由于`EmptyFunction`的开销过小，甚至比Profiler的GetTime的开销还小。所以`Counting`的统计势必存在很大的误差，这个时候我们可以将MaxDepth设定在`Counting`这一层，不再继续展开，我们就能正确地观察到`Counting`的性能开销。
+
+一般我们在实战中，一步步地增加Depth，直到我们停在一个合适的地方。
 #### 排序
 目前是按照`TotalTime`降序排列，后续会支持点选Title进行不同数据的排序。
 

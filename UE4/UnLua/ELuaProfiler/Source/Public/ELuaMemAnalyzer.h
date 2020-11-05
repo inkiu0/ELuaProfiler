@@ -32,6 +32,21 @@ public:
 	FELuaMemAnalyzer();
 	~FELuaMemAnalyzer();
 
+public:
+	FELuaMemAnalyzer* GetInstance()
+	{
+		static FELuaMemAnalyzer Instance;
+		return &Instance;
+	}
+
+	void travel_object(lua_State* L, const char* desc, int level, const void* parent);
+
+	void Snapshot(lua_State* L);
+
+	void PopSnapshot();
+
+	void ForceLuaGC();
+
 private:
 
 	const char* key_tostring(lua_State* L, int index, char* buffer);
@@ -45,25 +60,7 @@ private:
 	void travel_function(lua_State* L, const char* desc, int level, const void* parent);
 	void travel_thread(lua_State* L, const char* desc, int level, const void* parent);
 
-public:
-	void travel_object(lua_State* L, const char* desc, int level, const void* parent);
-	
-	void Snapshot(lua_State* L);
-
-	void PopSnapshot();
-
-	FELuaMemAnalyzer* GetInstance()
-	{
-		if (!SingletonInstance)
-		{
-			SingletonInstance = new FELuaMemAnalyzer();
-		}
-		return SingletonInstance;
-	}
-
 private:
 	TSharedPtr<FELuaMemSnapshot> CurSnapshot;
 	TArray<TSharedPtr<FELuaMemSnapshot>> Snapshots;
-
-	static FELuaMemAnalyzer* SingletonInstance;
 };

@@ -21,6 +21,7 @@
 // THE SOFTWARE.
 
 #include "ELuaMemAnalyzer.h"
+#include "UnLuaBase.h"
 #include <stdio.h>
 #include <string.h>
 extern "C"
@@ -31,8 +32,6 @@ extern "C"
 #include "lapi.h"
 #include "lstring.h"
 }
-
-FELuaMemAnalyzer* FELuaMemAnalyzer::SingletonInstance = nullptr;
 
 FELuaMemAnalyzer::FELuaMemAnalyzer()
 {
@@ -297,5 +296,16 @@ void FELuaMemAnalyzer::PopSnapshot()
 	else
 	{
 		CurSnapshot = nullptr;
+	}
+}
+
+void FELuaMemAnalyzer::ForceLuaGC()
+{
+	if (lua_State* L = UnLua::GetState())
+	{
+		int32 osize = lua_gc(L, LUA_GCCOUNT, 0);
+		lua_gc(L, LUA_GCCOLLECT, 0);
+		int32 nsize = lua_gc(L, LUA_GCCOUNT, 0);
+		UE_LOG(LogInit, Log, TEXT("Lua Free %d KB"), nsize - osize);
 	}
 }

@@ -95,7 +95,7 @@ bool FELuaProfilerModule::Tick(float DeltaTime)
 		return true;
 	}
 
-	MonitorPanel->Tick(DeltaTime);
+	MonitorPanel->DeferredTick(DeltaTime);
 
 	return true;
 }

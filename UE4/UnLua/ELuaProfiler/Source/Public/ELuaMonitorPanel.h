@@ -48,7 +48,7 @@ public:
 
 	void OnGetChildrenRaw(TSharedPtr<FELuaTraceInfoNode> Parent, TArray<TSharedPtr<FELuaTraceInfoNode>>& OutChildren);
 
-	void Tick(float DeltaTime);
+	void DeferredTick(float DeltaTime);
 
 	void OnDestroy();
 

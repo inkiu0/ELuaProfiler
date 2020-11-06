@@ -264,7 +264,7 @@ void SELuaMonitorPanel::UpdateRoot()
 	}
 }
 
-void SELuaMonitorPanel::Tick(float DeltaTime)
+void SELuaMonitorPanel::DeferredTick(float DeltaTime)
 {
 	FELuaMonitor::GetInstance()->Tick(DeltaTime);
 

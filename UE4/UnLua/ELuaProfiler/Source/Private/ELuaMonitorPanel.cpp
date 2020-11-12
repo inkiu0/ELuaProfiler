@@ -45,6 +45,8 @@ void SELuaMonitorPanel::Construct(const SELuaMonitorPanel::FArguments& InArgs)
 
 TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 {
+	TabIsOpening = true;
+
 	FELuaMonitor::GetInstance()->SetMonitorMode(MonitorMode);
 
 	UpdateRoot();
@@ -146,7 +148,8 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 	OnGenerateFrameController();
 
 
-	return SNew(SDockTab)
+	TSharedPtr<SDockTab> Tab;
+	SAssignNew(Tab, SDockTab)
 	.Icon(FEditorStyle::GetBrush("Kismet.Tabs.Palette"))
 	.Label(FText::FromName("ELuaMonitor"))
 	[
@@ -171,6 +174,8 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 			]
 		]
 	];
+	Tab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateRaw(this, &SELuaMonitorPanel::OnCloseTab));
+	return Tab.ToSharedRef();
 }
 
 TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfoNode> TINode, const TSharedRef<STableViewBase>& OwnerTable)
@@ -458,7 +463,7 @@ void SELuaMonitorPanel::OnCurFrameIndexChanged(int32 Index)
 	FELuaMonitor::GetInstance()->SetCurFrameIndex(Index);
 }
 
-void SELuaMonitorPanel::OnDestroy()
+void SELuaMonitorPanel::OnCloseTab(TSharedRef<SDockTab> Tab)
 {
-
+	TabIsOpening = false;
 }

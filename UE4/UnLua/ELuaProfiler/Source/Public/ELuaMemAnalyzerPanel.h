@@ -23,39 +23,28 @@
 #pragma once
 
 #include "ELuaBase.h"
-#include "ModuleManager.h"
-#include "ELuaMonitorPanel.h"
-#include "ELuaMemAnalyzerPanel.h"
+#include "Widgets/SCompoundWidget.h"
 #include "Widgets/Docking/SDockTab.h"
 
-/** Declares a log category for this module. */
-DECLARE_LOG_CATEGORY_EXTERN(LogELuaProfiler, Log, All);
-
-#ifdef ENABLE_ELUAPROFILER
-#endif
-
-class FELuaProfilerModule : public IModuleInterface
+class SELuaMemAnalyzerPanel : public SCompoundWidget
 {
 public:
-	virtual void StartupModule() override;
-	virtual void ShutdownModule() override;
-    
-	void OnClickedOpenMonitorPanel();
 
-	void OnClickedOpenMemAnalyzerPanel();
+	SLATE_BEGIN_ARGS(SELuaMemAnalyzerPanel) {}
+	SLATE_END_ARGS()
 
-private:
-	TSharedRef<class SDockTab> OnSpawnELuaMonitorTab(const class FSpawnTabArgs& SpawnTabArgs);
-	TSharedRef<class SDockTab> OnSpawnELuaMemAnalyzerTab(const class FSpawnTabArgs& SpawnTabArgs);
-	bool Tick(float DeltaTime);
-	void AddMenuExtension(FMenuBuilder& Builder);
-	void AddELuaProfilerMenu(FMenuBuilder& Builder);
+	void Construct(const SELuaMemAnalyzerPanel::FArguments& InArgs);
+
+	TSharedRef<class SDockTab> GetSDockTab();
+
+	void DeferredTick(float DeltaTime);
+
+	bool IsOpening() { return TabIsOpening; }
 
 private:
-	FTickerDelegate TickDelegate;
-	FDelegateHandle TickDelegateHandle;
-	bool m_bTabOpened = false;
-	TSharedPtr<class FUICommandList> PluginCommands;
-	TSharedPtr<SELuaMonitorPanel> MonitorPanel;
-	TSharedPtr<SELuaMemAnalyzerPanel> MemAnalyzerPanel;
+	void OnCloseTab(TSharedRef<SDockTab> Tab);
+
+private:
+	bool TabIsOpening = false;
 };
+

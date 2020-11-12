@@ -20,42 +20,35 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#pragma once
-
-#include "ELuaBase.h"
-#include "ModuleManager.h"
-#include "ELuaMonitorPanel.h"
 #include "ELuaMemAnalyzerPanel.h"
-#include "Widgets/Docking/SDockTab.h"
+#include "EditorStyleSet.h"
 
-/** Declares a log category for this module. */
-DECLARE_LOG_CATEGORY_EXTERN(LogELuaProfiler, Log, All);
-
-#ifdef ENABLE_ELUAPROFILER
-#endif
-
-class FELuaProfilerModule : public IModuleInterface
+void SELuaMemAnalyzerPanel::Construct(const SELuaMemAnalyzerPanel::FArguments& InArgs)
 {
-public:
-	virtual void StartupModule() override;
-	virtual void ShutdownModule() override;
-    
-	void OnClickedOpenMonitorPanel();
 
-	void OnClickedOpenMemAnalyzerPanel();
+}
 
-private:
-	TSharedRef<class SDockTab> OnSpawnELuaMonitorTab(const class FSpawnTabArgs& SpawnTabArgs);
-	TSharedRef<class SDockTab> OnSpawnELuaMemAnalyzerTab(const class FSpawnTabArgs& SpawnTabArgs);
-	bool Tick(float DeltaTime);
-	void AddMenuExtension(FMenuBuilder& Builder);
-	void AddELuaProfilerMenu(FMenuBuilder& Builder);
+TSharedRef<class SDockTab> SELuaMemAnalyzerPanel::GetSDockTab()
+{
+	TabIsOpening = true;
 
-private:
-	FTickerDelegate TickDelegate;
-	FDelegateHandle TickDelegateHandle;
-	bool m_bTabOpened = false;
-	TSharedPtr<class FUICommandList> PluginCommands;
-	TSharedPtr<SELuaMonitorPanel> MonitorPanel;
-	TSharedPtr<SELuaMemAnalyzerPanel> MemAnalyzerPanel;
-};
+	TSharedPtr<SDockTab> Tab;
+	SAssignNew(Tab, SDockTab)
+	.Icon(FEditorStyle::GetBrush("Kismet.Tabs.Palette"))
+	.Label(FText::FromName("ELuaMemAnalyzer"))
+	[
+		SNew(SVerticalBox)
+	];
+	Tab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateRaw(this, &SELuaMemAnalyzerPanel::OnCloseTab));
+	return Tab.ToSharedRef();
+}
+
+void SELuaMemAnalyzerPanel::DeferredTick(float DeltaTime)
+{
+
+}
+
+void SELuaMemAnalyzerPanel::OnCloseTab(TSharedRef<SDockTab> Tab)
+{
+	TabIsOpening = false;
+}

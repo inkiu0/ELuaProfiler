@@ -50,7 +50,7 @@ public:
 
 	void DeferredTick(float DeltaTime);
 
-	void OnDestroy();
+	bool IsOpening() { return TabIsOpening; }
 
 private:
 	FReply OnForwardBtnClicked();
@@ -85,6 +85,8 @@ private:
 
 	void OnCurFrameIndexChanged(int32 Index);
 
+	void OnCloseTab(TSharedRef<SDockTab> Tab);
+
 private:
 	TSharedPtr<STreeView<TSharedPtr<FELuaTraceInfoNode>>> TreeViewWidget;
 
@@ -113,4 +115,6 @@ private:
 	const static int32 COL_WIDTH = 80;
 
 	const float UPDATE_INTERVAL = 0.5f;
+
+	bool TabIsOpening = false;
 };

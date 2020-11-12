@@ -39,8 +39,13 @@ void FELuaProfilerModule::StartupModule()
 	PluginCommands = MakeShareable(new FUICommandList);
 
 	PluginCommands->MapAction(
-		FELuaProfilerCommands::Get().OpenWindow,
-		FExecuteAction::CreateRaw(this, &FELuaProfilerModule::PluginButtonClicked),
+		FELuaProfilerCommands::Get().OpenMonitorPanel,
+		FExecuteAction::CreateRaw(this, &FELuaProfilerModule::OnClickedOpenMonitorPanel),
+		FCanExecuteAction());
+
+	PluginCommands->MapAction(
+		FELuaProfilerCommands::Get().OpenMemAnalyzerPanel,
+		FExecuteAction::CreateRaw(this, &FELuaProfilerModule::OnClickedOpenMemAnalyzerPanel),
 		FCanExecuteAction());
 
 	FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
@@ -55,12 +60,16 @@ void FELuaProfilerModule::StartupModule()
 
 	if (GIsEditor && !IsRunningCommandlet())
 	{
-		SAssignNew(MonitorPanel, SELuaMonitorPanel);
-		//MonitorPanel = MakeShareable(new SELuaMonitorPanel);
-		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ELuaProfiler::ELuaProfilerTabName,
-			FOnSpawnTab::CreateRaw(this, &FELuaProfilerModule::OnSpawnPluginTab))
-			.SetDisplayName(LOCTEXT("Flua_wrapperTabTitle", "Easy Lua Profiler"))
+		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ELuaProfiler::ELuaMonitorTabName,
+			FOnSpawnTab::CreateRaw(this, &FELuaProfilerModule::OnSpawnELuaMonitorTab))
+			.SetDisplayName(LOCTEXT("Flua_wrapperTabTitle", "DONT WORRY BE HAPPY"))
 			.SetMenuType(ETabSpawnerMenuType::Hidden);
+
+		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ELuaProfiler::ELuaMemAnalyzerTabName,
+			FOnSpawnTab::CreateRaw(this, &FELuaProfilerModule::OnSpawnELuaMemAnalyzerTab))
+			.SetDisplayName(LOCTEXT("Flua_wrapperTabTitle", "DONT WORRY BE HAPPY"))
+			.SetMenuType(ETabSpawnerMenuType::Hidden);
+
 		TickDelegate = FTickerDelegate::CreateRaw(this, &FELuaProfilerModule::Tick);
 		TickDelegateHandle = FTicker::GetCoreTicker().AddTicker(TickDelegate);
 	}
@@ -72,59 +81,89 @@ void FELuaProfilerModule::ShutdownModule()
 #if WITH_EDITOR
 	if (MonitorPanel.IsValid())
 	{
-		MonitorPanel->OnDestroy();
-
 		MonitorPanel = nullptr;
+	}
+
+	if (MemAnalyzerPanel.IsValid())
+	{
+		MemAnalyzerPanel = nullptr;
 	}
 
 	FELuaProfilerCommands::Unregister();
 
-	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(ELuaProfiler::ELuaProfilerTabName);
+	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(ELuaProfiler::ELuaMonitorTabName);
+
+	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(ELuaProfiler::ELuaMemAnalyzerTabName);
 #endif
 }
 
-void FELuaProfilerModule::PluginButtonClicked()
+void FELuaProfilerModule::OnClickedOpenMonitorPanel()
 {
-	FGlobalTabmanager::Get()->InvokeTab(ELuaProfiler::ELuaProfilerTabName);
+	FGlobalTabmanager::Get()->InvokeTab(ELuaProfiler::ELuaMonitorTabName);
+}
+
+void FELuaProfilerModule::OnClickedOpenMemAnalyzerPanel()
+{
+	FGlobalTabmanager::Get()->InvokeTab(ELuaProfiler::ELuaMemAnalyzerTabName);
 }
 
 bool FELuaProfilerModule::Tick(float DeltaTime)
 {
-	if (!m_bTabOpened)
+	if (MonitorPanel.IsValid() && MonitorPanel->IsOpening())
 	{
-		return true;
+		MonitorPanel->DeferredTick(DeltaTime);
 	}
 
-	MonitorPanel->DeferredTick(DeltaTime);
+	if (MemAnalyzerPanel.IsValid() && MemAnalyzerPanel->IsOpening())
+	{
+		MemAnalyzerPanel->DeferredTick(DeltaTime);
+	}
 
 	return true;
 }
 
-TSharedRef<class SDockTab> FELuaProfilerModule::OnSpawnPluginTab(const FSpawnTabArgs& SpawnTabArgs)
+TSharedRef<class SDockTab> FELuaProfilerModule::OnSpawnELuaMonitorTab(const FSpawnTabArgs& SpawnTabArgs)
 {
-	if (MonitorPanel.IsValid())
+	if (!MonitorPanel.IsValid())
 	{
-		TSharedRef<SDockTab> DockTab = MonitorPanel->GetSDockTab();
-		DockTab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateRaw(this, &FELuaProfilerModule::OnTabClosed));
-		m_bTabOpened = true;
-		return DockTab;
+		SAssignNew(MonitorPanel, SELuaMonitorPanel);
 	}
-	else
+	TSharedRef<SDockTab> DockTab = MonitorPanel->GetSDockTab();
+	return DockTab;
+}
+
+TSharedRef<class SDockTab> FELuaProfilerModule::OnSpawnELuaMemAnalyzerTab(const FSpawnTabArgs& SpawnTabArgs)
+{
+	if (!MemAnalyzerPanel.IsValid())
 	{
-		return SNew(SDockTab).TabRole(ETabRole::NomadTab);
+		SAssignNew(MemAnalyzerPanel, SELuaMemAnalyzerPanel);
 	}
+	TSharedRef<SDockTab> DockTab = MemAnalyzerPanel->GetSDockTab();
+	return DockTab;
 }
 
 void FELuaProfilerModule::AddMenuExtension(FMenuBuilder & Builder)
 {
 #if WITH_EDITOR
-	Builder.AddMenuEntry(FELuaProfilerCommands::Get().OpenWindow);
+	Builder.BeginSection("ELuaProfiler", TAttribute<FText>(FText::FromString("ELuaProfiler")));
+	{
+		Builder.AddSubMenu(FText::FromString("ELuaProfiler"),
+			FText::FromString("DONT WORRY BE HAPPY"),
+			FNewMenuDelegate::CreateRaw(this, &FELuaProfilerModule::AddELuaProfilerMenu));
+	}
+	Builder.EndSection();
 #endif
 }
 
-void FELuaProfilerModule::OnTabClosed(TSharedRef<SDockTab> Tab)
+void FELuaProfilerModule::AddELuaProfilerMenu(FMenuBuilder& Builder)
 {
-	m_bTabOpened = false;
+	Builder.BeginSection("ELuaProfiler", TAttribute<FText>(FText::FromString("ELuaProfiler")));
+	{
+		Builder.AddMenuEntry(FELuaProfilerCommands::Get().OpenMonitorPanel);
+
+		Builder.AddMenuEntry(FELuaProfilerCommands::Get().OpenMemAnalyzerPanel);
+	}
+	Builder.EndSection();
 }
 
 #undef LOCTEXT_NAMESPACE

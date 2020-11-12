@@ -41,7 +41,9 @@ int32 lua_sizeof(lua_State* L, int32 idx);
 
 namespace ELuaProfiler
 {
-	static const FName ELuaProfilerTabName(TEXT("ELuaProfiler"));
+	static const FName ELuaMonitorTabName(TEXT("ELuaMonitor"));
+
+	static const FName ELuaMemAnalyzerTabName(TEXT("ELuaMemAnalyzer"));
 
 	const int HookMask = LUA_MASKCALL | LUA_MASKRET;
 }

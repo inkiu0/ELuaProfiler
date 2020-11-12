@@ -35,7 +35,8 @@ public:
 	virtual void RegisterCommands() override;
 
 public:
-	TSharedPtr<FUICommandInfo> OpenWindow;
+	TSharedPtr<FUICommandInfo> OpenMonitorPanel;
+	TSharedPtr<FUICommandInfo> OpenMemAnalyzerPanel;
 };
 
 #endif

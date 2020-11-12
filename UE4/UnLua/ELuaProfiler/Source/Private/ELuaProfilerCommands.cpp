@@ -32,7 +32,7 @@
 using namespace ELuaProfiler;
 
 FELuaProfilerCommands::FELuaProfilerCommands()
-	: TCommands<FELuaProfilerCommands>(ELuaProfiler::ELuaProfilerTabName,
+	: TCommands<FELuaProfilerCommands>(ELuaProfiler::ELuaMonitorTabName,
 		NSLOCTEXT("Contexts", "LuaProfiler", "LuaProfiler Plugin"), NAME_None, FEditorStyle::GetStyleSetName())
 {
 
@@ -40,7 +40,8 @@ FELuaProfilerCommands::FELuaProfilerCommands()
 
 void FELuaProfilerCommands::RegisterCommands()
 {
-	UI_COMMAND(OpenWindow, "ELuaProfiler", "Open Easy Lua Profiler", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(OpenMonitorPanel, "ELuaMonitor", "Open ELuaMonitor", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(OpenMemAnalyzerPanel, "ELuaMemAnalyzer", "Open ELuaMemAnalyzer", EUserInterfaceActionType::Button, FInputChord());
 }
 
 #endif

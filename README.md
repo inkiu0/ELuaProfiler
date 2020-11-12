@@ -89,7 +89,14 @@ end
 
 一般我们在实战中，从1开始慢慢增加Depth，直到我们停在一个合适的地方。
 #### 排序
-目前是按照`TotalTime`降序排列，后续会支持点选Title进行不同数据的排序。
+默认按照`TotalTime`降序排列，点击不同的Title会根据不同的数据进行降序排列。
+目前支持以下数据的降序排列：
+1. TotalTime
+2. SelfTime
+3. Average
+4. AllocSize
+5. GCSize
+6. Count
 
 ### ELuaMemAnalyzer
 _UI界面开发中..._

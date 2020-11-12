@@ -69,6 +69,10 @@ public:
 	int32 GetCurFrameIndex() { return CurFrameIndex; }
 
 	void SetCurFrameIndex(int32 Index);
+
+	void SetSortMode(EMonitorSortMode Mode) { MonitorSortMode = Mode; }
+
+	EMonitorSortMode GetSortMode() { return MonitorSortMode; }
 private:
 	FELuaMonitor();
 	~FELuaMonitor();
@@ -113,4 +117,6 @@ private:
 	uint32 State = CREATED;
 
 	ELuaMonitorMode MonitorMode = Total;
+
+	EMonitorSortMode MonitorSortMode = EMonitorSortMode::TotalTime;
 };

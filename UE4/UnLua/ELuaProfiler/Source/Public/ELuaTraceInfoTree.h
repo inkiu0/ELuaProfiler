@@ -48,7 +48,7 @@ public:
 
 	bool IsOnRoot() { return CurNode == Root; }
 
-	void CountSelfTime();
+	void CountSelfTime(EMonitorSortMode SortMode);
 
 	TSharedPtr<FELuaTraceInfoNode> GetRoot() { return Root; }
 
@@ -59,7 +59,7 @@ public:
 private:
 	TSharedPtr<FELuaTraceInfoNode> GetChild(lua_Debug* ar);
 
-	void CountNodeSelfTime(TSharedPtr<FELuaTraceInfoNode> Node);
+	void CountNodeSelfTime(TSharedPtr<FELuaTraceInfoNode> Node, EMonitorSortMode SortMode);
 
 private:
 	TSharedPtr<FELuaTraceInfoNode> Root;

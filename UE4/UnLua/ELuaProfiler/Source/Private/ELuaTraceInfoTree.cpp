@@ -85,25 +85,48 @@ TSharedPtr <FELuaTraceInfoNode> FELuaTraceInfoTree::GetChild(lua_Debug* ar)
 	return Child;
 }
 
-void FELuaTraceInfoTree::CountSelfTime()
+void FELuaTraceInfoTree::CountSelfTime(EMonitorSortMode SortMode)
 {
-	CountNodeSelfTime(Root);
+	CountNodeSelfTime(Root, SortMode);
 }
 
-void FELuaTraceInfoTree::CountNodeSelfTime(TSharedPtr<FELuaTraceInfoNode> Node)
+void FELuaTraceInfoTree::CountNodeSelfTime(TSharedPtr<FELuaTraceInfoNode> Node, EMonitorSortMode SortMode)
 {
 	if (Node)
 	{
-		Node->Children.Sort([](const TSharedPtr<FELuaTraceInfoNode>& A, const TSharedPtr <FELuaTraceInfoNode>& B) {
+		Node->Children.Sort([SortMode](const TSharedPtr<FELuaTraceInfoNode>& A, const TSharedPtr <FELuaTraceInfoNode>& B) {
+			switch (SortMode)
+			{
+			case SelfTime:
+				return A->SelfTime > B->SelfTime;
+				break;
+			case Average:
+				return A->Average > B->Average;
+				break;
+			case Alloc:
+				return A->AllocSize > B->AllocSize;
+				break;
+			case GC:
+				return A->GCSize < B->GCSize;
+				break;
+			case Calls:
+				return A->Count > B->Count;
+				break;
+			case TotalTime:
+			default:
+				return A->TotalTime > B->TotalTime;
+				break;
+			}
 			return A->TotalTime > B->TotalTime;
 		});
 
 		// ifdef CORRECT_TIME sub profiler's own time overhead
 		Node->SelfTime = Node->TotalTime - DEVIATION * Node->Count;
+		Node->Average = Node->Count > 0 ? Node->TotalTime / Node->Count : 0;
 		for (int32 i = 0; i < Node->Children.Num(); i++)
 		{
 			Node->SelfTime -= Node->Children[i]->TotalTime;
-			CountNodeSelfTime(Node->Children[i]);
+			CountNodeSelfTime(Node->Children[i], SortMode);
 		}
 	}
 }

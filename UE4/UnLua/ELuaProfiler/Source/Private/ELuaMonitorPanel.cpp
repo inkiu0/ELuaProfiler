@@ -25,8 +25,11 @@
 #include "EditorStyleSet.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SSpacer.h"
+#include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Input/SNumericDropDown.h"
+
+#define LOCTEXT_NAMESPACE "ELuaProfiler"
 
 void SELuaMonitorPanel::Construct(const SELuaMonitorPanel::FArguments& InArgs)
 {
@@ -61,15 +64,70 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 			SNew(SHeaderRow)
 			+ SHeaderRow::Column("Name").DefaultLabel(FText::FromName("Name")).HAlignHeader(HAlign_Fill)
 			+ SHeaderRow::Column("TotalTime(ms)").DefaultLabel(FText::FromName("TotalTime(ms)")).FixedWidth(90)
+			.SortMode_Lambda([&]() { return FELuaMonitor::GetInstance()->GetSortMode() == TotalTime ? EColumnSortMode::Descending : EColumnSortMode::None; })
+			.OnSort_Lambda([&](const EColumnSortPriority::Type SortPriority, const FName& ColumnName, const EColumnSortMode::Type NewSortMode)
+			{
+				FELuaMonitor::GetInstance()->SetSortMode(TotalTime);
+			})
 			+ SHeaderRow::Column("TotalTime(%)").DefaultLabel(FText::FromName("TotalTime(%)")).FixedWidth(COL_WIDTH)
+			.SortMode_Lambda([&]() { return FELuaMonitor::GetInstance()->GetSortMode() == TotalTime ? EColumnSortMode::Descending : EColumnSortMode::None; })
+			.OnSort_Lambda([&](const EColumnSortPriority::Type SortPriority, const FName& ColumnName, const EColumnSortMode::Type NewSortMode)
+			{
+				FELuaMonitor::GetInstance()->SetSortMode(TotalTime);
+			})
+
 			+ SHeaderRow::Column("SelfTime(ms)").DefaultLabel(FText::FromName("SelfTime(ms)")).FixedWidth(COL_WIDTH)
+			.SortMode_Lambda([&]() { return FELuaMonitor::GetInstance()->GetSortMode() == SelfTime ? EColumnSortMode::Descending : EColumnSortMode::None; })
+			.OnSort_Lambda([&](const EColumnSortPriority::Type SortPriority, const FName& ColumnName, const EColumnSortMode::Type NewSortMode)
+			{
+				FELuaMonitor::GetInstance()->SetSortMode(SelfTime);
+			})
 			+ SHeaderRow::Column("SelfTime(%)").DefaultLabel(FText::FromName("SelfTime(%)")).FixedWidth(COL_WIDTH)
+			.SortMode_Lambda([&]() { return FELuaMonitor::GetInstance()->GetSortMode() == SelfTime ? EColumnSortMode::Descending : EColumnSortMode::None; })
+			.OnSort_Lambda([&](const EColumnSortPriority::Type SortPriority, const FName& ColumnName, const EColumnSortMode::Type NewSortMode)
+			{
+				FELuaMonitor::GetInstance()->SetSortMode(SelfTime);
+			})
+
 			+ SHeaderRow::Column("Average(ms)").DefaultLabel(FText::FromName("Average(ms)")).FixedWidth(COL_WIDTH)
+			.SortMode_Lambda([&]() { return FELuaMonitor::GetInstance()->GetSortMode() == Average ? EColumnSortMode::Descending : EColumnSortMode::None; })
+			.OnSort_Lambda([&](const EColumnSortPriority::Type SortPriority, const FName& ColumnName, const EColumnSortMode::Type NewSortMode)
+			{
+				FELuaMonitor::GetInstance()->SetSortMode(Average);
+			})
+
 			+ SHeaderRow::Column("Alloc(kb)").DefaultLabel(FText::FromName("Alloc(kb)")).FixedWidth(COL_WIDTH)
+			.SortMode_Lambda([&]() { return FELuaMonitor::GetInstance()->GetSortMode() == Alloc ? EColumnSortMode::Descending : EColumnSortMode::None; })
+			.OnSort_Lambda([&](const EColumnSortPriority::Type SortPriority, const FName& ColumnName, const EColumnSortMode::Type NewSortMode)
+			{
+				FELuaMonitor::GetInstance()->SetSortMode(Alloc);
+			})
 			+ SHeaderRow::Column("Alloc(%)").DefaultLabel(FText::FromName("Alloc(%)")).FixedWidth(60)
+			.SortMode_Lambda([&]() { return FELuaMonitor::GetInstance()->GetSortMode() == Alloc ? EColumnSortMode::Descending : EColumnSortMode::None; })
+			.OnSort_Lambda([&](const EColumnSortPriority::Type SortPriority, const FName& ColumnName, const EColumnSortMode::Type NewSortMode)
+			{
+				FELuaMonitor::GetInstance()->SetSortMode(Alloc);
+			})
+
 			+ SHeaderRow::Column("GC(kb)").DefaultLabel(FText::FromName("GC(kb)")).FixedWidth(60)
+			.SortMode_Lambda([&]() { return FELuaMonitor::GetInstance()->GetSortMode() == GC ? EColumnSortMode::Descending : EColumnSortMode::None; })
+			.OnSort_Lambda([&](const EColumnSortPriority::Type SortPriority, const FName& ColumnName, const EColumnSortMode::Type NewSortMode)
+			{
+				FELuaMonitor::GetInstance()->SetSortMode(GC);
+			})
 			+ SHeaderRow::Column("GC(%)").DefaultLabel(FText::FromName("GC(%)")).FixedWidth(50)
+			.SortMode_Lambda([&]() { return FELuaMonitor::GetInstance()->GetSortMode() == GC ? EColumnSortMode::Descending : EColumnSortMode::None; })
+			.OnSort_Lambda([&](const EColumnSortPriority::Type SortPriority, const FName& ColumnName, const EColumnSortMode::Type NewSortMode)
+			{
+				FELuaMonitor::GetInstance()->SetSortMode(GC);
+			})
+
 			+ SHeaderRow::Column("Calls").DefaultLabel(FText::FromName("Calls")).FixedWidth(60)
+			.SortMode_Lambda([&]() { return FELuaMonitor::GetInstance()->GetSortMode() == Calls ? EColumnSortMode::Descending : EColumnSortMode::None; })
+			.OnSort_Lambda([&](const EColumnSortPriority::Type SortPriority, const FName& ColumnName, const EColumnSortMode::Type NewSortMode)
+			{
+				FELuaMonitor::GetInstance()->SetSortMode(Calls);
+			})
 		);
 
 
@@ -172,26 +230,18 @@ TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfo
 {
 	return
 	SNew(STableRow<TSharedPtr<FELuaTraceInfoNode>>, OwnerTable)
-	/*.Padding(2.0f).Visibility_Lambda([=]() {
-		return EVisibility::Visible;
-	})*/
 	[
 		SNew(SHeaderRow)
 		+ SHeaderRow::Column("Name").DefaultLabel(FText::FromString(TINode->ID))
 		.DefaultTooltip(FText::FromString(TINode->ID)).HAlignHeader(HAlign_Fill)
-		//+ SHeaderRow::Column("Global TotalTime(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
-		//	return FText::AsNumber(TINode->TotalTime / CurRootTINode->TotalTime);
-		//}))
-		//+ SHeaderRow::Column("Global SelfTime(%)").DefaultLabel(TAttribute<FText>::Create([=]() {
-		//	return FText::AsNumber(TINode->SelfTime / CurRootTINode->SelfTime);
-		//}))
 		+SHeaderRow::Column("TotalTime(ms)").FixedWidth(90).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->TotalTime);
 		}))
 		+ SHeaderRow::Column("TotalTime(%)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			if (TINode->Parent && TINode->Parent->TotalTime > 0)
 			{
-				return FText::AsPercent(TINode->TotalTime / TINode->Parent->TotalTime);
+				double d = TINode->TotalTime / TINode->Parent->TotalTime;
+				return FText::AsPercent(d);
 			} 
 			else
 			{
@@ -204,12 +254,13 @@ TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfo
 		+ SHeaderRow::Column("SelfTime(%)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			if (TINode->Parent && TINode->Parent->TotalTime > 0)
 			{
-				return FText::AsPercent(TINode->SelfTime / TINode->Parent->TotalTime);
+				double d = TINode->SelfTime / TINode->Parent->TotalTime;
+				return FText::AsPercent(d);
 			}
 			return FText::AsPercent(0.f);
 		}))
 		+ SHeaderRow::Column("Avg(ms)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
-			return FText::AsNumber(TINode->Count > 0 ? TINode->TotalTime / TINode->Count : 0);
+			return FText::AsNumber(TINode->Average);
 		}))
 		+ SHeaderRow::Column("Alloc(kb)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->AllocSize);
@@ -217,7 +268,8 @@ TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfo
 		+ SHeaderRow::Column("Alloc(%)").FixedWidth(60).DefaultLabel(TAttribute<FText>::Create([=]() {
 			if (TINode->Parent && TINode->Parent->AllocSize > 0)
 			{
-				return FText::AsPercent(TINode->AllocSize / TINode->Parent->AllocSize);
+				float p = TINode->AllocSize / TINode->Parent->AllocSize;
+				return FText::AsPercent(p);
 			}
 			return FText::AsPercent(0.f);
 		}))
@@ -227,7 +279,8 @@ TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfo
 		+ SHeaderRow::Column("GC(%)").FixedWidth(50).DefaultLabel(TAttribute<FText>::Create([=]() {
 			if (TINode->Parent && TINode->Parent->GCSize > 0)
 			{
-				return FText::AsPercent(TINode->GCSize / TINode->Parent->GCSize);
+				float p = TINode->GCSize / TINode->Parent->GCSize;
+				return FText::AsPercent(p);
 			}
 			return FText::AsPercent(0.f);
 		}))
@@ -457,3 +510,5 @@ void SELuaMonitorPanel::OnCloseTab(TSharedRef<SDockTab> Tab)
 {
 	TabIsOpening = false;
 }
+
+#undef LOCTEXT_NAMESPACE

@@ -174,12 +174,12 @@ TSharedPtr<FELuaTraceInfoNode> FELuaMonitor::GetRoot(uint32 FrameIndex /* = 0 */
 		}
 		else if (MonitorMode == Statistics)
 		{
-			CurTraceTree->CountSelfTime();
+			CurTraceTree->CountSelfTime(MonitorSortMode);
 			return CurTraceTree->Statisticize();
 		}
 		else
 		{
-			CurTraceTree->CountSelfTime();
+			CurTraceTree->CountSelfTime(MonitorSortMode);
 			return CurTraceTree->GetRoot();
 		}
 	}
@@ -200,7 +200,7 @@ void FELuaMonitor::SetCurFrameIndex(int32 Index)
 
 void FELuaMonitor::PerFrameModeUpdate(bool Manual /* = false */)
 {
-	CurTraceTree->CountSelfTime();
+	CurTraceTree->CountSelfTime(MonitorSortMode);
 	FramesTraceTreeList.Add(CurTraceTree);
 	CurTraceTree = TSharedPtr<FELuaTraceInfoTree>(new FELuaTraceInfoTree());
 	CurTraceTree->Init();

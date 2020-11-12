@@ -49,7 +49,6 @@ TSharedRef<class SDockTab> SELuaMemAnalyzerPanel::GetSDockTab()
 				+ SHorizontalBox::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
 				[
 					SNew(SButton)
-					//.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// 无底图以免按钮发白
 					.ContentPadding(2.0)
 					.IsFocusable(false)
 					.OnClicked(this, &SELuaMemAnalyzerPanel::OnSnapshotBtnClicked)
@@ -62,7 +61,6 @@ TSharedRef<class SDockTab> SELuaMemAnalyzerPanel::GetSDockTab()
 				+ SHorizontalBox::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
 				[
 					SNew(SButton)
-					//.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// 无底图以免按钮发白
 					.ContentPadding(2.0)
 					.IsFocusable(false)
 					.OnClicked(this, &SELuaMemAnalyzerPanel::OnGCBtnClicked)

@@ -55,3 +55,13 @@ enum ELuaMonitorMode : uint8
 	Statistics,		// Unfold TraceInfoTree
 	MAX
 };
+
+enum EMonitorSortMode : uint8
+{
+	TotalTime,
+	SelfTime,
+	Average,
+	Alloc,
+	GC,
+	Calls
+};

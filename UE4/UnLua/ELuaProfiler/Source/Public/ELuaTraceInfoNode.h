@@ -38,6 +38,9 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 	/* total time */
 	double TotalTime = 0;
 
+	/* average time */
+	double Average = 0;
+
 	/* the total size of lua_State when this node invoke */
 	float CallSize = 0;
 

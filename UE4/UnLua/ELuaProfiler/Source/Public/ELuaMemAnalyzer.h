@@ -33,7 +33,7 @@ public:
 	~FELuaMemAnalyzer();
 
 public:
-	FELuaMemAnalyzer* GetInstance()
+	static FELuaMemAnalyzer* GetInstance()
 	{
 		static FELuaMemAnalyzer Instance;
 		return &Instance;
@@ -41,7 +41,7 @@ public:
 
 	void travel_object(lua_State* L, const char* desc, int level, const void* parent);
 
-	void Snapshot(lua_State* L);
+	void Snapshot();
 
 	void PopSnapshot();
 

@@ -22,6 +22,8 @@
 
 #include "ELuaMemAnalyzerPanel.h"
 #include "EditorStyleSet.h"
+#include "ELuaMemAnalyzer.h"
+#include "Widgets/Text/STextBlock.h"
 
 void SELuaMemAnalyzerPanel::Construct(const SELuaMemAnalyzerPanel::FArguments& InArgs)
 {
@@ -38,6 +40,39 @@ TSharedRef<class SDockTab> SELuaMemAnalyzerPanel::GetSDockTab()
 	.Label(FText::FromName("ELuaMemAnalyzer"))
 	[
 		SNew(SVerticalBox)
+		+ SVerticalBox::Slot().AutoHeight()
+		[
+			SNew(SBorder).HAlign(HAlign_Center)
+			.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
+				[
+					SNew(SButton)
+					//.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// 无底图以免按钮发白
+					.ContentPadding(2.0)
+					.IsFocusable(false)
+					.OnClicked(this, &SELuaMemAnalyzerPanel::OnSnapshotBtnClicked)
+					[
+						SNew(STextBlock)
+						.Text(FText::FromName("Snapshot"))
+					]
+				]
+
+				+ SHorizontalBox::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
+				[
+					SNew(SButton)
+					//.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// 无底图以免按钮发白
+					.ContentPadding(2.0)
+					.IsFocusable(false)
+					.OnClicked(this, &SELuaMemAnalyzerPanel::OnGCBtnClicked)
+					[
+						SNew(STextBlock)
+						.Text(FText::FromName("GC"))
+					]
+				]
+			]
+		]
 	];
 	Tab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateRaw(this, &SELuaMemAnalyzerPanel::OnCloseTab));
 	return Tab.ToSharedRef();
@@ -51,4 +86,16 @@ void SELuaMemAnalyzerPanel::DeferredTick(float DeltaTime)
 void SELuaMemAnalyzerPanel::OnCloseTab(TSharedRef<SDockTab> Tab)
 {
 	TabIsOpening = false;
+}
+
+FReply SELuaMemAnalyzerPanel::OnSnapshotBtnClicked()
+{
+	FELuaMemAnalyzer::GetInstance()->Snapshot();
+	return FReply::Handled();
+}
+
+FReply SELuaMemAnalyzerPanel::OnGCBtnClicked()
+{
+	FELuaMemAnalyzer::GetInstance()->ForceLuaGC();
+	return FReply::Handled();
 }

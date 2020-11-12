@@ -39,9 +39,6 @@ public:
 
 	void Construct(const SELuaMonitorPanel::FArguments& InArgs);
 
-	//SELuaMonitorPanel();
-	//~SELuaMonitorPanel();
-
     TSharedRef<class SDockTab> GetSDockTab();
 
 	TSharedRef<ITableRow> OnGenerateRow(TSharedPtr<FELuaTraceInfoNode> TINode, const TSharedRef<STableViewBase>& OwnerTable);
@@ -98,15 +95,11 @@ private:
 
 	TSharedPtr<SButton> PrevFrameBtn;
 
-	//TSharedPtr<SButton> ForwardBtn;
-
 	TSharedPtr<SButton> NextFrameBtn;
 
 	TSharedPtr<SSpinBox<int32>> CurFrameSpin;
 
 	TSharedPtr<STextBlock> TotalFrameText;
-
-	//TSharedPtr<SButton> ClearBtn;
 
 	ELuaMonitorMode MonitorMode = Total;
 

@@ -263,16 +263,19 @@ void FELuaMemAnalyzer::update_node_desc(const void* p, const char* desc)
 	}
 }
 
-void FELuaMemAnalyzer::Snapshot(lua_State* L)
+void FELuaMemAnalyzer::Snapshot()
 {
-	lua_settop(L, 0);
-	lua_pushglobaltable(L);
+	if (lua_State* L = UnLua::GetState())
+	{
+		lua_settop(L, 0);
+		lua_pushglobaltable(L);
 
-	CreateSnapshot();
+		CreateSnapshot();
 
-	travel_table(L, "Global", 1, NULL);
+		travel_table(L, "Global", 1, NULL);
 
-	CurSnapshot->RecountSize();
+		CurSnapshot->RecountSize();
+	}
 }
 
 TSharedPtr<FELuaMemSnapshot> FELuaMemAnalyzer::CreateSnapshot()

@@ -28,16 +28,6 @@
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Input/SNumericDropDown.h"
 
-//SELuaMonitorPanel::SELuaMonitorPanel()
-//{
-//
-//}
-//
-//SELuaMonitorPanel::~SELuaMonitorPanel()
-//{
-//
-//}
-
 void SELuaMonitorPanel::Construct(const SELuaMonitorPanel::FArguments& InArgs)
 {
 

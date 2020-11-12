@@ -23,6 +23,7 @@
 #pragma once
 
 #include "ELuaBase.h"
+#include "Widgets/Input/SButton.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Docking/SDockTab.h"
 
@@ -43,6 +44,8 @@ public:
 
 private:
 	void OnCloseTab(TSharedRef<SDockTab> Tab);
+	FReply OnSnapshotBtnClicked();
+	FReply OnGCBtnClicked();
 
 private:
 	bool TabIsOpening = false;

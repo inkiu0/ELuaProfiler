@@ -1,5 +1,6 @@
 # ELuaProfiler
 Easy LuaProfiler
+>DONT WORRY BE HAPPY
 ## Supported Solutions
 | Solution | Supported |
 | ---      | ---       |

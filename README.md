@@ -1,6 +1,6 @@
 # ELuaProfiler
 Easy LuaProfiler
->DONT WORRY BE HAPPY
+![DONT WORRY BE HAPPY](Samples/DONTWORRYBEHAPPY.png)
 ## Supported Solutions
 | Solution | Supported |
 | ---      | ---       |

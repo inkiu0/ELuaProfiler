@@ -1,4 +1,4 @@
-![DONT WORRY BE HAPPY](Samples/ELuaProfiler.png)
+![DONT WORRY BE HAPPY](Samples/ELuaProfiler.jpg)
 
 [![license](http://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/inkiu0/ELuaProfiler/LICENSE)
 ![Star](https://img.shields.io/github/stars/inkiu0/ELuaProfiler?style=social)

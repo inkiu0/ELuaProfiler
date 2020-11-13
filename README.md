@@ -1,6 +1,9 @@
+![DONT WORRY BE HAPPY](Samples/DONTWORRYBEHAPPY.png)
+
+[![license](http://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/inkiu0/ELuaProfiler/LICENSE)
+![Star](https://img.shields.io/github/stars/inkiu0/ELuaProfiler?style=social)
 # ELuaProfiler
 Easy LuaProfiler
->DONT WORRY BE HAPPY
 ## Supported Solutions
 | Solution | Supported |
 | ---      | ---       |

@@ -44,12 +44,12 @@ void FELuaTraceInfoTree::OnHookCall(lua_State* L, lua_Debug* ar, bool IsStatisti
 {
 	if (Root)
 	{
-		if (CurDepth == 0)
-		{
-			Root->BeginInvoke();
-		}
 		lua_getinfo(L, "nS", ar);
 		TSharedPtr<FELuaTraceInfoNode> Child = GetChild(ar);
+		if (Child->Parent == Root)
+		{
+			Root->FakeBeginInvoke();
+		}
 		Child->BeginInvoke();
 		CurNode = Child;
 		++CurDepth;
@@ -63,12 +63,10 @@ void FELuaTraceInfoTree::OnHookReturn(lua_State* L, lua_Debug* ar, bool IsStatis
 		CurNode->EndInvoke();
 		CurNode = CurNode->Parent;
 		lua_getinfo(L, "nS", ar);
-		TSharedPtr<FELuaTraceInfoNode> Child = GetChild(ar);
-		Child->EndInvoke();
 		--CurDepth;
-		if (CurDepth == 0)
+		if (CurNode == Root)
 		{
-			Root->EndInvoke();
+			Root->FakeEndInvoke();
 		}
 	}
 }
@@ -87,6 +85,17 @@ TSharedPtr <FELuaTraceInfoNode> FELuaTraceInfoTree::GetChild(lua_Debug* ar)
 
 void FELuaTraceInfoTree::CountSelfTime(EMonitorSortMode SortMode)
 {
+	if (CurNode != Root)
+	{
+		// 递归统计尚未返回的函数
+		TSharedPtr<FELuaTraceInfoNode> Node = CurNode;
+		while (Node)
+		{
+			Node->FakeEndInvoke();
+			Node = Node->Parent;
+		}
+	}
+
 	CountNodeSelfTime(Root, SortMode);
 }
 

@@ -94,6 +94,33 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 		ChildIDMap.Add(Child->ID, Child);
 	}
 
+	// 只有Root才会调用
+	void FakeBeginInvoke()
+	{
+		CallTime = GetTimeMs();
+		CallSize = GetStateMemKb();
+	}
+
+	// 只有Root和一帧结束尚未返回的函数会调用
+	void FakeEndInvoke()
+	{
+		double NowTime = GetTimeMs();
+		TotalTime += NowTime - CallTime;
+		CallTime = NowTime;
+
+		float NowSize = GetStateMemKb();
+		int32 Increment = NowSize - CallSize;
+		CallSize = NowSize;
+		if (Increment > 0)
+		{
+			AllocSize += Increment;
+		}
+		else
+		{
+			GCSize += Increment;
+		}
+	}
+
 	void BeginInvoke()
 	{
 		CallTime = GetTimeMs();

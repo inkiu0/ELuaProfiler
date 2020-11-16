@@ -27,6 +27,12 @@
 #include "CoreUObject.h"
 #include "lua.hpp"
 
+#if PLATFORM_WINDOWS
+#define ELUA_PRINTF sprintf_s
+#else
+#define ELUA_PRINTF snprintf
+#endif
+
 typedef std::chrono::high_resolution_clock Clock;
 
 int64 GetTimeNs() { return Clock::now().time_since_epoch().count(); }

@@ -43,7 +43,7 @@ FELuaMemAnalyzer::~FELuaMemAnalyzer()
 	Snapshots.Empty();
 }
 
-const char* FELuaMemAnalyzer::key_tostring(lua_State* L, int index, char* buffer)
+const char* FELuaMemAnalyzer::key_tostring(lua_State* L, int index, char* buffer, const size_t bufsize)
 {
 	int t = lua_type(L, index);
 	switch (t)
@@ -51,32 +51,16 @@ const char* FELuaMemAnalyzer::key_tostring(lua_State* L, int index, char* buffer
 	case LUA_TSTRING:
 		return lua_tostring(L, index);
 	case LUA_TNUMBER:
-#if PLATFORM_WINDOWS
-		sprintf_s(buffer, 32, "[%lg]", lua_tonumber(L, index));
-#else
-		sprintf(buffer, "[%lg]", lua_tonumber(L, index));
-#endif
+		ELUA_PRINTF(buffer, bufsize, "[%lg]", lua_tonumber(L, index));
 		break;
 	case LUA_TBOOLEAN:
-#if PLATFORM_WINDOWS
-		sprintf_s(buffer, 32, "[%s]", lua_toboolean(L, index) ? "true" : "false");
-#else
-		sprintf(buffer, "[%s]", lua_toboolean(L, index) ? "true" : "false");
-#endif
+		ELUA_PRINTF(buffer, bufsize, "[%s]", lua_toboolean(L, index) ? "true" : "false");
 		break;
 	case LUA_TNIL:
-#if PLATFORM_WINDOWS
-		sprintf_s(buffer, 32, "[nil]");
-#else
-		sprintf(buffer, "[nil]");
-#endif
+		ELUA_PRINTF(buffer, bufsize, "[nil]");
 		break;
 	default:
-#if PLATFORM_WINDOWS
-		sprintf_s(buffer, 32, "[%s:%p]", lua_typename(L, t), lua_topointer(L, index));
-#else
-		sprintf(buffer, "[%s:%p]", lua_typename(L, t), lua_topointer(L, index));
-#endif
+		ELUA_PRINTF(buffer, bufsize, "[%s:%p]", lua_typename(L, t), lua_topointer(L, index));
 		break;
 	}
 	return buffer;
@@ -131,7 +115,7 @@ void FELuaMemAnalyzer::travel_table(lua_State* L, const char* desc, int level, c
 		else
 		{
 			char tmp[32];
-			const char* desc = key_tostring(L, -2, tmp);
+			const char* desc = key_tostring(L, -2, tmp, sizeof(tmp));
 			travel_object(L, desc, level + 1, p);						// [key, table] travel and pop value object
 		}
 		if (!weakk)
@@ -196,11 +180,7 @@ void FELuaMemAnalyzer::travel_function(lua_State* L, const char* desc, int level
 		lua_Debug ar;
 		lua_getinfo(L, ">S", &ar);										// [] will pop function on stack
 		char tmp[72];
-#if PLATFORM_WINDOWS
-		sprintf_s(tmp, 72, "%.60s:%d~%d", ar.short_src, ar.linedefined, ar.lastlinedefined);
-#else
-		sprintf(tmp, "%.60s:%d~%d", ar.short_src, ar.linedefined, ar.lastlinedefined);
-#endif
+		ELUA_PRINTF(tmp, sizeof(tmp), "%s:%d~%d", ar.short_src, ar.linedefined, ar.lastlinedefined);
 		/* update special description of lua function */
 		update_node_desc(p, tmp);
 	}
@@ -227,11 +207,7 @@ void FELuaMemAnalyzer::travel_thread(lua_State* L, const char* desc, int level, 
 		for (i = 0; i < top; i++)
 		{
 			lua_pushvalue(cL, i + 1);									// [i_obj, {top}] copy i_obj on substack
-#if PLATFORM_WINDOWS
-			sprintf_s(tmp, 16, "[%d]", i + 1);
-#else
-			sprintf(tmp, "[%d]", i + 1);
-#endif
+			ELUA_PRINTF(tmp, sizeof(tmp), "[%d]", i + 1);
 			travel_object(cL, tmp, level + 1, p);						// [{top}] pop i_obj
 		}
 	}
@@ -239,21 +215,11 @@ void FELuaMemAnalyzer::travel_thread(lua_State* L, const char* desc, int level, 
 	lua_Debug ar;
 	while (lua_getstack(cL, lv, &ar))									// copy lv_function debuginfo to ar
 	{
-		//char short_src[60];
 		char tmp[72];
 		lua_getinfo(cL, "Sl", &ar);										// [{top - lv}] pop function on substack
-//#if PLATFORM_WINDOWS
-//		sprintf_s(short_src, 60, "%s", ar.short_src);
-//#else
-//		sprintf(short_src, "%s", ar.short_src);
-//#endif
 		if (ar.linedefined >= 0)
 		{
-#if PLATFORM_WINDOWS
-			sprintf_s(tmp, 72, "%.60s:%d~%d", ar.short_src, ar.linedefined, ar.lastlinedefined);
-#else
-			sprintf(tmp, "%.60s:%d~%d", ar.short_src, ar.linedefined, ar.lastlinedefined);
-#endif
+			ELUA_PRINTF(tmp, sizeof(tmp), "%s:%d~%d", ar.short_src, ar.linedefined, ar.lastlinedefined);
 		}
 
 		int i, j;
@@ -264,11 +230,7 @@ void FELuaMemAnalyzer::travel_thread(lua_State* L, const char* desc, int level, 
 				const char* name = lua_getlocal(cL, &ar, j);			// [localvalue, {top - lv}] push local value on stack
 				if (name == NULL)
 					break;
-#if PLATFORM_WINDOWS
-				sprintf_s(tmp, 72, "%.60s : %s:%d", name, ar.short_src, ar.linedefined);
-#else
-				sprintf(tmp, "%.60s : %s:%d", name, ar.short_src, ar.linedefined);
-#endif
+				ELUA_PRINTF(tmp, sizeof(tmp), "%s : %s:%d", name, ar.short_src, ar.linedefined);
 				travel_object(cL, tmp, level + 1, p);					// [{top - lv}] travel and pop localvalue
 			}
 		}

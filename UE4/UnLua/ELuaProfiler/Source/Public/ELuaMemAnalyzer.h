@@ -51,7 +51,7 @@ public:
 
 private:
 
-	const char* key_tostring(lua_State* L, int index, char* buffer);
+	const char* key_tostring(lua_State* L, int index, char* buffer, const size_t bufsize);
 	void update_node_desc(const void* p, const char* desc);
 
 	/* create snapshot */

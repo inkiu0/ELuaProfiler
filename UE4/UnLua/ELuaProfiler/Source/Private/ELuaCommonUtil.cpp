@@ -70,6 +70,52 @@ static TValue* lua_index2addr(lua_State* L, int idx)
 	}
 }
 
+const void* lua_getaddr(lua_State* L, int32 idx)
+{
+	TValue* o = lua_index2addr(L, idx);
+	if (!o)
+		return lua_topointer(L, -1);
+
+	switch (ttnov(o))
+	{
+	case LUA_TPROTO:
+	{
+		return pvalue(o);
+		break;
+	}
+	case LUA_TSHRSTR:
+	{
+		return tsvalue(o);
+		break;
+	}
+	case LUA_TLNGSTR:
+	{
+		return tsvalue(o);
+		break;
+	}
+	//case LUA_TNUMBER:
+	//{
+	//	return (const void*)nvalue(o);
+	//}
+	//case LUA_TBOOLEAN:
+	//{
+	//	return sizeof(int);
+	//}
+	case LUA_TTABLE:
+	case LUA_TLCL:
+	case LUA_TCCL:
+	case LUA_TLCF:
+	case LUA_TTHREAD:
+	case LUA_TUSERDATA:
+	case LUA_TLIGHTUSERDATA:
+	default:
+	{
+		return lua_topointer(L, -1);
+		break;
+	}
+	}
+}
+
 int32 lua_sizeof(lua_State* L, int32 idx)
 {
 	TValue* o = lua_index2addr(L, idx);

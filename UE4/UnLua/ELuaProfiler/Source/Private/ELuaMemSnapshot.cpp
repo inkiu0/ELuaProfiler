@@ -46,7 +46,7 @@ TSharedPtr<FELuaMemInfoNode> FELuaMemSnapshot::GetMemNode(const void* LuaObjAddr
 
 const void* FELuaMemSnapshot::Record(lua_State* L, const char* Desc, int32 Level, const void* Parent)
 {
-	const void* ObjAddress = lua_topointer(L, -1);
+	const void* ObjAddress = lua_getaddr(L, -1);
 	int32 Size = lua_sizeof(L, -1);
 	const char* Type = lua_typename(L, lua_type(L, -1));
 

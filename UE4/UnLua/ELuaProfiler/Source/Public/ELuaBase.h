@@ -39,6 +39,8 @@ float GetStateMemKb();
 
 int32 lua_sizeof(lua_State* L, int32 idx);
 
+const void* lua_getaddr(lua_State* L, int32 idx);
+
 namespace ELuaProfiler
 {
 	static const FName ELuaMonitorTabName(TEXT("ELuaMonitor"));

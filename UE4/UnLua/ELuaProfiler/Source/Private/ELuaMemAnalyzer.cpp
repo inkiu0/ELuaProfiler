@@ -82,6 +82,15 @@ const char* FELuaMemAnalyzer::key_tostring(lua_State* L, int index, char* buffer
 	return buffer;
 }
 
+void FELuaMemAnalyzer::travel_string(lua_State* L, const char* desc, int level, const void* parent)
+{
+	const void* p = CurSnapshot->Record(L, lua_tostring(L, -1), level, parent);		// [string]
+	if (p == NULL)
+		return;															// [] stop expanding, pop table
+
+	lua_pop(L, 1);														// [] pop string
+}
+
 void FELuaMemAnalyzer::travel_table(lua_State* L, const char* desc, int level, const void* parent)
 {
 	const void* p = CurSnapshot->Record(L, desc, level, parent);		// [table]
@@ -273,6 +282,9 @@ void FELuaMemAnalyzer::travel_object(lua_State* L, const char* desc, int level, 
 	int t = lua_type(L, -1);											// [object]
 	switch (t)
 	{
+	case LUA_TSTRING:
+		travel_string(L, desc, level, parent);							// [] pop object
+		break;
 	case LUA_TTABLE:
 		travel_table(L, desc, level, parent);							// [] pop object
 		break;

@@ -98,6 +98,7 @@ int32 FELuaMemSnapshot::RecountNode(TSharedPtr<FELuaMemInfoNode> Node)
 			Size += RecountNode(Node->children[i]);
 		}
 	}
+	Node->size = Size;
 	return Size;
 }
 
@@ -119,7 +120,11 @@ int32 FELuaMemSnapshot::GetTotalSize()
 int32 FELuaMemSnapshot::RecountSize()
 {
 	/* travel all nodes*/
-	RecountNode(Root);
+	int32 Size = RecountNode(Root);
 
-	return GetTotalSize();
+	int32 ExactSize = GetTotalSize();
+
+	UE_LOG(LogInit, Log, TEXT("LuaVM ExactSize = %d, Size = %d"), ExactSize, Size);
+
+	return ExactSize;
 }

@@ -361,6 +361,6 @@ void FELuaMemAnalyzer::ForceLuaGC()
 		int32 osize = lua_gc(L, LUA_GCCOUNT, 0);
 		lua_gc(L, LUA_GCCOLLECT, 0);
 		int32 nsize = lua_gc(L, LUA_GCCOUNT, 0);
-		UE_LOG(LogInit, Log, TEXT("Lua Free %d KB"), nsize - osize);
+		UE_LOG(LogInit, Log, TEXT("LuaVM Old Size = %d, New Size = %d, Free %d KB"), osize, nsize, nsize - osize);
 	}
 }

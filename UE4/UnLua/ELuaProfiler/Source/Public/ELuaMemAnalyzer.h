@@ -47,6 +47,8 @@ public:
 
 	void ForceLuaGC();
 
+	TSharedPtr<FELuaMemInfoNode> GetRoot(int32 Idx = -1);
+
 private:
 
 	const char* key_tostring(lua_State* L, int index, char* buffer);

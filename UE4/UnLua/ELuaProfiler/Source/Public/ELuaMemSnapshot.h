@@ -44,6 +44,8 @@ public:
 	/* record the object at the top of luavm stack */
 	const void* Record(const void* Address, const char* Type, int32 Size, const char* Desc, int Level, const void* Parent);
 
+	TSharedPtr<FELuaMemInfoNode> GetRoot() { return Root; }
+
 	//void Sort();
 	//void Compare(const FELuaMemSnapshot& OtherSnapshoot);
 

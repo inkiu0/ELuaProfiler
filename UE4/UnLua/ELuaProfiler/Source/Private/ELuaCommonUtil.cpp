@@ -169,10 +169,9 @@ int32 lua_sizeof(lua_State* L, int32 idx)
 		return sizeudata(uvalue(o));
 		break;
 	}
-	case LUA_TSHRSTR:
-	case LUA_TLNGSTR:
+	case LUA_TSTRING:
 	{
-		return vslen(o);
+		return sizelstring(vslen(o));
 		break;
 	}
 	case LUA_TNUMBER:

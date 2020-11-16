@@ -57,6 +57,7 @@ private:
 	/* create snapshot */
 	TSharedPtr<FELuaMemSnapshot> CreateSnapshot();
 
+	void travel_lightuserdata(lua_State* L, const char* desc, int level, const void* parent);
 	void travel_string(lua_State* L, const char* desc, int level, const void* parent);
 	void travel_table(lua_State* L, const char* desc, int level, const void* parent);
 	void travel_userdata(lua_State* L, const char* desc, int level, const void* parent);

@@ -120,7 +120,7 @@ TSharedRef<ITableRow> SELuaMemAnalyzerPanel::OnGenerateRow(TSharedPtr<FELuaMemIn
 	SNew(STableRow<TSharedPtr<FELuaMemInfoNode>>, OwnerTable)
 	[
 		SNew(SHeaderRow)
-		+ SHeaderRow::Column("Name").DefaultLabel(FText::FromString(MINode->name))
+		+ SHeaderRow::Column("Name").DefaultLabel(FText::FromString(MINode->desc))
 		.DefaultTooltip(FText::FromString(MINode->desc)).HAlignHeader(HAlign_Fill)
 		+SHeaderRow::Column("Size").FixedWidth(80).DefaultLabel(FText::AsNumber(MINode->size))
 		+SHeaderRow::Column("Type").FixedWidth(80).DefaultLabel(FText::FromString(MINode->type))
@@ -142,7 +142,7 @@ void SELuaMemAnalyzerPanel::UpdateShowingRoot()
 	CurMIRoot = FELuaMemAnalyzer::GetInstance()->GetRoot();
 	if (CurMIRoot)
 	{
-		ShowingNodeList = CurMIRoot->children;
+		ShowingNodeList = { CurMIRoot };
 	}
 	else
 	{
@@ -152,6 +152,11 @@ void SELuaMemAnalyzerPanel::UpdateShowingRoot()
 
 void SELuaMemAnalyzerPanel::DeferredTick(float DeltaTime)
 {
+	if (CurMIRoot != FELuaMemAnalyzer::GetInstance()->GetRoot())
+	{
+		UpdateShowingRoot();
+	}
+
 	if (TreeViewWidget.IsValid())
 	{
 		TreeViewWidget->RequestTreeRefresh();

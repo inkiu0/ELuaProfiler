@@ -41,9 +41,6 @@ public:
 	/* record the object at the top of luavm stack */
 	const void* Record(lua_State* L, const char* Desc, int32 Level, const void* Parent);
 
-	/* record the object at the top of luavm stack */
-	const void* Record(const void* Address, const char* Type, int32 Size, const char* Desc, int Level, const void* Parent);
-
 	TSharedPtr<FELuaMemInfoNode> GetRoot() { return Root; }
 
 	//void Sort();

@@ -44,10 +44,14 @@ TSharedPtr<FELuaMemInfoNode> FELuaMemSnapshot::GetMemNode(const void* LuaObjAddr
 	}
 }
 
-const void* FELuaMemSnapshot::Record(const void* Address, const char* Type, int32 Size, const char* Desc, int Level, const void* Parent)
+const void* FELuaMemSnapshot::Record(lua_State* L, const char* Desc, int32 Level, const void* Parent)
 {
+	const void* ObjAddress = lua_topointer(L, -1);
+	int32 Size = lua_sizeof(L, -1);
+	const char* Type = lua_typename(L, lua_type(L, -1));
+
 	TSharedPtr<FELuaMemInfoNode> pnode = GetMemNode(Parent);
-	if (TSharedPtr<FELuaMemInfoNode> node = GetMemNode(Address))
+	if (TSharedPtr<FELuaMemInfoNode> node = GetMemNode(ObjAddress))
 	{
 		if (node->parent != pnode)
 		{
@@ -57,6 +61,7 @@ const void* FELuaMemSnapshot::Record(const void* Address, const char* Type, int3
 		node->desc = Desc;
 		node->level = Level;
 		node->parents.Add(Parent, pnode);
+		lua_pop(L, 1);
 		return nullptr;				// stop expanding tree
 	}
 	else
@@ -67,25 +72,19 @@ const void* FELuaMemSnapshot::Record(const void* Address, const char* Type, int3
 		nnode->level = Level;
 		nnode->size = Size;
 		nnode->count = 1;
-		nnode->address = Address;
+		nnode->address = ObjAddress;
 		nnode->type = Type;
 		if (pnode)
 		{
 			pnode->children.Add(nnode);
 		}
-		LuaObjectMemNodeMap.Add(Address, nnode);
+		if (!Root)
+		{
+			Root = nnode;
+		}
+		LuaObjectMemNodeMap.Add(ObjAddress, nnode);
 	}
-	return Address;					// continue to expanding this object
-}
-
-const void* FELuaMemSnapshot::Record(lua_State* L, const char* Desc, int32 Level, const void* Parent)
-{
-	int32 t = lua_type(L, -1);
-	const void* ObjAddress = lua_topointer(L, -1);
-	int32 Size = lua_sizeof(L, -1);
-	const char* Type = lua_typename(L, t);
-
-	return Record(ObjAddress, Type, Size, Desc, Level, Parent);
+	return ObjAddress;					// continue to expanding this object
 }
 
 int32 FELuaMemSnapshot::RecountNode(TSharedPtr<FELuaMemInfoNode> Node)

@@ -86,7 +86,7 @@ void FELuaMemAnalyzer::travel_table(lua_State* L, const char* desc, int level, c
 {
 	const void* p = CurSnapshot->Record(L, desc, level, parent);		// [table]
 	if (p == NULL)
-		return;
+		return;															// [] stop expanding, pop table
 
 	bool weakk = false;
 	bool weakv = false;
@@ -138,7 +138,7 @@ void FELuaMemAnalyzer::travel_userdata(lua_State* L, const char* desc, int level
 {
 	const void* p = CurSnapshot->Record(L, desc, level, parent);		// [userdata]
 	if (p == NULL)
-		return;
+		return;															// [] stop expanding, pop userdata
 
 	if (lua_getmetatable(L, -1))										// [metatable, userdata] push metatable
 	{
@@ -160,7 +160,7 @@ void FELuaMemAnalyzer::travel_userdata(lua_State* L, const char* desc, int level
 void FELuaMemAnalyzer::travel_function(lua_State* L, const char* desc, int level, const void* parent)
 {
 	const void* p = CurSnapshot->Record(L, desc, level, parent);		// [function]
-	if (p == NULL)
+	if (p == NULL)														// [] stop expanding, pop function
 		return;
 
 	int i;
@@ -200,7 +200,7 @@ void FELuaMemAnalyzer::travel_function(lua_State* L, const char* desc, int level
 void FELuaMemAnalyzer::travel_thread(lua_State* L, const char* desc, int level, const void* parent)
 {
 	const void* p = CurSnapshot->Record(L, desc, level, parent);		// [thread]
-	if (p == NULL)
+	if (p == NULL)														// [] stop expanding, pop thread
 		return;
 
 	int lv = 0;

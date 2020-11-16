@@ -23,8 +23,10 @@
 #pragma once
 
 #include "ELuaBase.h"
+#include "ELuaMemInfoNode.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/SCompoundWidget.h"
+#include "Widgets/Views/STreeView.h"
 #include "Widgets/Docking/SDockTab.h"
 
 class SELuaMemAnalyzerPanel : public SCompoundWidget
@@ -43,11 +45,25 @@ public:
 	bool IsOpening() { return TabIsOpening; }
 
 private:
+	TSharedRef<ITableRow> OnGenerateRow(TSharedPtr<FELuaMemInfoNode> MINode, const TSharedRef<STableViewBase>& OwnerTable);
+
+	void OnGetChildrenRaw(TSharedPtr<FELuaMemInfoNode> MINode, TArray<TSharedPtr<FELuaMemInfoNode>>& OutChildren);
+
+	void UpdateShowingRoot();
+
 	void OnCloseTab(TSharedRef<SDockTab> Tab);
+
 	FReply OnSnapshotBtnClicked();
+
 	FReply OnGCBtnClicked();
 
 private:
+	TSharedPtr<STreeView<TSharedPtr<FELuaMemInfoNode>>> TreeViewWidget;
+
+	TArray<TSharedPtr<FELuaMemInfoNode>> ShowingNodeList;
+
+	TSharedPtr<FELuaMemInfoNode> CurMIRoot;
+
 	bool TabIsOpening = false;
 };
 

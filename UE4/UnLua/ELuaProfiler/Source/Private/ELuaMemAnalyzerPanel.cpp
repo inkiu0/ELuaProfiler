@@ -34,6 +34,34 @@ TSharedRef<class SDockTab> SELuaMemAnalyzerPanel::GetSDockTab()
 {
 	TabIsOpening = true;
 
+	UpdateShowingRoot();
+
+	// Init TreeViewWidget
+	SAssignNew(TreeViewWidget, STreeView<TSharedPtr<FELuaMemInfoNode>>)
+		.ItemHeight(800)
+		.TreeItemsSource(&ShowingNodeList)
+		.OnGenerateRow(this, &SELuaMemAnalyzerPanel::OnGenerateRow)
+		.OnGetChildren(this, &SELuaMemAnalyzerPanel::OnGetChildrenRaw)
+		.SelectionMode(ESelectionMode::None)
+		.HighlightParentNodesForSelection(true)
+		.HeaderRow
+		(
+			SNew(SHeaderRow)
+			+ SHeaderRow::Column("Name").DefaultLabel(FText::FromName("Name")).HAlignHeader(HAlign_Fill)
+			+ SHeaderRow::Column("Size").DefaultLabel(FText::FromName("Size")).FixedWidth(80)
+			+ SHeaderRow::Column("Type").DefaultLabel(FText::FromName("Type")).FixedWidth(80)
+			+ SHeaderRow::Column("Count").DefaultLabel(FText::FromName("Count")).FixedWidth(80)
+			+ SHeaderRow::Column("Level").DefaultLabel(FText::FromName("Level")).FixedWidth(80)
+
+			//+ SHeaderRow::Column("Calls").DefaultLabel(FText::FromName("Calls")).FixedWidth(60)
+			//.SortMode_Lambda([&]() { return FELuaMonitor::GetInstance()->GetSortMode() == Calls ? EColumnSortMode::Descending : EColumnSortMode::None; })
+			//.OnSort_Lambda([&](const EColumnSortPriority::Type SortPriority, const FName& ColumnName, const EColumnSortMode::Type NewSortMode)
+			//{
+			//	FELuaMonitor::GetInstance()->SetSortMode(Calls);
+			//})
+		);
+
+
 	TSharedPtr<SDockTab> Tab;
 	SAssignNew(Tab, SDockTab)
 	.Icon(FEditorStyle::GetBrush("Kismet.Tabs.Palette"))
@@ -71,14 +99,63 @@ TSharedRef<class SDockTab> SELuaMemAnalyzerPanel::GetSDockTab()
 				]
 			]
 		]
+
+		+ SVerticalBox::Slot().FillHeight(1.f)
+		[
+			SNew(SBorder)
+			.Padding(0)
+			.BorderImage(FCoreStyle::Get().GetBrush("ToolPanel.GroupBorder"))
+			[
+				TreeViewWidget.ToSharedRef()
+			]
+		]
 	];
 	Tab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateRaw(this, &SELuaMemAnalyzerPanel::OnCloseTab));
 	return Tab.ToSharedRef();
 }
 
+TSharedRef<ITableRow> SELuaMemAnalyzerPanel::OnGenerateRow(TSharedPtr<FELuaMemInfoNode> MINode, const TSharedRef<STableViewBase>& OwnerTable)
+{
+	return
+	SNew(STableRow<TSharedPtr<FELuaMemInfoNode>>, OwnerTable)
+	[
+		SNew(SHeaderRow)
+		+ SHeaderRow::Column("Name").DefaultLabel(FText::FromString(MINode->name))
+		.DefaultTooltip(FText::FromString(MINode->desc)).HAlignHeader(HAlign_Fill)
+		+SHeaderRow::Column("Size").FixedWidth(80).DefaultLabel(FText::AsNumber(MINode->size))
+		+SHeaderRow::Column("Type").FixedWidth(80).DefaultLabel(FText::FromString(MINode->type))
+		+SHeaderRow::Column("Count").FixedWidth(80).DefaultLabel(FText::AsNumber(MINode->count))
+		+SHeaderRow::Column("Level").FixedWidth(80).DefaultLabel(FText::AsNumber(MINode->level))
+	];
+}
+
+void SELuaMemAnalyzerPanel::OnGetChildrenRaw(TSharedPtr<FELuaMemInfoNode> MINode, TArray<TSharedPtr<FELuaMemInfoNode>>& OutChildren)
+{
+	if (MINode)
+	{
+		OutChildren = MINode->children;
+	}
+}
+
+void SELuaMemAnalyzerPanel::UpdateShowingRoot()
+{
+	CurMIRoot = FELuaMemAnalyzer::GetInstance()->GetRoot();
+	if (CurMIRoot)
+	{
+		ShowingNodeList = CurMIRoot->children;
+	}
+	else
+	{
+		ShowingNodeList = {};
+	}
+}
+
 void SELuaMemAnalyzerPanel::DeferredTick(float DeltaTime)
 {
-
+	if (TreeViewWidget.IsValid())
+	{
+		TreeViewWidget->RequestTreeRefresh();
+	}
 }
 
 void SELuaMemAnalyzerPanel::OnCloseTab(TSharedRef<SDockTab> Tab)

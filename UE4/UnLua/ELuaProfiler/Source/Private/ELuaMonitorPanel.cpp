@@ -42,7 +42,7 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 
 	FELuaMonitor::GetInstance()->SetMonitorMode(MonitorMode);
 
-	UpdateRoot();
+	UpdateShowingRoot();
 
 
 	TArray<SNumericDropDown<float>::FNamedValue> NamedValuesForMonitorMode;
@@ -54,7 +54,7 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 	// Init TreeViewWidget
 	SAssignNew(TreeViewWidget, STreeView<TSharedPtr<FELuaTraceInfoNode>>)
 		.ItemHeight(800)
-		.TreeItemsSource(&ShowRootList)
+		.TreeItemsSource(&ShowingNodeList)
 		.OnGenerateRow(this, &SELuaMonitorPanel::OnGenerateRow)
 		.OnGetChildren(this, &SELuaMonitorPanel::OnGetChildrenRaw)
 		.SelectionMode(ESelectionMode::None)
@@ -299,16 +299,16 @@ void SELuaMonitorPanel::OnGetChildrenRaw(TSharedPtr<FELuaTraceInfoNode> TINode, 
 	}
 }
 
-void SELuaMonitorPanel::UpdateRoot()
+void SELuaMonitorPanel::UpdateShowingRoot()
 {
-	CurRootTINode = FELuaMonitor::GetInstance()->GetRoot();
-	if (CurRootTINode)
+	CurTIRoot = FELuaMonitor::GetInstance()->GetRoot();
+	if (CurTIRoot)
 	{
-		ShowRootList = CurRootTINode->Children;
+		ShowingNodeList = CurTIRoot->Children;
 	}
 	else
 	{
-		ShowRootList = {};
+		ShowingNodeList = {};
 	}
 }
 
@@ -320,7 +320,7 @@ void SELuaMonitorPanel::DeferredTick(float DeltaTime)
 
 	if (MonitorMode == PerFrame || ElapsedTime > UPDATE_INTERVAL)
 	{
-		UpdateRoot();
+		UpdateShowingRoot();
 
 		if (TreeViewWidget.IsValid())
 		{

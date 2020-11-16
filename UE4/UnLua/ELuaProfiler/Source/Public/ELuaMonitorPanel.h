@@ -64,7 +64,7 @@ private:
 
 	const FSlateBrush* GetNextFrameIcon() const;
 
-	void UpdateRoot();
+	void UpdateShowingRoot();
 
 	void OnModeChanged(float InMode);
 
@@ -87,9 +87,9 @@ private:
 private:
 	TSharedPtr<STreeView<TSharedPtr<FELuaTraceInfoNode>>> TreeViewWidget;
 
-	TSharedPtr<FELuaTraceInfoNode> CurRootTINode;
+	TSharedPtr<FELuaTraceInfoNode> CurTIRoot;
 
-	TArray<TSharedPtr<FELuaTraceInfoNode>> ShowRootList;
+	TArray<TSharedPtr<FELuaTraceInfoNode>> ShowingNodeList;
 
 	TSharedPtr<SHorizontalBox> ControllerBar;
 

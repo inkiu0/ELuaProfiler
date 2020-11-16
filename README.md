@@ -103,7 +103,8 @@ end
 6. Count
 
 ### ELuaMemAnalyzer
-_UI界面开发中..._
+![](Samples/ELuaMemAnalyzer_v1.png)
+_UI界面继续开发中..._
 #### Snapshot
 在ELuaMemAnalyzer中点击一次采样，即可生成一个`Snapshot`。`Snapshot`中包含了当前时刻的内存情况，以`_G`为根节点。
 同时`Snapshot`也支持逻辑运算，以方便剖析内存的泄露和增长。

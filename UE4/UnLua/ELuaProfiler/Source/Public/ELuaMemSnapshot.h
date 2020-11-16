@@ -48,7 +48,7 @@ public:
 
 private:
 	/* accurately count the total size */
-	int32 GetTotalSize();
+	//int32 GetTotalSize();
 
 	/* count the node size */
 	int32 RecountNode(TSharedPtr<FELuaMemInfoNode> Node);

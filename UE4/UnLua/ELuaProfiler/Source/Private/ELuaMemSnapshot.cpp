@@ -102,29 +102,23 @@ int32 FELuaMemSnapshot::RecountNode(TSharedPtr<FELuaMemInfoNode> Node)
 	return Size;
 }
 
-int32 FELuaMemSnapshot::GetTotalSize()
-{
-	int32 size = 0;
-	for (TPair<const void*, TSharedPtr<FELuaMemInfoNode>> Entry : LuaObjectMemNodeMap)
-	{
-		TSharedPtr<FELuaMemInfoNode> node = Entry.Value;
-		if (node)
-		{
-			size += node->size;
-		}
-	}
-	Root->size = size;
-	return size;
-}
+//int32 FELuaMemSnapshot::GetTotalSize()
+//{
+//	int32 size = 0;
+//	for (TPair<const void*, TSharedPtr<FELuaMemInfoNode>> Entry : LuaObjectMemNodeMap)
+//	{
+//		TSharedPtr<FELuaMemInfoNode> node = Entry.Value;
+//		if (node)
+//		{
+//			size += node->size;
+//		}
+//	}
+//	Root->size = size;
+//	return size;
+//}
 
 int32 FELuaMemSnapshot::RecountSize()
 {
 	/* travel all nodes*/
-	int32 Size = RecountNode(Root);
-
-	int32 ExactSize = GetTotalSize();
-
-	UE_LOG(LogInit, Log, TEXT("LuaVM ExactSize = %d, Size = %d"), ExactSize, Size);
-
-	return ExactSize;
+	return RecountNode(Root);
 }

@@ -39,8 +39,6 @@ public:
 		return &Instance;
 	}
 
-	void travel_object(lua_State* L, const char* desc, int level, const void* parent);
-
 	void Snapshot();
 
 	void PopSnapshot();
@@ -57,12 +55,13 @@ private:
 	/* create snapshot */
 	TSharedPtr<FELuaMemSnapshot> CreateSnapshot();
 
-	void travel_lightuserdata(lua_State* L, const char* desc, int level, const void* parent);
-	void travel_string(lua_State* L, const char* desc, int level, const void* parent);
-	void travel_table(lua_State* L, const char* desc, int level, const void* parent);
-	void travel_userdata(lua_State* L, const char* desc, int level, const void* parent);
-	void travel_function(lua_State* L, const char* desc, int level, const void* parent);
-	void travel_thread(lua_State* L, const char* desc, int level, const void* parent);
+	void traverse_lightuserdata(lua_State* L, const char* desc, int level, const void* parent);
+	void traverse_string(lua_State* L, const char* desc, int level, const void* parent);
+	void traverse_table(lua_State* L, const char* desc, int level, const void* parent);
+	void traverse_userdata(lua_State* L, const char* desc, int level, const void* parent);
+	void traverse_function(lua_State* L, const char* desc, int level, const void* parent);
+	void traverse_thread(lua_State* L, const char* desc, int level, const void* parent);
+	void traverse_object(lua_State* L, const char* desc, int level, const void* parent);
 
 private:
 	TSharedPtr<FELuaMemSnapshot> CurSnapshot;

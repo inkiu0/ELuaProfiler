@@ -298,7 +298,8 @@ void FELuaMemAnalyzer::Snapshot()
 	if (lua_State* L = UnLua::GetState())
 	{
 		lua_settop(L, 0);
-		lua_pushglobaltable(L);
+		lua_pushvalue(L, LUA_REGISTRYINDEX);
+		//lua_pushglobaltable(L);
 
 		CreateSnapshot();
 

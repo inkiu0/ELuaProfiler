@@ -102,15 +102,15 @@ void FELuaMemAnalyzer::traverse_table(lua_State* L, const char* desc, int level,
 		{
 			const char* mode = lua_tostring(L, -1);
 			const char* weakk = strchr(mode, 'k'), * weakv = strchr(mode, 'v');
-			if (!weakk && !weakv)
+			if (weakk && weakv)
 			{
 				traversek, traversev = false;
 			}
-			else if (!weakk)
+			else if (weakv)
 			{
 				traversev = false;
 			}
-			else if (!weakk)
+			else if (weakk)
 			{
 				traversek = false;
 			}

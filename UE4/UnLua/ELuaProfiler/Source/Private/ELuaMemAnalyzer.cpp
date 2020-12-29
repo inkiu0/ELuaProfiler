@@ -89,7 +89,7 @@ void FELuaMemAnalyzer::traverse_table(lua_State* L, const char* desc, int level,
 	if (p == NULL)
 		return;															// [] stop expanding, pop table
 
-	bool traversek, traversev = true;
+	bool traversek = true, traversev = true;
 	if (lua_getmetatable(L, -1))                                        // [metatable, table] push metatable
 	{
 		luaL_checkstack(L, LUA_MINSTACK, NULL);
@@ -104,7 +104,7 @@ void FELuaMemAnalyzer::traverse_table(lua_State* L, const char* desc, int level,
 			const char* weakk = strchr(mode, 'k'), * weakv = strchr(mode, 'v');
 			if (weakk && weakv)
 			{
-				traversek, traversev = false;
+				traversek = traversev = false;
 			}
 			else if (weakv)
 			{

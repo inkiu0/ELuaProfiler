@@ -89,58 +89,17 @@ void FELuaMemAnalyzer::traverse_table(lua_State* L, const char* desc, int level,
 	if (p == NULL)
 		return;															// [] stop expanding, pop table
 
-	bool traversek = true, traversev = true;
-	if (lua_getmetatable(L, -1))                                        // [metatable, table] push metatable
+	lua_pushnil(L);														// [nil, table] push nil as key slot on stack
+	while (lua_next(L, -2) != 0)										// [(value, key), table]pop key slot; push (-2)key object and (-1)value object to the top of the stack if exists
 	{
-		luaL_checkstack(L, LUA_MINSTACK, NULL);
-		traverse_table(L, "[table]metatable", level + 1, p);			// [table] traverse and pop metatable
+		char tmp[128];
+		key_tostring(L, -2, tmp, sizeof(tmp));
+		traverse_object(L, tmp, level + 1, p);							// [key, table] travel and pop value object
 
-		lua_getmetatable(L, -1);										// [metatable, table] push metatable
-		lua_pushliteral(L, "__mode");                                   // ["__mode", metatable, table] push "__mode" string
-		lua_rawget(L, -2);                                              // [metatable.__mode, metatable, table] pop "__mode"; push metatable.__mode
-		if (lua_isstring(L, -1))
-		{
-			const char* mode = lua_tostring(L, -1);
-			const char* weakk = strchr(mode, 'k'), * weakv = strchr(mode, 'v');
-			if (weakk && weakv)
-			{
-				traversek = traversev = false;
-			}
-			else if (weakv)
-			{
-				traversev = false;
-			}
-			else if (weakk)
-			{
-				traversek = false;
-			}
-		}
-		lua_pop(L, 2);                                                  // [table] pop metatable.__mode, metatable
-	}
-
-	if (traversek || traversev)
-	{
-		lua_pushnil(L);													// [nil, table] push nil as key slot on stack
-		while (lua_next(L, -2) != 0)									// [(value, key), table]pop key slot; push (-2)key object and (-1)value object to the top of the stack if exists
-		{
-			char tmp[128];
-			if (traversev)
-			{
-				key_tostring(L, -2, tmp, sizeof(tmp));
-				traverse_object(L, tmp, level + 1, p);					// [key, table] travel and pop value object
-			}
-			else
-			{
-				lua_pop(L, 1);											// [key, table] pop weak value
-			}
-			if (traversek)
-			{
-				lua_pushvalue(L, -1);									// [key, key, table] copy key slot to the top of the stack
-				ELUA_PRINTF(tmp, sizeof(tmp), "[TabKey:%.118s]", lua_tostring(L, -1));
-				traverse_object(L, tmp, level + 1, p);					// [key, table] travel and pop key object
-			}
-		}																// [table] last time call lua_net will pop key slot, do not push anything
-	}
+		lua_pushvalue(L, -1);											// [key, key, table] copy key slot to the top of the stack
+		ELUA_PRINTF(tmp, sizeof(tmp), "[TabKey:%.118s]", lua_tostring(L, -1));
+		traverse_object(L, tmp, level + 1, p);							// [key, table] travel and pop key object
+	}																	// [table] last time call lua_net will pop key slot, do not push anything
 	lua_pop(L, 1);														// [] pop table
 }
 

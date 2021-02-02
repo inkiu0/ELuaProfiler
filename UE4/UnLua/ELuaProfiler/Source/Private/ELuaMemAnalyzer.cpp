@@ -264,7 +264,11 @@ void FELuaMemAnalyzer::Snapshot()
 
 		traverse_table(L, "Global", 1, NULL);
 
+		CurSnapshot->GenTimeStamp();
+
 		CurSnapshot->RecountSize();
+
+		bNeedFreshSnapshotList = true;
 	}
 }
 
@@ -272,6 +276,7 @@ TSharedPtr<FELuaMemSnapshot> FELuaMemAnalyzer::CreateSnapshot()
 {
 	CurSnapshot = TSharedPtr<FELuaMemSnapshot>(new FELuaMemSnapshot());
 	Snapshots.Add(CurSnapshot);
+	ShowingIndex = Snapshots.Num() - 1;
 	return CurSnapshot;
 }
 
@@ -284,10 +289,12 @@ void FELuaMemAnalyzer::PopSnapshot()
 
 	if (Snapshots.Num() > 0)
 	{
-		CurSnapshot = Snapshots[Snapshots.Num() - 1];
+		ShowingIndex = Snapshots.Num() - 1;
+		CurSnapshot = Snapshots[ShowingIndex];
 	}
 	else
 	{
+		ShowingIndex = -1;
 		CurSnapshot = nullptr;
 	}
 }
@@ -298,13 +305,13 @@ TSharedPtr<FELuaMemInfoNode> FELuaMemAnalyzer::GetRoot(int32 Idx /* = -1 */)
 	{
 		return Snapshots[Idx]->GetRoot();
 	}
-	else
-	{
-		if (CurSnapshot)
-		{
-			return CurSnapshot->GetRoot();
-		}
-	}
+	//else
+	//{
+	//	if (CurSnapshot)
+	//	{
+	//		return CurSnapshot->GetRoot();
+	//	}
+	//}
 	return nullptr;
 }
 
@@ -317,4 +324,100 @@ void FELuaMemAnalyzer::ForceLuaGC()
 		int32 nsize = lua_gc(L, LUA_GCCOUNT, 0);
 		UE_LOG(LogInit, Log, TEXT("LuaVM Old Size = %d, New Size = %d, Free %d KB"), osize, nsize, nsize - osize);
 	}
+}
+
+void FELuaMemAnalyzer::OnSnapshotOperate(ESnapshotOp ESOP)
+{
+	if (CurOperateMode == ESOP)
+	{
+		// Cancel Operate Mode
+		CurOperateMode = SOP_None;
+		return;
+	}
+
+	CurOperateMode = ESOP;
+	
+	TryOperateSnapshot();
+}
+
+
+void FELuaMemAnalyzer::TryOperateSnapshot()
+{
+	if (CurOperateMode != SOP_None && OperateIndexLeft >= 0 && Snapshots.Num() > OperateIndexLeft && OperateIndexRight >= 0 && Snapshots.Num() > OperateIndexRight)
+	{
+		bool Success = Snapshots[OperateIndexLeft]->LogicOperate(*Snapshots[OperateIndexRight], CurOperateMode);
+		ShowingIndex = Success ? Snapshots.Num() : -1;
+		bNeedFreshSnapshotList = true;
+		OperateIndexLeft = OperateIndexRight = -1;
+		CurOperateMode = SOP_None;
+	}
+}
+
+void FELuaMemAnalyzer::ShowSnapshot(int32 SnapshotIdx)
+{
+	if (SnapshotIdx >= 0 && Snapshots.Num() > SnapshotIdx)
+	{
+		ShowingIndex = SnapshotIdx;
+		OnSelectSnapshot(SnapshotIdx);
+	}
+	else
+	{
+		ShowingIndex = -1;
+	}
+}
+
+void FELuaMemAnalyzer::OnSelectSnapshot(int32 SnapshotIdx)
+{
+	if (SnapshotIdx >= 0 && Snapshots.Num() > SnapshotIdx)
+	{
+		if (CurOperateMode != SOP_None && OperateIndexLeft >= 0)
+		{
+			OperateIndexRight = SnapshotIdx;
+			TryOperateSnapshot();
+		}
+		else
+		{
+			OperateIndexLeft = SnapshotIdx;
+		}
+	}
+}
+
+void FELuaMemAnalyzer::OnCancelOperate(int32 SnapshotIdx)
+{
+	if (SnapshotIdx == OperateIndexLeft)
+	{
+		OperateIndexLeft = -1;
+	}
+
+	if (SnapshotIdx == OperateIndexRight)
+	{
+		OperateIndexRight = -1;
+	}
+}
+
+bool FELuaMemAnalyzer::OnDeleteSnapshot(int32 SnapshotIdx)
+{
+	if (SnapshotIdx >= 0 && Snapshots.Num() > SnapshotIdx)
+	{
+		Snapshots.RemoveAt(SnapshotIdx);
+		OnCancelOperate(SnapshotIdx);
+		if (ShowingIndex == SnapshotIdx)
+		{
+			ShowingIndex = -1;
+		}
+		bNeedFreshSnapshotList = true;
+		return true;
+	}
+
+	return false;
+}
+
+TSharedPtr<FELuaMemSnapshot> FELuaMemAnalyzer::GetSnapshot(int32 SnapshotIdx)
+{
+	if (SnapshotIdx >= 0 && Snapshots.Num() > SnapshotIdx)
+	{
+		return Snapshots[SnapshotIdx];
+	}
+
+	return nullptr;
 }

@@ -23,6 +23,7 @@
 #include "ELuaProfiler.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #if WITH_EDITOR
+#include "ELuaStyle.h"
 #include "LevelEditor.h"
 #include "ELuaProfilerCommands.h"
 #endif
@@ -73,6 +74,11 @@ void FELuaProfilerModule::StartupModule()
 		TickDelegate = FTickerDelegate::CreateRaw(this, &FELuaProfilerModule::Tick);
 		TickDelegateHandle = FTicker::GetCoreTicker().AddTicker(TickDelegate);
 	}
+
+	if (GIsEditor)
+	{
+		FELuaStyle::Initialize();
+	}
 #endif
 }
 
@@ -94,6 +100,11 @@ void FELuaProfilerModule::ShutdownModule()
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(ELuaProfiler::ELuaMonitorTabName);
 
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(ELuaProfiler::ELuaMemAnalyzerTabName);
+
+	if (GIsEditor)
+	{
+		FELuaStyle::Shutdown();
+	}
 #endif
 }
 

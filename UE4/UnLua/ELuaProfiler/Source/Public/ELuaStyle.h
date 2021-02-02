@@ -22,62 +22,25 @@
 
 #pragma once
 
-#include <chrono>
 #include "CoreMinimal.h"
-#include "CoreUObject.h"
-#include "lua.hpp"
+#include "Styling/SlateStyle.h"
 
-#if PLATFORM_WINDOWS
-#define ELUA_PRINTF sprintf_s
-#else
-#define ELUA_PRINTF snprintf
-#endif
-
-typedef std::chrono::high_resolution_clock Clock;
-
-int64 GetTimeNs() { return Clock::now().time_since_epoch().count(); }
-
-double GetTimeMs() { return Clock::now().time_since_epoch().count() * 0.000001; }
-
-int32 GetStateMemB();
-
-float GetStateMemKb();
-
-int32 lua_sizeof(lua_State* L, int32 idx);
-
-const void* lua_getaddr(lua_State* L, int32 idx);
-
-namespace ELuaProfiler
+class FELuaStyle
 {
-	static const FName ELuaMonitorTabName(TEXT("ELuaMonitor"));
+public:
+	static void Initialize();
 
-	static const FName ELuaMemAnalyzerTabName(TEXT("ELuaMemAnalyzer"));
+	static void Shutdown();
 
-	const int HookMask = LUA_MASKCALL | LUA_MASKRET;
-}
+	static void ReloadTextures();
 
-enum ELuaMonitorMode : uint8
-{
-	PerFrame,		// Deep Copy TraceInfoTree PerFrame
-	Total,			// Only one TraceInfoTree
-	Statistics,		// Unfold TraceInfoTree
-	MAX
-};
+	static const ISlateStyle& Get();
 
-enum EMonitorSortMode : uint8
-{
-	TotalTime,
-	SelfTime,
-	Average,
-	Alloc,
-	GC,
-	Calls
-};
+	static FName GetStyleSetName();
 
-enum ESnapshotOp : uint8
-{
-	SOP_None = 1 << 0,
-	SOP_AND = 1 << 1,
-	SOP_OR = 1 << 2,
-	SOP_XOR = 1 << 3
+private:
+	static TSharedRef<class FSlateStyleSet> Create();
+
+private:
+	static TSharedPtr<class FSlateStyleSet> StyleInst;
 };

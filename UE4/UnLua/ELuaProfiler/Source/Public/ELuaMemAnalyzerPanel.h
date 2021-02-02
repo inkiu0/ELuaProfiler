@@ -24,6 +24,7 @@
 
 #include "ELuaBase.h"
 #include "ELuaMemInfoNode.h"
+#include "ELuaMemAnalyzer.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Views/STreeView.h"
@@ -57,7 +58,18 @@ private:
 
 	FReply OnGCBtnClicked();
 
+	void OnRefreshSOPToggleStyle();
+
+	FReply OnSOPBtnClicked(ESnapshotOp ESOP);
+
+	const FButtonStyle& GetToggleStyle(ESnapshotOp ESOP);
+
 private:
+
+	TSharedPtr<SDockTab> DockTab;
+
+	TSharedPtr<SVerticalBox> MemToggleListWidget;
+
 	TSharedPtr<STreeView<TSharedPtr<FELuaMemInfoNode>>> TreeViewWidget;
 
 	TArray<TSharedPtr<FELuaMemInfoNode>> ShowingNodeList;
@@ -65,5 +77,11 @@ private:
 	TSharedPtr<FELuaMemInfoNode> CurMIRoot;
 
 	bool TabIsOpening = false;
+
+	TSharedPtr<SButton> AndBtn;
+
+	TSharedPtr<SButton> OrBtn;
+
+	TSharedPtr<SButton> XorBtn;
 };
 

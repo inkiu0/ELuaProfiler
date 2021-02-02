@@ -56,6 +56,19 @@ struct ELUAPROFILER_API FELuaMemInfoNode
 	/* all parent nodes. a node may be referenced by multi other nodes */
 	TMap<const void*, TSharedPtr<FELuaMemInfoNode>> parents;
 
+	//FELuaMemInfoNode(const FELuaMemInfoNode& Copy)
+	//{
+	//	name = Copy.name;
+	//	desc = Copy.desc;
+	//	size = Copy.size;
+	//	level = Copy.level;
+	//	count = Copy.count;
+	//	type = Copy.type;
+	//	address = Copy.address;
+	//	parent = Copy.parent;
+	//	children = Copy.children;
+	//}
+
 	void Empty()
 	{
 		name.Empty();

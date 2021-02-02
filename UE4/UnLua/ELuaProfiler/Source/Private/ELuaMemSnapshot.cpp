@@ -120,5 +120,56 @@ int32 FELuaMemSnapshot::RecountNode(TSharedPtr<FELuaMemInfoNode> Node)
 int32 FELuaMemSnapshot::RecountSize()
 {
 	/* travel all nodes*/
-	return RecountNode(Root);
+	TotalSize = RecountNode(Root);
+	return TotalSize;
+}
+
+void FELuaMemSnapshot::GenTimeStamp()
+{
+	SnapTimeStr = FDateTime::Now().ToString(TEXT("%H:%M:%S"));	// %H:%M:%S.%s
+}
+
+bool FELuaMemSnapshot::LogicOperate(const FELuaMemSnapshot& Other, ESnapshotOp ESOP)
+{
+	switch (ESOP)
+	{
+	case SOP_AND:
+		*this & Other;
+		break;
+	case SOP_OR:
+		*this | Other;
+		break;
+	case SOP_XOR:
+		*this ^ Other;
+		break;
+	case SOP_None:
+	default:
+		return false;
+		break;
+	}
+	return true;
+}
+
+TSharedPtr<FELuaMemSnapshot> FELuaMemSnapshot::operator&(const FELuaMemSnapshot& Other)
+{
+	TSharedPtr<FELuaMemSnapshot> Snapshot = TSharedPtr<FELuaMemSnapshot>(new FELuaMemSnapshot());
+	for (TPair<const void*, TSharedPtr<FELuaMemInfoNode>> Iter : LuaObjectMemNodeMap)
+	{
+		if (Other.LuaObjectMemNodeMap.Contains(Iter.Key))
+		{
+		}
+	}
+	return Snapshot;
+}
+
+TSharedPtr<FELuaMemSnapshot> FELuaMemSnapshot::operator|(const FELuaMemSnapshot& Other)
+{
+	TSharedPtr<FELuaMemSnapshot> Snapshot = TSharedPtr<FELuaMemSnapshot>(new FELuaMemSnapshot());
+	return Snapshot;
+}
+
+TSharedPtr<FELuaMemSnapshot> FELuaMemSnapshot::operator^(const FELuaMemSnapshot& Other)
+{
+	TSharedPtr<FELuaMemSnapshot> Snapshot = TSharedPtr<FELuaMemSnapshot>(new FELuaMemSnapshot());
+	return Snapshot;
 }

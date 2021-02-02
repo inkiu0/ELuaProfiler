@@ -45,7 +45,31 @@ public:
 
 	void ForceLuaGC();
 
-	TSharedPtr<FELuaMemInfoNode> GetRoot(int32 Idx = -1);
+	void OnSnapshotOperate(ESnapshotOp ESOP);
+
+	void ShowSnapshot(int32 SnapshotIdx);
+
+	void OnSelectSnapshot(int32 SnapshotIdx);
+
+	void OnCancelOperate(int32 SnapshotIdx);
+
+	bool OnDeleteSnapshot(int32 SnapshotIdx);
+
+	TSharedPtr<FELuaMemSnapshot> GetShowingSnapshot() { return GetSnapshot(ShowingIndex); }
+
+	TSharedPtr<FELuaMemInfoNode> GetShowingRoot() { return GetRoot(ShowingIndex); }
+
+	TSharedPtr<FELuaMemSnapshot> GetSnapshot(int32 SnapshotIdx);
+
+	int32 GetSnapshotNum() { return Snapshots.Num(); }
+
+	void OnRefresh() { bNeedFreshSnapshotList = false; }
+
+	bool NeedRefresh() { return bNeedFreshSnapshotList; }
+
+	bool IsSelectedSnapshot(int32 SnapshotIdx) { return SnapshotIdx == OperateIndexLeft || SnapshotIdx == OperateIndexRight; }
+
+	bool IsOperateMode(ESnapshotOp ESOP) { return ESOP == CurOperateMode; }
 
 private:
 
@@ -54,6 +78,10 @@ private:
 
 	/* create snapshot */
 	TSharedPtr<FELuaMemSnapshot> CreateSnapshot();
+
+	TSharedPtr<FELuaMemInfoNode> GetRoot(int32 Idx = -1);
+
+	void TryOperateSnapshot();
 
 	void traverse_lightuserdata(lua_State* L, const char* desc, int level, const void* parent);
 	void traverse_string(lua_State* L, const char* desc, int level, const void* parent);
@@ -66,4 +94,14 @@ private:
 private:
 	TSharedPtr<FELuaMemSnapshot> CurSnapshot;
 	TArray<TSharedPtr<FELuaMemSnapshot>> Snapshots;
+
+	int32 ShowingIndex = -1;
+
+	int32 OperateIndexLeft = -1;
+
+	int32 OperateIndexRight = -1;
+
+	ESnapshotOp CurOperateMode = SOP_None;
+
+	bool bNeedFreshSnapshotList = true;
 };

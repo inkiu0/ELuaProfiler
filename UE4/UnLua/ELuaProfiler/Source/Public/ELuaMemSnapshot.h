@@ -43,8 +43,15 @@ public:
 
 	TSharedPtr<FELuaMemInfoNode> GetRoot() { return Root; }
 
+	float GetTotalSizeMB() { return TotalSize / (1024.f * 1024.f); }
+
+	/* %H:%M:%S */
+	const FString GetSnapTimeStr() { return SnapTimeStr; }
+
+	void GenTimeStamp();
+
+	bool LogicOperate(const FELuaMemSnapshot& OtherSnapshoot, ESnapshotOp ESOP);
 	//void Sort();
-	//void Compare(const FELuaMemSnapshot& OtherSnapshoot);
 
 private:
 	/* accurately count the total size */
@@ -53,7 +60,21 @@ private:
 	/* count the node size */
 	int32 RecountNode(TSharedPtr<FELuaMemInfoNode> Node);
 
+	TSharedPtr<FELuaMemSnapshot> operator&(const FELuaMemSnapshot& Other);
+
+	TSharedPtr<FELuaMemSnapshot> operator|(const FELuaMemSnapshot& Other);
+
+	TSharedPtr<FELuaMemSnapshot> operator^(const FELuaMemSnapshot& Other);
+
+protected:
+	TMap<const void*, TSharedPtr<FELuaMemInfoNode>> LuaObjectMemNodeMap;
+
 private:
 	TSharedPtr<FELuaMemInfoNode> Root = nullptr;
-	TMap<const void*, TSharedPtr<FELuaMemInfoNode>> LuaObjectMemNodeMap;
+
+	/* byte */
+	int32 TotalSize = 0;
+
+	/* %H:%M:%S */
+	FString SnapTimeStr;
 };

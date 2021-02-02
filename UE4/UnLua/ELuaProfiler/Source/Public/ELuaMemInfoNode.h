@@ -24,6 +24,13 @@
 
 #include "CoreMinimal.h"
 
+enum ENodeState : uint8
+{
+	White = 0,
+	Gray = 1,
+	Black = 2
+};
+
 struct ELUAPROFILER_API FELuaMemInfoNode
 {
 	/* show name */
@@ -46,6 +53,14 @@ struct ELUAPROFILER_API FELuaMemInfoNode
 
 	/* the address of lua object */
 	const void* address = nullptr;
+
+	/*
+	 * Node state used for FELuaMemSnapshot logical operations
+	 * White:	Useful Node
+	 * Gray:	The parent of White/Gray Node
+	 * Black:	Useless Node
+	 */
+	ENodeState state = White;
 
 	/* last recorded parent node */
 	TSharedPtr<FELuaMemInfoNode> parent = nullptr;

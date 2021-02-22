@@ -345,8 +345,13 @@ void FELuaMemAnalyzer::TryOperateSnapshot()
 {
 	if (CurOperateMode != SOP_None && OperateIndexLeft >= 0 && Snapshots.Num() > OperateIndexLeft && OperateIndexRight >= 0 && Snapshots.Num() > OperateIndexRight)
 	{
-		bool Success = Snapshots[OperateIndexLeft]->LogicOperate(*Snapshots[OperateIndexRight], CurOperateMode);
-		ShowingIndex = Success ? Snapshots.Num() : -1;
+		TSharedPtr<FELuaMemSnapshot> NewSnapshot = Snapshots[OperateIndexLeft]->LogicOperate(*Snapshots[OperateIndexRight], CurOperateMode);
+		if (NewSnapshot)
+		{
+			CurSnapshot = NewSnapshot;
+			Snapshots.Add(NewSnapshot);
+		}
+		ShowingIndex = NewSnapshot ? Snapshots.Num() - 1 : -1;
 		bNeedFreshSnapshotList = true;
 		OperateIndexLeft = OperateIndexRight = -1;
 		CurOperateMode = SOP_None;

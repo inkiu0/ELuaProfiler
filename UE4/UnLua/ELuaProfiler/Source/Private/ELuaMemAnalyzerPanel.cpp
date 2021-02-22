@@ -179,7 +179,7 @@ TSharedRef<ITableRow> SELuaMemAnalyzerPanel::OnGenerateRow(TSharedPtr<FELuaMemIn
 		SNew(SHeaderRow)
 		+ SHeaderRow::Column("Name").DefaultLabel(FText::FromString(MINode->desc))
 		.DefaultTooltip(FText::FromString(MINode->desc)).HAlignHeader(HAlign_Fill)
-		+SHeaderRow::Column("Size").FixedWidth(80).DefaultLabel(FText::AsNumber(MINode->size))
+		+SHeaderRow::Column("Size").FixedWidth(80).DefaultLabel(FText::AsNumber(MINode->totalsize))
 		+SHeaderRow::Column("Type").FixedWidth(80).DefaultLabel(FText::FromString(MINode->type))
 		+SHeaderRow::Column("Count").FixedWidth(80).DefaultLabel(FText::AsNumber(MINode->count))
 		+SHeaderRow::Column("Level").FixedWidth(80).DefaultLabel(FText::AsNumber(MINode->level))

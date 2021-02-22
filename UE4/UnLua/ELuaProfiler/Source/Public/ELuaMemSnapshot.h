@@ -50,7 +50,7 @@ public:
 
 	void GenTimeStamp();
 
-	bool LogicOperate(const FELuaMemSnapshot& OtherSnapshoot, ESnapshotOp ESOP);
+	TSharedPtr<FELuaMemSnapshot> LogicOperate(const FELuaMemSnapshot& OtherSnapshoot, ESnapshotOp ESOP);
 	//void Sort();
 
 private:
@@ -65,6 +65,8 @@ private:
 	TSharedPtr<FELuaMemSnapshot> operator|(const FELuaMemSnapshot& Other);
 
 	TSharedPtr<FELuaMemSnapshot> operator^(const FELuaMemSnapshot& Other);
+
+	void RecordLinkedList(const TSharedPtr<FELuaMemSnapshot> Snapshot, const TSharedPtr<FELuaMemInfoNode> InNewnode);
 
 protected:
 	TMap<const void*, TSharedPtr<FELuaMemInfoNode>> LuaObjectMemNodeMap;

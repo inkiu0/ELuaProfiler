@@ -57,7 +57,7 @@ const void* FELuaMemSnapshot::Record(lua_State* L, const char* Desc, int32 Level
 		{
 			node->count += 1;
 		}
-		node->parent = pnode;
+		//node->parent = pnode;
 		node->desc = Desc;
 		node->level = Level;
 		node->parents.Add(Parent, pnode);
@@ -76,6 +76,7 @@ const void* FELuaMemSnapshot::Record(lua_State* L, const char* Desc, int32 Level
 		nnode->type = Type;
 		if (pnode)
 		{
+			nnode->parents.Add(Parent, pnode);
 			pnode->children.Add(nnode);
 		}
 		if (!Root)
@@ -92,13 +93,16 @@ int32 FELuaMemSnapshot::RecountNode(TSharedPtr<FELuaMemInfoNode> Node)
 	int32 Size = 0;
 	if (Node)
 	{
-		Size = Node->size;
+		if (Node->state == White)
+		{
+			Size = Node->size;
+		}
 		for (int32 i = 0; i < Node->children.Num(); i++)
 		{
 			Size += RecountNode(Node->children[i]);
 		}
 	}
-	Node->size = Size;
+	Node->totalsize = Size;
 	return Size;
 }
 
@@ -129,47 +133,119 @@ void FELuaMemSnapshot::GenTimeStamp()
 	SnapTimeStr = FDateTime::Now().ToString(TEXT("%H:%M:%S"));	// %H:%M:%S.%s
 }
 
-bool FELuaMemSnapshot::LogicOperate(const FELuaMemSnapshot& Other, ESnapshotOp ESOP)
+void FELuaMemSnapshot::RecordLinkedList(const TSharedPtr<FELuaMemSnapshot> Snapshot, const TSharedPtr<FELuaMemInfoNode> InNewnode)
+{
+	if (Snapshot->LuaObjectMemNodeMap.Contains(InNewnode->address))
+	{
+		TSharedPtr<FELuaMemInfoNode> wnode = Snapshot->LuaObjectMemNodeMap[InNewnode->address];
+		wnode->state = White;
+	}
+	else
+	{
+		TSharedPtr<FELuaMemInfoNode> onode = InNewnode;	// origin node
+		TSharedPtr<FELuaMemInfoNode> nnode = TSharedPtr<FELuaMemInfoNode>(new FELuaMemInfoNode(*onode));
+		Snapshot->LuaObjectMemNodeMap.Add(nnode->address, nnode);
+		while (nnode && onode->parent)
+		{
+			if (!Snapshot->LuaObjectMemNodeMap.Contains(onode->parent->address))
+			{
+				TSharedPtr<FELuaMemInfoNode> parent = TSharedPtr<FELuaMemInfoNode>(new FELuaMemInfoNode(*onode->parent));
+				parent->state = Gray;
+				parent->children.Add(nnode);
+				nnode->parent = parent;
+				nnode->parents.Add(parent->address, parent);
+				nnode = parent;
+				onode = onode->parent;
+				Snapshot->LuaObjectMemNodeMap.Add(nnode->address, nnode);
+			}
+			else
+			{
+				TSharedPtr<FELuaMemInfoNode> parent = Snapshot->LuaObjectMemNodeMap[onode->parent->address];
+				parent->children.Add(nnode);
+				nnode->parent = parent;
+				nnode->parents.Add(parent->address, parent);
+				nnode = nullptr;
+			}
+		}
+	}
+}
+
+TSharedPtr<FELuaMemSnapshot> FELuaMemSnapshot::LogicOperate(const FELuaMemSnapshot& Other, ESnapshotOp ESOP)
 {
 	switch (ESOP)
 	{
 	case SOP_AND:
-		*this & Other;
-		break;
+		return *this & Other;
 	case SOP_OR:
-		*this | Other;
-		break;
+		return *this | Other;
 	case SOP_XOR:
-		*this ^ Other;
-		break;
+		return *this ^ Other;
 	case SOP_None:
 	default:
-		return false;
-		break;
+		return nullptr;
 	}
-	return true;
 }
 
 TSharedPtr<FELuaMemSnapshot> FELuaMemSnapshot::operator&(const FELuaMemSnapshot& Other)
 {
 	TSharedPtr<FELuaMemSnapshot> Snapshot = TSharedPtr<FELuaMemSnapshot>(new FELuaMemSnapshot());
+	Snapshot->Root = TSharedPtr<FELuaMemInfoNode>(new FELuaMemInfoNode(*Root));
+	Snapshot->LuaObjectMemNodeMap.Add(Snapshot->Root->address, Snapshot->Root);
 	for (TPair<const void*, TSharedPtr<FELuaMemInfoNode>> Iter : LuaObjectMemNodeMap)
 	{
 		if (Other.LuaObjectMemNodeMap.Contains(Iter.Key))
 		{
+			RecordLinkedList(Snapshot, Iter.Value);
 		}
 	}
+	Snapshot->GenTimeStamp();
+	Snapshot->RecountSize();
 	return Snapshot;
 }
 
 TSharedPtr<FELuaMemSnapshot> FELuaMemSnapshot::operator|(const FELuaMemSnapshot& Other)
 {
 	TSharedPtr<FELuaMemSnapshot> Snapshot = TSharedPtr<FELuaMemSnapshot>(new FELuaMemSnapshot());
+	Snapshot->Root = TSharedPtr<FELuaMemInfoNode>(new FELuaMemInfoNode(*Root));
+	Snapshot->LuaObjectMemNodeMap.Add(Snapshot->Root->address, Snapshot->Root);
+	for (TPair<const void*, TSharedPtr<FELuaMemInfoNode>> Iter : LuaObjectMemNodeMap)
+	{
+		RecordLinkedList(Snapshot, Iter.Value);
+	}
+
+	for (TPair<const void*, TSharedPtr<FELuaMemInfoNode>> Iter : Other.LuaObjectMemNodeMap)
+	{
+		if (!LuaObjectMemNodeMap.Contains(Iter.Key))
+		{
+			RecordLinkedList(Snapshot, Iter.Value);
+		}
+	}
+	Snapshot->GenTimeStamp();
+	Snapshot->RecountSize();
 	return Snapshot;
 }
 
 TSharedPtr<FELuaMemSnapshot> FELuaMemSnapshot::operator^(const FELuaMemSnapshot& Other)
 {
 	TSharedPtr<FELuaMemSnapshot> Snapshot = TSharedPtr<FELuaMemSnapshot>(new FELuaMemSnapshot());
+	Snapshot->Root = TSharedPtr<FELuaMemInfoNode>(new FELuaMemInfoNode(*Root));
+	Snapshot->LuaObjectMemNodeMap.Add(Snapshot->Root->address, Snapshot->Root);
+	for (TPair<const void*, TSharedPtr<FELuaMemInfoNode>> Iter : LuaObjectMemNodeMap)
+	{
+		if (!Other.LuaObjectMemNodeMap.Contains(Iter.Key))
+		{
+			RecordLinkedList(Snapshot, Iter.Value);
+		}
+	}
+
+	for (TPair<const void*, TSharedPtr<FELuaMemInfoNode>> Iter : Other.LuaObjectMemNodeMap)
+	{
+		if (!LuaObjectMemNodeMap.Contains(Iter.Key))
+		{
+			RecordLinkedList(Snapshot, Iter.Value);
+		}
+	}
+	Snapshot->GenTimeStamp();
+	Snapshot->RecountSize();
 	return Snapshot;
 }

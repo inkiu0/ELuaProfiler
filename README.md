@@ -129,17 +129,15 @@ _UI界面继续开发中..._
     - 为了保证单独查看节点B和节点C的正确性，`B = D + E`，`C = D + F`
     - 所以`A = D + E + D + F`，存在一定的误差。
 ## Roadmap
-### 1. ELuaMemAnalyzer
-为ELuaMemAnalyzer编写EditorUI界面
-### 2. Support slua-ue4
+### 1. Support slua-ue4
 接入slua-ue4
-### 3. Remote Profile
+### 2. Remote Profile
 将ELuaProfiler分为Server和Client，支持真机远程Profile
-### 4. Serialize & Deserialize
+### 3. Serialize & Deserialize
 支持Profile数据的序列化和反序列化
-### 5. Support slua-unity
+### 4. Support slua-unity
 接入slua-unity，并编写Unity版本的EditorUI
-### 6. Support unlua-unity
+### 5. Support unlua-unity
 接入unlua-unity
-### 7. Support xlua-unity
+### 6. Support xlua-unity
 接入xulua-unity

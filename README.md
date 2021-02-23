@@ -108,7 +108,7 @@ end
 在ELuaMemAnalyzer中点击一次采样，即可生成一个`Snapshot`。`Snapshot`中包含了当前时刻的内存情况，以`_G`为根节点。
 同时`Snapshot`也支持逻辑运算，以方便剖析内存的泄露和增长。
 #### Snapshot Logic Operation
-以`Snapshot`为单元进行逻辑运算，目前支持`&与`、`|或`和`^异或`运算，这三个运算配合强制GC可以很好地查找泄露。选择了一个`Snapshot`后，点击需要进行的操作按钮，然后再点击另一个`Snapshot`。就会对两个`Snapshot`进行逻辑运算，并生成一个新的`Snapshot`。
+以`Snapshot`为单元进行逻辑运算，目前支持`&与`、`|或`和`^异或`运算，这三个运算配合强制GC可以很好地查找泄露。选择了一个`Snapshot`后，点击需要进行的操作按钮（AND、OR、XOR），然后再点击另一个`Snapshot`。就会对两个`Snapshot`进行逻辑运算，并生成一个新的`Snapshot`。
 1. `&` Operation
     - 两颗`Snapshot`进行与运算，得到两个时刻相同的内存部分。
 2. `|` Operation

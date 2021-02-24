@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "ELuaBase.h"
-#include "ELuaMemInfoNode.h"
-#include "ELuaMemAnalyzer.h"
+#include "LuaCore/ELuaBase.h"
+#include "Runtime/ELuaMemAnalyzer/ELuaMemInfoNode.h"
+#include "Runtime/ELuaMemAnalyzer/ELuaMemAnalyzer.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Views/STreeView.h"

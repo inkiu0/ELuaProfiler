@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "ELuaBase.h"
+#include "LuaCore/ELuaBase.h"
 
 struct ELUAPROFILER_API FELuaTraceInfoNode
 {

@@ -21,9 +21,9 @@
 // THE SOFTWARE.
 
 #include "SMemSnapshotToggle.h"
-#include "ELuaStyle.h"
+#include "Editor/Styles/ELuaStyle.h"
 #include "EditorStyleSet.h"
-#include "ELuaMemAnalyzer.h"
+#include "Runtime/ELuaMemAnalyzer/ELuaMemAnalyzer.h"
 #include "Widgets/SBoxPanel.h"
 #include "Styling/SlateStyle.h"
 #include "Widgets/Images/SImage.h"

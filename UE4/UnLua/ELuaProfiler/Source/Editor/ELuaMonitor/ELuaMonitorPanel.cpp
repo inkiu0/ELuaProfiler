@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 
 #include "ELuaMonitorPanel.h"
-#include "ELuaMonitor.h"
+#include "Runtime/ELuaMonitor/ELuaMonitor.h"
 #include "EditorStyleSet.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SSpacer.h"

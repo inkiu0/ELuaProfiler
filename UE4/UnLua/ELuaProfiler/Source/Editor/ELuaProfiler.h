@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include "ELuaBase.h"
+#include "LuaCore/ELuaBase.h"
 #include "ModuleManager.h"
-#include "ELuaMonitorPanel.h"
-#include "ELuaMemAnalyzerPanel.h"
+#include "Editor/ELuaMonitor/ELuaMonitorPanel.h"
+#include "Editor/ELuaMemAnalyzer/ELuaMemAnalyzerPanel.h"
 #include "Widgets/Docking/SDockTab.h"
 
 /** Declares a log category for this module. */

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "ELuaBase.h"
+#include "LuaCore/ELuaBase.h"
 #include "ELuaTraceInfoTree.h"
 
 enum EMonitorState : uint32

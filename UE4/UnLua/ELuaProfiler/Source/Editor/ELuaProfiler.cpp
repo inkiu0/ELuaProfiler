@@ -23,9 +23,9 @@
 #include "ELuaProfiler.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #if WITH_EDITOR
-#include "ELuaStyle.h"
+#include "Editor/Styles/ELuaStyle.h"
 #include "LevelEditor.h"
-#include "ELuaProfilerCommands.h"
+#include "Styles/ELuaProfilerCommands.h"
 #endif
 
 DEFINE_LOG_CATEGORY(LogELuaProfiler)

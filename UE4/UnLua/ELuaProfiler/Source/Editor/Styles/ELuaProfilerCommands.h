@@ -22,47 +22,21 @@
 
 #pragma once
 
-#include "ELuaBase.h"
-#include "ELuaTraceInfoNode.h"
+#include "LuaCore/ELuaBase.h"
+#include "Framework/Commands/Commands.h"
 
-#define CORRECT_TIME false
+#if WITH_EDITOR
 
-#if CORRECT_TIME
-#define DEVIATION 10	// default deviation 10ns
-#else
-#define DEVIATION 0
-#endif // CORRECT_TIME
-
-
-class ELUAPROFILER_API FELuaTraceInfoTree
+class FELuaProfilerCommands : public TCommands<FELuaProfilerCommands>
 {
 public:
-	FELuaTraceInfoTree();
-	~FELuaTraceInfoTree();
+	FELuaProfilerCommands();
 
-	void Init();
+	virtual void RegisterCommands() override;
 
-	void OnHookCall(lua_State* L, lua_Debug* ar, bool IsStatistics = false);
-
-	void OnHookReturn(lua_State* L, lua_Debug* ar, bool IsStatistics = false);
-
-	bool IsOnRoot() { return CurNode == Root; }
-
-	void CountSelfTime(EMonitorSortMode SortMode);
-
-	TSharedPtr<FELuaTraceInfoNode> GetRoot() { return Root; }
-
-	TSharedPtr<FELuaTraceInfoNode> Statisticize();
-
-	void StatisticizeNode(TSharedPtr<FELuaTraceInfoNode> Node, TSharedPtr<FELuaTraceInfoNode> StatisticsNode);
-
-private:
-	TSharedPtr<FELuaTraceInfoNode> GetChild(lua_Debug* ar);
-
-	void CountNodeSelfTime(TSharedPtr<FELuaTraceInfoNode> Node, EMonitorSortMode SortMode);
-
-private:
-	TSharedPtr<FELuaTraceInfoNode> Root;
-	TSharedPtr<FELuaTraceInfoNode> CurNode;
-	uint32 CurDepth = 0;
+public:
+	TSharedPtr<FUICommandInfo> OpenMonitorPanel;
+	TSharedPtr<FUICommandInfo> OpenMemAnalyzerPanel;
 };
+
+#endif

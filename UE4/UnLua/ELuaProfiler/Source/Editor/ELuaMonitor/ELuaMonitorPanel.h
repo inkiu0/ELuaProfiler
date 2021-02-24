@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "ELuaBase.h"
-#include "ELuaTraceInfoNode.h"
+#include "LuaCore/ELuaBase.h"
+#include "Runtime/ELuaMonitor/ELuaTraceInfoNode.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SSpinBox.h"
 #include "Widgets/SCompoundWidget.h"

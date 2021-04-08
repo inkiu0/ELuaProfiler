@@ -53,12 +53,16 @@ public:
 	TSharedPtr<FELuaMemSnapshot> LogicOperate(const FELuaMemSnapshot& OtherSnapshoot, ESnapshotOp ESOP);
 	//void Sort();
 
+	void Dump();
+
 private:
 	/* accurately count the total size */
 	//int32 GetTotalSize();
 
 	/* count the node size */
 	int32 RecountNode(TSharedPtr<FELuaMemInfoNode> Node);
+
+	FString DumpNode(TSharedPtr<FELuaMemInfoNode> Node);
 
 	TSharedPtr<FELuaMemSnapshot> operator&(const FELuaMemSnapshot& Other);
 

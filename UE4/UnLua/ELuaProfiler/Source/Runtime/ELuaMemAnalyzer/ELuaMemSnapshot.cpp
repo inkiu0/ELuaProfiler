@@ -106,6 +106,41 @@ int32 FELuaMemSnapshot::RecountNode(TSharedPtr<FELuaMemInfoNode> Node)
 	return Size;
 }
 
+void FELuaMemSnapshot::Dump()
+{
+	const FString Content = DumpNode(Root);
+	const FString Path = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("MemDump.txt"));
+	FFileHelper::SaveStringToFile(Content, *Path, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
+}
+
+FString FELuaMemSnapshot::DumpNode(TSharedPtr<FELuaMemInfoNode> Node)
+{
+	FString Content;
+	if (Node)
+	{
+		if (Node->state == White)
+		{
+			for (int32 i = 0; i < Node->level; ++i)
+			{
+				Content.AppendChar(TEXT(' '));
+			}
+			Content.Append(FString::Printf(TEXT(" %s %s %p"), *Node->desc, *Node->type, Node->address));
+			for (const TPair<const void*, TSharedPtr<FELuaMemInfoNode>> Entry : Node->parents)
+			{
+				Content.Append(FString::Printf(TEXT(" | %s %p |"), *Node->desc, Entry.Value->address));
+			}
+			Content.AppendChar(TEXT('\n'));
+		}
+
+		for (int32 i = 0; i < Node->children.Num(); i++)
+		{
+			Content += DumpNode(Node->children[i]);
+		}
+	}
+
+	return Content;
+}
+
 //int32 FELuaMemSnapshot::GetTotalSize()
 //{
 //	int32 size = 0;

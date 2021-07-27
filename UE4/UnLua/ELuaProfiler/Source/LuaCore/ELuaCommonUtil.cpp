@@ -37,14 +37,32 @@ extern "C"
 /* test for pseudo index */
 #define ispseudo(i)		((i) <= LUA_REGISTRYINDEX)
 
+#if 504 == LUA_VERSION_NUM
+#define GETTVALUE(v) &((v)->val)
+#define tvtype(o) ttype(o)
+#define LUA_SHRSTR LUA_VSHRSTR
+#define LUA_LNGSTR LUA_VLNGSTR
+#define LUA_LCL LUA_VLCL
+#define LUA_CCL LUA_VCCL
+#define LUA_LCF LUA_VLCF
+#else
+#define GETTVALUE(v) v
+#define tvtype(o) ttnov(o)
+#define LUA_SHRSTR LUA_TSHRSTR
+#define LUA_LNGSTR LUA_TLNGSTR
+#define LUA_LCL LUA_TLCL
+#define LUA_CCL LUA_TCCL
+#define LUA_LCF LUA_TLCF
+#endif
+
 static TValue* lua_index2addr(lua_State* L, int idx)
 {
 	CallInfo* ci = L->ci;
 	if (idx > 0)
 	{
-		TValue* o = ci->func + idx;
+		TValue* o = GETTVALUE(ci->func + idx);
 		api_check(L, idx <= ci->top - (ci->func + 1), "unacceptable index");
-		if (o >= L->top) return NONVALIDVALUE;
+		if (o >= GETTVALUE(L->top)) return NONVALIDVALUE;
 		else return o;
 	}
 	else if (!ispseudo(idx))
@@ -60,11 +78,11 @@ static TValue* lua_index2addr(lua_State* L, int idx)
 		/* upvalues */
 		idx = LUA_REGISTRYINDEX - idx;
 		api_check(L, idx <= MAXUPVAL + 1, "upvalue index too large");
-		if (ttislcf(ci->func))
+		if (ttislcf(GETTVALUE(ci->func)))
 			return NONVALIDVALUE;
 		else
 		{
-			CClosure* func = clCvalue(ci->func);
+			CClosure* func = clCvalue(GETTVALUE(ci->func));
 			return (idx <= func->nupvalues) ? &func->upvalue[idx - 1] : NONVALIDVALUE;
 		}
 	}
@@ -76,22 +94,19 @@ const void* lua_getaddr(lua_State* L, int32 idx)
 	if (!o)
 		return lua_topointer(L, -1);
 
-	switch (ttnov(o))
+	switch (tvtype(o))
 	{
 	case LUA_TPROTO:
 	{
 		return pvalue(o);
-		break;
 	}
-	case LUA_TSHRSTR:
+	case LUA_SHRSTR:
 	{
 		return tsvalue(o);
-		break;
 	}
-	case LUA_TLNGSTR:
+	case LUA_LNGSTR:
 	{
 		return tsvalue(o);
-		break;
 	}
 	//case LUA_TNUMBER:
 	//{
@@ -102,9 +117,9 @@ const void* lua_getaddr(lua_State* L, int32 idx)
 	//	return sizeof(int);
 	//}
 	case LUA_TTABLE:
-	case LUA_TLCL:
-	case LUA_TCCL:
-	case LUA_TLCF:
+	case LUA_LCL:
+	case LUA_CCL:
+	case LUA_LCF:
 	case LUA_TTHREAD:
 	case LUA_TUSERDATA:
 	case LUA_TLIGHTUSERDATA:
@@ -122,24 +137,45 @@ int32 lua_sizeof(lua_State* L, int32 idx)
 	if (!o)
 		return 0;
 
-	switch (ttnov(o))
+	switch (tvtype(o))
 	{
 
 	case LUA_TTABLE:
 	{
 		luaL_checkstack(L, LUA_MINSTACK, NULL);
 		Table* h = hvalue(o);
+#if 504 == LUA_VERSION_NUM
+		unsigned int sizearray = 0;
+		if (h->alimit > 0)
+		{
+			if (isrealasize(h))
+			{
+				sizearray = h->alimit;
+			}
+			else
+			{
+				sizearray = 1;
+				while(sizearray < h->alimit)
+				{
+					sizearray = sizearray << 1;
+				}
+			}
+		}
+
+		return (sizeof(Table) + sizeof(TValue) * sizearray +
+			sizeof(Node) * (isdummy(h) ? 0 : sizenode(h)));
+#else
 		return (sizeof(Table) + sizeof(TValue) * h->sizearray +
 			sizeof(Node) * (isdummy(h) ? 0 : sizenode(h)));
-		break;
+#endif
 	}
-	case LUA_TLCL:
+	case LUA_LCL:
 	{
 		LClosure* cl = clLvalue(o);
 		return sizeLclosure(cl->nupvalues);
 		break;
 	}
-	case LUA_TCCL:
+	case LUA_CCL:
 	{
 		CClosure* cl = clCvalue(o);
 		return sizeCclosure(cl->nupvalues);
@@ -148,8 +184,14 @@ int32 lua_sizeof(lua_State* L, int32 idx)
 	case LUA_TTHREAD:
 	{
 		lua_State* th = thvalue(o);
+
+#if 504 == LUA_VERSION_NUM
+		return (sizeof(lua_State) + sizeof(TValue) * stacksize(th) +
+			sizeof(CallInfo) * th->nci);
+#else
 		return (sizeof(lua_State) + sizeof(TValue) * th->stacksize +
 			sizeof(CallInfo) * th->nci);
+#endif
 		break;
 	}
 	case LUA_TPROTO:
@@ -166,8 +208,13 @@ int32 lua_sizeof(lua_State* L, int32 idx)
 
 	case LUA_TUSERDATA:
 	{
+
+#if 504 == LUA_VERSION_NUM
+		Udata* u = gco2u(o);
+		return sizeudata(u->nuvalue, u->len);
+#else
 		return sizeudata(uvalue(o));
-		break;
+#endif
 	}
 	case LUA_TSTRING:
 	{

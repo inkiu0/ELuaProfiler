@@ -110,12 +110,20 @@ void FELuaProfilerModule::ShutdownModule()
 
 void FELuaProfilerModule::OnClickedOpenMonitorPanel()
 {
+#if ENGINE_MINOR_VERSION >= 26
+	FGlobalTabmanager::Get()->TryInvokeTab(ELuaProfiler::ELuaMonitorTabName);
+#else
 	FGlobalTabmanager::Get()->InvokeTab(ELuaProfiler::ELuaMonitorTabName);
+#endif
 }
 
 void FELuaProfilerModule::OnClickedOpenMemAnalyzerPanel()
 {
+#if ENGINE_MINOR_VERSION >= 26
+	FGlobalTabmanager::Get()->TryInvokeTab(ELuaProfiler::ELuaMemAnalyzerTabName);
+#else
 	FGlobalTabmanager::Get()->InvokeTab(ELuaProfiler::ELuaMemAnalyzerTabName);
+#endif
 }
 
 bool FELuaProfilerModule::Tick(float DeltaTime)

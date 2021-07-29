@@ -69,7 +69,7 @@ static TValue* lua_index2addr(lua_State* L, int idx)
 	{
 		/* negative index */
 		api_check(L, idx != 0 && -idx <= L->top - (ci->func + 1), "invalid index");
-		return L->top + idx;
+		return GETTVALUE(L->top + idx);
 	}
 	else if (idx == LUA_REGISTRYINDEX)
 		return &G(L)->l_registry;

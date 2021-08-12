@@ -149,7 +149,7 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 	ControllerBar->AddSlot().HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
 	[
 		SNew(SButton)
-		.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// ÎŞµ×Í¼ÒÔÃâ°´Å¥·¢°×
+		.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// æ— åº•å›¾ä»¥å…æŒ‰é’®å‘ç™½
 		.ContentPadding(2.0)
 		.IsFocusable(false)
 		.OnClicked(this, &SELuaMonitorPanel::OnForwardBtnClicked)
@@ -182,7 +182,7 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 	ControllerBar->AddSlot().HAlign(HAlign_Right).VAlign(VAlign_Center).AutoWidth()
 	[
 		SNew(SButton)
-		.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// ÎŞµ×Í¼ÒÔÃâ°´Å¥·¢°×
+		.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// æ— åº•å›¾ä»¥å…æŒ‰é’®å‘ç™½
 		.ContentPadding(2.0)
 		.IsFocusable(false)
 		.OnClicked(this, &SELuaMonitorPanel::OnClearBtnClicked)
@@ -408,7 +408,7 @@ void SELuaMonitorPanel::OnGenerateFrameController()
 		if (!PrevFrameBtn)
 		{
 			SAssignNew(PrevFrameBtn, SButton)
-			.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// ÎŞµ×Í¼ÒÔÃâ°´Å¥·¢°×
+			.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// æ— åº•å›¾ä»¥å…æŒ‰é’®å‘ç™½
 			.ContentPadding(2.0)
 			.IsFocusable(false)
 			.OnClicked(this, &SELuaMonitorPanel::OnPrevFrameBtnClicked)
@@ -421,7 +421,7 @@ void SELuaMonitorPanel::OnGenerateFrameController()
 		if (!NextFrameBtn)
 		{
 			SAssignNew(NextFrameBtn, SButton)
-			.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// ÎŞµ×Í¼ÒÔÃâ°´Å¥·¢°×
+			.ButtonStyle(FEditorStyle::Get(), "NoBorder")																// æ— åº•å›¾ä»¥å…æŒ‰é’®å‘ç™½
 			.ContentPadding(2.0)
 			.IsFocusable(false)
 			.OnClicked(this, &SELuaMonitorPanel::OnNextFrameBtnClicked)
@@ -477,6 +477,8 @@ void SELuaMonitorPanel::OnRemoveFrameController()
 		{
 			ControllerBar->RemoveSlot(PrevFrameBtn.ToSharedRef());
 			ControllerBar->RemoveSlot(NextFrameBtn.ToSharedRef());
+			ControllerBar->RemoveSlot(CurFrameSpin.ToSharedRef());
+			ControllerBar->RemoveSlot(TotalFrameText.ToSharedRef());
 		}
 	}
 }

@@ -169,7 +169,7 @@ TSharedPtr<FELuaTraceInfoNode> FELuaMonitor::GetRoot(uint32 FrameIndex /* = 0 */
 	{
 		if (MonitorMode == PerFrame)
 		{
-			int32 Index = GetCurFrameIndex() < GetTotalFrames() ? CurFrameIndex - 1 : CurFrameIndex - 2;
+			int32 Index = GetCurFrameIndex() < GetTotalFrames() ? CurFrameIndex - 1 : GetTotalFrames() - 1;
 			return FramesTraceTreeList[Index]->GetRoot();
 		}
 		else if (MonitorMode == Statistics)

@@ -22,8 +22,14 @@
 
 #pragma once
 
-#include "LuaCore/ELuaBase.h"
+#include "Runtime/Launch/Resources/Version.h"
+#if (ENGINE_MAJOR_VERSION >= 4 && ENGINE_MINOR_VERSION >= 20)
+#include "Modules/ModuleManager.h"
+#else
 #include "ModuleManager.h"
+#endif
+
+#include "LuaCore/ELuaBase.h"
 #include "Editor/ELuaMonitor/ELuaMonitorPanel.h"
 #include "Editor/ELuaMemAnalyzer/ELuaMemAnalyzerPanel.h"
 #include "Widgets/Docking/SDockTab.h"

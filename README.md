@@ -5,6 +5,7 @@
 <h1 align="center">ELuaProfiler</h1>
 
 <h4 align="center">☁️ Easy Lua Profile ☁️</h4>
+<h4 align="center">☁️ inkiu0@gmail.com ☁️</h4>
 
 <p align="center">
 <img src="https://img.shields.io/badge/version-2021.08.26-green.svg?longCache=true&style=for-the-badge">

@@ -42,7 +42,6 @@ public class ELuaProfiler : ModuleRules
         PublicIncludePaths.AddRange(
             new string []
             {
-                "ELuaProfiler/Public",
                 //"UnLua/Public",
             }
         );
@@ -50,7 +49,6 @@ public class ELuaProfiler : ModuleRules
         PrivateIncludePaths.AddRange(
             new string[]
             {
-                "ELuaProfiler/Private",
                 "UnLua/Private",
             }
         );

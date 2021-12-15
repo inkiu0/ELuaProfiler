@@ -74,7 +74,7 @@ void FELuaTraceInfoTree::OnHookReturn(lua_State* L, lua_Debug* ar, bool IsStatis
 TSharedPtr <FELuaTraceInfoNode> FELuaTraceInfoTree::GetChild(lua_Debug* ar)
 {
 	TCHAR* Name = UTF8_TO_TCHAR(ar->name);
-	FString ID = FString::Printf(TEXT("%s:%d %s"), Name, UTF8_TO_TCHAR(ar->short_src), ar->linedefined);
+	FString ID = FString::Printf(TEXT("%s:%d %s"), UTF8_TO_TCHAR(ar->short_src), ar->linedefined, Name ? Name : TEXT("anonymous"));
 	TSharedPtr<FELuaTraceInfoNode> Child = CurNode->GetChild(ID);
 	if (!Child)
 	{

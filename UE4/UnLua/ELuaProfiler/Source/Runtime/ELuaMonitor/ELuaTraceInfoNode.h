@@ -77,7 +77,7 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 	/* id map to FELuaTraceInfoNode */
 	TMap<FString, TSharedPtr<FELuaTraceInfoNode>> ChildIDMap;
 
-	FELuaTraceInfoNode(TSharedPtr<FELuaTraceInfoNode> InParent, FString& InID, const char* InName, int32 InEvent)
+	FELuaTraceInfoNode(TSharedPtr<FELuaTraceInfoNode> InParent, FString& InID, const TCHAR* InName, int32 InEvent)
 	{
 		ID = InID;
 		if (InName)

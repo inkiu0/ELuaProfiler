@@ -36,7 +36,7 @@ FELuaTraceInfoTree::~FELuaTraceInfoTree()
 void FELuaTraceInfoTree::Init()
 {
 	FString RootName("Root");
-	Root = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(nullptr, RootName, "Root", 0));
+	Root = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(nullptr, RootName, TEXT("Root"), 0));
 	CurNode = Root;
 }
 

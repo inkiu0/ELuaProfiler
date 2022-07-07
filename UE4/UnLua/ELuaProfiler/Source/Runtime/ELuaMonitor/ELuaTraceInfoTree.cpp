@@ -36,7 +36,7 @@ FELuaTraceInfoTree::~FELuaTraceInfoTree()
 void FELuaTraceInfoTree::Init()
 {
 	FString RootName("Root");
-	Root = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(nullptr, RootName, "Root", 0));
+	Root = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(nullptr, RootName, TEXT("Root"), 0));
 	CurNode = Root;
 }
 
@@ -73,11 +73,12 @@ void FELuaTraceInfoTree::OnHookReturn(lua_State* L, lua_Debug* ar, bool IsStatis
 
 TSharedPtr <FELuaTraceInfoNode> FELuaTraceInfoTree::GetChild(lua_Debug* ar)
 {
-	FString ID = FString::Printf(TEXT("%s:%d"), UTF8_TO_TCHAR(ar->short_src), ar->linedefined);
+	TCHAR* Name = UTF8_TO_TCHAR(ar->name);
+	FString ID = FString::Printf(TEXT("%s:%d~%d %s"), UTF8_TO_TCHAR(ar->short_src), ar->linedefined, ar->lastlinedefined, Name);
 	TSharedPtr<FELuaTraceInfoNode> Child = CurNode->GetChild(ID);
 	if (!Child)
 	{
-		Child = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(CurNode, ID, ar->name, ar->event));
+		Child = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(CurNode, ID, Name, ar->event));
 		CurNode->AddChild(Child);
 	}
 	return Child;
@@ -87,7 +88,7 @@ void FELuaTraceInfoTree::CountSelfTime(EMonitorSortMode SortMode)
 {
 	if (CurNode != Root)
 	{
-		// µÝ¹éÍ³¼ÆÉÐÎ´·µ»ØµÄº¯Êý
+		// é€’å½’ç»Ÿè®¡å°šæœªè¿”å›žçš„å‡½æ•°
 		TSharedPtr<FELuaTraceInfoNode> Node = CurNode;
 		while (Node)
 		{

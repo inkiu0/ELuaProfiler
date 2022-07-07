@@ -78,6 +78,8 @@ private:
 	~FELuaMonitor();
 
 	static void OnHook(lua_State* L, lua_Debug* ar);
+	
+    static void* LuaAllocator(void* ud, void* ptr, size_t osize, size_t nsize);
 
 	void OnHookCall(lua_State* L, lua_Debug* ar);
 

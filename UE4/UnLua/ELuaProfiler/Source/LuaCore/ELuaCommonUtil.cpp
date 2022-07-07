@@ -131,20 +131,23 @@ const void* lua_getaddr(lua_State* L, int32 idx)
 	}
 }
 
+#if 504 == LUA_VERSION_NUM
+
 int32 lua_sizeof(lua_State* L, int32 idx)
 {
-	TValue* o = lua_index2addr(L, idx);
-	if (!o)
-		return 0;
+	TValue* t = lua_index2addr(L, idx);
+	if (!t) return 0;
 
-	switch (tvtype(o))
+	GCObject* o = obj2gco(t);
+	if (!o) return 0;
+
+	switch (o->tt)
 	{
 
-	case LUA_TTABLE:
+	case LUA_TABLE:
 	{
 		luaL_checkstack(L, LUA_MINSTACK, NULL);
-		Table* h = hvalue(o);
-#if 504 == LUA_VERSION_NUM
+		Table* h = gco2t(o);
 		unsigned int sizearray = 0;
 		if (h->alimit > 0)
 		{
@@ -154,72 +157,68 @@ int32 lua_sizeof(lua_State* L, int32 idx)
 			}
 			else
 			{
-				sizearray = 1;
-				while(sizearray < h->alimit)
-				{
-					sizearray = sizearray << 1;
-				}
+				unsigned int limit = h->alimit;
+				limit |= (limit >> 1);
+				limit |= (limit >> 2);
+				limit |= (limit >> 4);
+				limit |= (limit >> 8);
+				limit |= (limit >> 16);
+				limit++;
+				sizearray = limit;
 			}
 		}
 
-		return (sizeof(Table) + sizeof(TValue) * sizearray +
-			sizeof(Node) * (isdummy(h) ? 0 : sizenode(h)));
-#else
-		return (sizeof(Table) + sizeof(TValue) * h->sizearray +
-			sizeof(Node) * (isdummy(h) ? 0 : sizenode(h)));
-#endif
+		return	(sizeof(h->node) * (1ULL << h->lsizenode) +
+			sizeof(h->array) * sizearray +
+			sizeof(h));
 	}
 	case LUA_LCL:
 	{
-		LClosure* cl = clLvalue(o);
+		LClosure* cl = gco2lcl(o);
 		return sizeLclosure(cl->nupvalues);
-		break;
 	}
 	case LUA_CCL:
 	{
-		CClosure* cl = clCvalue(o);
+		CClosure* cl = gco2ccl(o);
 		return sizeCclosure(cl->nupvalues);
-		break;
 	}
 	case LUA_TTHREAD:
 	{
-		lua_State* th = thvalue(o);
+		lua_State* th = gco2th(o);
 
-#if 504 == LUA_VERSION_NUM
-		return (sizeof(lua_State) + sizeof(TValue) * stacksize(th) +
-			sizeof(CallInfo) * th->nci);
-#else
-		return (sizeof(lua_State) + sizeof(TValue) * th->stacksize +
-			sizeof(CallInfo) * th->nci);
-#endif
+		return (sizeof(lua_State) + sizeof(lu_byte) * LUA_EXTRASPACE +
+			sizeof(th->stack) * (stacksize(th) + EXTRA_STACK) +
+			sizeof(th->ci) * th->nci);
 		break;
 	}
-	case LUA_TPROTO:
+	case LUA_PROTO:
 	{
-		Proto* p = (Proto*)pvalue(o);
-		return (sizeof(Proto) + sizeof(Instruction) * p->sizecode +
-			sizeof(Proto*) * p->sizep +
-			sizeof(TValue) * p->sizek +
-			sizeof(int) * p->sizelineinfo +
-			sizeof(LocVar) * p->sizelocvars +
-			sizeof(TString*) * p->sizeupvalues);
-		break;
+		Proto* p = gco2p(o);
+		return	sizeof(p) +
+			sizeof(p->code) * p->sizecode +
+			sizeof(p->p) * p->sizep +
+			sizeof(p->k) * p->sizek +
+			sizeof(p->lineinfo) * p->sizelineinfo +
+			sizeof(p->abslineinfo) * p->sizeabslineinfo +
+			sizeof(p->locvars) * p->sizelocvars +
+			sizeof(p->upvalues) * p->sizeupvalues;
 	}
 
-	case LUA_TUSERDATA:
+	case LUA_USERDATA:
 	{
 
-#if 504 == LUA_VERSION_NUM
 		Udata* u = gco2u(o);
 		return sizeudata(u->nuvalue, u->len);
-#else
-		return sizeudata(uvalue(o));
-#endif
 	}
-	case LUA_TSTRING:
+	case LUA_SHRSTR:
 	{
-		return sizelstring(vslen(o));
-		break;
+		TString* ts = gco2ts(o);
+		return sizelstring(ts->shrlen);
+	}
+	case LUA_LNGSTR:
+	{
+		TString* ts = gco2ts(o);
+		return sizelstring(ts->u.lnglen);
 	}
 	case LUA_TNUMBER:
 	{
@@ -229,13 +228,91 @@ int32 lua_sizeof(lua_State* L, int32 idx)
 	{
 		return sizeof(int);
 	}
-	case LUA_TLIGHTUSERDATA:
+	case LUA_LIGHTUSERDATA:
 	{
 		return sizeof(void*);
 	}
 	default: return 0;
 	}
 }
+
+#else
+
+int32 lua_sizeof(lua_State* L, int32 idx)
+{
+	TValue* o = lua_index2addr(L, idx);
+	if (!o)
+		return 0;
+
+	switch (tvtype(o))
+	{
+
+	case LUA_TABLE:
+	{
+		luaL_checkstack(L, LUA_MINSTACK, NULL);
+		Table* h = hvalue(o);
+		return (sizeof(Table) + sizeof(TValue) * h->sizearray +
+			sizeof(Node) * (isdummy(h) ? 0 : sizenode(h)));
+	}
+	case LUA_LCL:
+	{
+		LClosure* cl = clLvalue(o);
+		return sizeLclosure(cl->nupvalues);
+	}
+	case LUA_CCL:
+	{
+		CClosure* cl = clCvalue(o);
+		return sizeCclosure(cl->nupvalues);
+	}
+	case LUA_TTHREAD:
+	{
+		lua_State* th = thvalue(o);
+
+		return (sizeof(lua_State) + sizeof(TValue) * th->stacksize +
+			sizeof(CallInfo) * th->nci);
+	}
+	case LUA_PROTO:
+	{
+		Proto* p = (Proto*)pvalue(o);
+		return (sizeof(Proto) + 
+				sizeof(Instruction) * p->sizecode +
+				sizeof(Proto*) * p->sizep +
+				sizeof(TValue) * p->sizek +
+				sizeof(int) * p->sizelineinfo +
+				sizeof(LocVar) * p->sizelocvars +
+				sizeof(TString*) * p->sizeupvalues);
+	}
+
+	case LUA_USERDATA:
+	{
+		return sizeudata(uvalue(o));
+	}
+	case LUA_SHRSTR:
+	{
+		TString* ts = gco2ts(o);
+		return sizelstring(ts->shrlen);
+	}
+	case LUA_LNGSTR:
+	{
+		TString* ts = gco2ts(o);
+		return sizelstring(ts->u.lnglen);
+	}
+	case LUA_TNUMBER:
+	{
+		return sizeof(lua_Number);
+	}
+	case LUA_TBOOLEAN:
+	{
+		return sizeof(int);
+	}
+	case LUA_LIGHTUSERDATA:
+	{
+		return sizeof(void*);
+	}
+	default: return 0;
+	}
+}
+#endif
 
 int32 GetStateMemB()
 {

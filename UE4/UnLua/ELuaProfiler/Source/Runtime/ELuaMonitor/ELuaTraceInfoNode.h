@@ -41,11 +41,11 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 	/* average time */
 	double Average = 0;
 
-	/* the total size of lua_State when this node invoke */
-	float CallSize = 0;
+    /* the allocated size of lua_State when this node invoke */
+    float CallAllocSize = 0;
 
-	/* the total size of lua_State when this node return */
-	//int32 ReturnSize;
+    /* the gced size of lua_State when this node return */
+    float CallGCSize;
 
 	/* the size of this node alloc */
 	float AllocSize = 0;
@@ -77,7 +77,7 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 	/* id map to FELuaTraceInfoNode */
 	TMap<FString, TSharedPtr<FELuaTraceInfoNode>> ChildIDMap;
 
-	FELuaTraceInfoNode(TSharedPtr<FELuaTraceInfoNode> InParent, FString& InID, const char* InName, int32 InEvent)
+	FELuaTraceInfoNode(TSharedPtr<FELuaTraceInfoNode> InParent, FString& InID, const TCHAR* InName, int32 InEvent)
 	{
 		ID = InID;
 		if (InName)
@@ -94,37 +94,30 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 		ChildIDMap.Add(Child->ID, Child);
 	}
 
-	// Ö»ÓÐRoot²Å»áµ÷ÓÃ
+    // åªæœ‰Rootæ‰ä¼šè°ƒç”¨
 	void FakeBeginInvoke()
 	{
 		CallTime = GetTimeMs();
-		CallSize = GetStateMemKb();
+        CallAllocSize = ELuaProfiler::AllocSize;
+        CallGCSize = ELuaProfiler::GCSize;
 	}
 
-	// Ö»ÓÐRootºÍÒ»Ö¡½áÊøÉÐÎ´·µ»ØµÄº¯Êý»áµ÷ÓÃ
+    // åªæœ‰Rootå’Œä¸€å¸§ç»“æŸå°šæœªè¿”å›žçš„å‡½æ•°ä¼šè°ƒç”¨
 	void FakeEndInvoke()
 	{
 		double NowTime = GetTimeMs();
 		TotalTime += NowTime - CallTime;
 		CallTime = NowTime;
 
-		float NowSize = GetStateMemKb();
-		int32 Increment = NowSize - CallSize;
-		CallSize = NowSize;
-		if (Increment > 0)
-		{
-			AllocSize += Increment;
-		}
-		else
-		{
-			GCSize += Increment;
-		}
+        AllocSize += (ELuaProfiler::AllocSize - CallAllocSize) * 0.001f;
+        GCSize += (ELuaProfiler::GCSize - CallGCSize) * 0.001f;
 	}
 
 	void BeginInvoke()
 	{
 		CallTime = GetTimeMs();
-		CallSize = GetStateMemKb();
+        CallAllocSize = ELuaProfiler::AllocSize;
+        CallGCSize = ELuaProfiler::GCSize;
 		Count += 1;
 	}
 
@@ -132,16 +125,8 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 	{
 		TotalTime += GetTimeMs() - CallTime;
 
-		int32 Increment = GetStateMemKb() - CallSize;
-		if (Increment > 0)
-		{
-			AllocSize += Increment;
-		} 
-		else
-		{
-			GCSize += Increment;
-		}
-		return Event;
+        AllocSize += (ELuaProfiler::AllocSize - CallAllocSize) * 0.001f;
+        GCSize += (ELuaProfiler::GCSize - CallGCSize) * 0.001f;
 	}
 
 	TSharedPtr<FELuaTraceInfoNode> GetChild(const FString& InID)
@@ -174,7 +159,8 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 		CallTime = Other->CallTime;
 		SelfTime = Other->SelfTime;
 		TotalTime = Other->TotalTime;
-		CallSize = Other->CallSize;
+		CallAllocSize = Other->CallAllocSize;
+        CallGCSize = Other->CallGCSize;
 		AllocSize = Other->AllocSize;
 		GCSize = Other->GCSize;
 		Count = Other->Count;

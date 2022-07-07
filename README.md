@@ -1,9 +1,23 @@
-![DONT WORRY BE HAPPY](Samples/ELuaProfiler.jpg)
+<p align="center">
+<img src="https://github.com/inkiu0/ELuaProfiler/blob/master/Samples/ELuaProfiler.jpg" width="512" height="105">
+</p>
 
-[![license](http://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/inkiu0/ELuaProfiler/LICENSE)
-![Star](https://img.shields.io/github/stars/inkiu0/ELuaProfiler?style=social)
-# ELuaProfiler
-Easy LuaProfiler
+<h1 align="center">ELuaProfiler</h1>
+
+<h4 align="center">☁️ Easy Lua Profile ☁️</h4><p align="center">
+<h4 align="center">🌞 我永远喜欢JetBrains 🌞</h4><p align="center">
+
+<p align="center">
+<img src="https://github.com/inkiu0/ELuaProfiler/blob/master/Samples/jetbrains.png" width="100" height="100">
+</p>
+
+<p align="center">
+<img src="https://img.shields.io/badge/version-2021.08.26-green.svg?longCache=true&style=for-the-badge">
+<img src="https://img.shields.io/appveyor/build/gruntjs/grunt?style=for-the-badge">
+<img src="http://img.shields.io/badge/license-MIT-blue.svg?longCache=true&style=for-the-badge">
+<img src="https://img.shields.io/github/stars/inkiu0/ELuaProfiler?style=for-the-badge">
+</p>
+
 ## Supported Solutions
 | Solution | Supported |
 | ---      | ---       |

@@ -62,6 +62,22 @@ void FELuaMonitor::OnForward()
 	}
 }
 
+void* FELuaMonitor::LuaAllocator(void* ud, void* ptr, size_t osize, size_t nsize)
+{
+    if (nsize == 0)
+    {
+        ELuaProfiler::GCSize += osize;
+        FMemory::Free(ptr);
+        return NULL;
+    } 
+    else
+    {
+        ELuaProfiler::GCSize += osize;
+        ELuaProfiler::AllocSize += nsize;
+        return FMemory::Realloc(ptr, nsize);
+    }
+}
+
 void FELuaMonitor::Start()
 {
 	Init();
@@ -70,6 +86,7 @@ void FELuaMonitor::Start()
 		if (lua_State* L = UnLua::GetState())
 		{
 			lua_sethook(L, OnHook, ELuaProfiler::HookMask, 0);
+			lua_setallocf(L, FELuaMonitor::LuaAllocator, nullptr);
 		}
 	}
 	State |= STARTED;

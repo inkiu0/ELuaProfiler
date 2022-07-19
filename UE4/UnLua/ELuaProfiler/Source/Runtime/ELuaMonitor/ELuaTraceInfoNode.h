@@ -127,6 +127,7 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 
         AllocSize += (ELuaProfiler::AllocSize - CallAllocSize) * 0.001f;
         GCSize += (ELuaProfiler::GCSize - CallGCSize) * 0.001f;
+		return 0;
 	}
 
 	TSharedPtr<FELuaTraceInfoNode> GetChild(const FString& InID)

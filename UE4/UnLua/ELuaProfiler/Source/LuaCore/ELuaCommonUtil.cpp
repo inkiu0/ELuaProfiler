@@ -144,7 +144,7 @@ int32 lua_sizeof(lua_State* L, int32 idx)
 	switch (o->tt)
 	{
 
-	case LUA_TABLE:
+	case LUA_TTABLE:
 	{
 		luaL_checkstack(L, LUA_MINSTACK, NULL);
 		Table* h = gco2t(o);
@@ -191,7 +191,7 @@ int32 lua_sizeof(lua_State* L, int32 idx)
 			sizeof(th->ci) * th->nci);
 		break;
 	}
-	case LUA_PROTO:
+	case LUA_TPROTO:
 	{
 		Proto* p = gco2p(o);
 		return	sizeof(p) +
@@ -204,7 +204,7 @@ int32 lua_sizeof(lua_State* L, int32 idx)
 			sizeof(p->upvalues) * p->sizeupvalues;
 	}
 
-	case LUA_USERDATA:
+	case LUA_TUSERDATA:
 	{
 
 		Udata* u = gco2u(o);
@@ -228,7 +228,7 @@ int32 lua_sizeof(lua_State* L, int32 idx)
 	{
 		return sizeof(int);
 	}
-	case LUA_LIGHTUSERDATA:
+	case LUA_TLIGHTUSERDATA:
 	{
 		return sizeof(void*);
 	}

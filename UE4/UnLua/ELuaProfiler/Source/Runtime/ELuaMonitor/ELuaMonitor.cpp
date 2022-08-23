@@ -224,6 +224,18 @@ void FELuaMonitor::SetCurFrameIndex(int32 Index)
 
 void FELuaMonitor::PerFrameModeUpdate(bool Manual /* = false */)
 {
+	if (FramesTraceTreeList.Num() > 0)
+	{
+		TSharedPtr<FELuaTraceInfoTree> PreFrameTree = FramesTraceTreeList[FramesTraceTreeList.Num() - 1];
+		if (PreFrameTree->GetRoot() && PreFrameTree->GetRoot()->Children.Num() == 0)
+		{
+			FramesTraceTreeList.Pop();
+			if (CurFrameIndex >= (uint32)FramesTraceTreeList.Num())
+			{
+				CurFrameIndex = FramesTraceTreeList.Num() - 1;
+			}
+		}
+	}
 	CurTraceTree->CountSelfTime(MonitorSortMode);
 	FramesTraceTreeList.Add(CurTraceTree);
 	CurTraceTree = TSharedPtr<FELuaTraceInfoTree>(new FELuaTraceInfoTree());

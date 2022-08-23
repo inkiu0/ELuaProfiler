@@ -77,7 +77,7 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 	/* id map to FELuaTraceInfoNode */
 	TMap<FString, TSharedPtr<FELuaTraceInfoNode>> ChildIDMap;
 
-	FELuaTraceInfoNode(TSharedPtr<FELuaTraceInfoNode> InParent, FString& InID, const TCHAR* InName, int32 InEvent)
+	FELuaTraceInfoNode(TSharedPtr<FELuaTraceInfoNode> InParent, FString& InID, const char* InName, int32 InEvent)
 	{
 		ID = InID;
 		if (InName)
@@ -127,6 +127,7 @@ struct ELUAPROFILER_API FELuaTraceInfoNode
 
         AllocSize += (ELuaProfiler::AllocSize - CallAllocSize) * 0.001f;
         GCSize += (ELuaProfiler::GCSize - CallGCSize) * 0.001f;
+		return Event;
 	}
 
 	TSharedPtr<FELuaTraceInfoNode> GetChild(const FString& InID)

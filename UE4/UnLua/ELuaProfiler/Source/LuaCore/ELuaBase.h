@@ -54,10 +54,10 @@ namespace ELuaProfiler
 	static const FName ELuaMemAnalyzerTabName(TEXT("ELuaMemAnalyzer"));
 
 	const int HookMask = LUA_MASKCALL | LUA_MASKRET;
+
+	static uint32 AllocSize = 0;
 	
-    static uint32 AllocSize = 0;
-    
-    static uint32 GCSize = 0;
+	static uint32 GCSize = 0;
 }
 
 enum ELuaMonitorMode : uint8

@@ -21,7 +21,11 @@
 // THE SOFTWARE.
 
 #include "ELuaMonitor.h"
+
+#include "lstate.h"
 #include "UnLuaBase.h"
+
+void* FELuaMonitor::RunningCoroutine = nullptr;
 
 FELuaMonitor::FELuaMonitor()
 {
@@ -68,7 +72,7 @@ void* FELuaMonitor::LuaAllocator(void* ud, void* ptr, size_t osize, size_t nsize
     {
         ELuaProfiler::GCSize += osize;
         FMemory::Free(ptr);
-        return NULL;
+        return nullptr;
     } 
     else
     {
@@ -143,17 +147,54 @@ void FELuaMonitor::OnClear()
 
 /*static*/ void FELuaMonitor::OnHook(lua_State* L, lua_Debug* ar)
 {
-	switch (ar->event)
+    int32 Event = ar->event;
+	if (L == G(L)->mainthread)
 	{
-	case LUA_HOOKCALL:
-		FELuaMonitor::GetInstance()->OnHookCall(L, ar);
-		break;
-	case LUA_HOOKRET:
-		FELuaMonitor::GetInstance()->OnHookReturn(L, ar);
-		break;
-	default:
-		break;
+		if (nullptr != RunningCoroutine)
+		{
+			if (lua_State* CoroState = static_cast<lua_State*>(RunningCoroutine))
+			{
+				if (lua_status(CoroState) >= LUA_ERRRUN)
+				{
+					// Error on coroutine
+					FELuaMonitor::GetInstance()->OnHookReturn();
+				}
+			}
+			RunningCoroutine = nullptr;
+		}
 	}
+	else
+	{
+		// may be running a coroutine
+		RunningCoroutine = L;
+
+		lua_getinfo(L, "nS", ar);
+		if (nullptr != ar->name && strcmp(ar->name, "yield") == 0)
+		{
+			if (LUA_HOOKCALL == ar->event)
+			{
+				// Call corotinue yield regarded as a return
+				Event = LUA_HOOKRET;
+			}
+			else if (LUA_HOOKRET == ar->event)
+			{
+				// Continue corotinue yield regarded as a function call
+				Event = LUA_HOOKCALL;
+			}
+		}
+	}
+    
+    switch (Event)
+    {
+    case LUA_HOOKCALL:
+        FELuaMonitor::GetInstance()->OnHookCall(L, ar);
+        break;
+    case LUA_HOOKRET:
+        FELuaMonitor::GetInstance()->OnHookReturn();
+        break;
+    default:
+        break;
+    }
 }
 
 void FELuaMonitor::OnHookCall(lua_State* L, lua_Debug* ar)
@@ -175,6 +216,18 @@ void FELuaMonitor::OnHookReturn(lua_State* L, lua_Debug* ar)
 		if (CurDepth <= MaxDepth)
 		{
 			CurTraceTree->OnHookReturn(L, ar, MonitorMode == Statistics);
+		}
+		CurDepth--;
+	}
+}
+
+void FELuaMonitor::OnHookReturn()
+{
+	if (CurTraceTree)
+	{
+		if (CurDepth <= MaxDepth)
+		{
+			CurTraceTree->OnHookReturn();
 		}
 		CurDepth--;
 	}

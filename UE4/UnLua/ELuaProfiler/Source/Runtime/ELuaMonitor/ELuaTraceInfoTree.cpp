@@ -71,6 +71,20 @@ void FELuaTraceInfoTree::OnHookReturn(lua_State* L, lua_Debug* ar, bool IsStatis
 	}
 }
 
+void FELuaTraceInfoTree::OnHookReturn()
+{
+    if (Root && CurNode)
+    {
+        CurNode->EndInvoke();
+        CurNode = CurNode->Parent;
+        --CurDepth;
+        if (CurNode == Root)
+        {
+            Root->FakeEndInvoke();
+        }
+    }
+}
+
 TSharedPtr <FELuaTraceInfoNode> FELuaTraceInfoTree::GetChild(lua_Debug* ar)
 {
 	TCHAR* Name = UTF8_TO_TCHAR(ar->name);

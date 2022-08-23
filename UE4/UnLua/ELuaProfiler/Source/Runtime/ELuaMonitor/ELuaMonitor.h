@@ -85,6 +85,8 @@ private:
 
 	void OnHookReturn(lua_State* L, lua_Debug* ar);
 
+	void OnHookReturn();
+
 	void Init();
 
 	void Start();
@@ -121,4 +123,6 @@ private:
 	ELuaMonitorMode MonitorMode = Total;
 
 	EMonitorSortMode MonitorSortMode = EMonitorSortMode::TotalTime;
+
+	static void* RunningCoroutine;
 };

@@ -46,6 +46,8 @@ public:
 
 	void OnHookReturn(lua_State* L, lua_Debug* ar, bool IsStatistics = false);
 
+	void OnHookReturn();
+
 	bool IsOnRoot() { return CurNode == Root; }
 
 	void CountSelfTime(EMonitorSortMode SortMode);

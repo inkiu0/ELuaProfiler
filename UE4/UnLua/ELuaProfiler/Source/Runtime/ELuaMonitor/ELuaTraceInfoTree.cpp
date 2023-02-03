@@ -109,6 +109,7 @@ void FELuaTraceInfoTree::CountSelfTime(EMonitorSortMode SortMode)
 			Node->FakeEndInvoke();
 			Node = Node->Parent;
 		}
+		CurNode = Root;
 	}
 
 	CountNodeSelfTime(Root, SortMode);

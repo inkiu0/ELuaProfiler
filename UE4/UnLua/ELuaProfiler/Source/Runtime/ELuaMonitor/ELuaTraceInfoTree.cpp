@@ -132,7 +132,7 @@ void FELuaTraceInfoTree::CountNodeSelfTime(TSharedPtr<FELuaTraceInfoNode> Node, 
 				return A->AllocSize > B->AllocSize;
 				break;
 			case GC:
-				return A->GCSize < B->GCSize;
+				return A->GCSize > B->GCSize;
 				break;
 			case Calls:
 				return A->Count > B->Count;

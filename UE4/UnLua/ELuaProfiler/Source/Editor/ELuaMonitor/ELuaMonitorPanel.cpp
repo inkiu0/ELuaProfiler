@@ -252,12 +252,11 @@ TSharedRef<ITableRow> SELuaMonitorPanel::OnGenerateRow(TSharedPtr<FELuaTraceInfo
 			return FText::AsNumber(TINode->SelfTime);
 		}))
 		+ SHeaderRow::Column("SelfTime(%)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
-			if (TINode->Parent && TINode->Parent->TotalTime > 0)
+			if (TINode && TINode->TotalTime > 0)
 			{
-				double d = TINode->SelfTime / TINode->Parent->TotalTime;
+				double d = TINode->SelfTime / TINode->TotalTime;
 				return FText::AsPercent(d);
 			}
-			return FText::AsPercent(0.f);
 		}))
 		+ SHeaderRow::Column("Avg(ms)").FixedWidth(COL_WIDTH).DefaultLabel(TAttribute<FText>::Create([=]() {
 			return FText::AsNumber(TINode->Average);

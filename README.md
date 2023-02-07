@@ -146,8 +146,8 @@ end
 接入slua-ue4
 ### 2. Remote Profile
 将ELuaProfiler分为Server和Client，支持真机远程Profile
-### 3. Serialize & Deserialize
-支持Profile数据的序列化和反序列化
+### 3. ~~Serialize & Deserialize~~
+~~支持Profile数据的序列化和反序列化 *2023.02.07实现*~~
 ### 4. Support slua-unity
 接入slua-unity，并编写Unity版本的EditorUI
 ### 5. Support unlua-unity

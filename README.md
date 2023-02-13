@@ -71,8 +71,8 @@ ELuaMonitor主要用于剖析Lua的CPU性能，以及内存频繁开辟引起GC�
     - 代表该函数自身的开销
     - TotalTime减去各子节点的TotalTime
 4. SelfTime(%)
-    - 自身开销占父节点的比重
-    - SelfTime / Parent.SelfTime
+    - 自身开销占自身节点的比重
+    - SelfTime / SelfTime
 5. Average(ms)
     - 平均每次调用耗时
     - TotalTime / Calls

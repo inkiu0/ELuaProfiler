@@ -42,8 +42,6 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
 {
     TabIsOpening = true;
 
-    FELuaMonitor::GetInstance()->SetMonitorMode(MonitorMode);
-
     UpdateShowingRoot();
 
 
@@ -249,6 +247,7 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
         ]
     ];
     Tab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateRaw(this, &SELuaMonitorPanel::OnCloseTab));
+    OnModeChanged(DEFAULT_MONITOR_MODE);
     return Tab.ToSharedRef();
 }
 
@@ -386,7 +385,9 @@ FReply SELuaMonitorPanel::OnLoadBtnClicked()
         }
     }
 
-    FELuaMonitor::GetInstance()->Deserialize(Path);
+    ELuaMonitorMode EMode;
+    FELuaMonitor::GetInstance()->Deserialize(Path, EMode);
+    OnModeChanged(EMode);
     return FReply::Handled();
 }
 
@@ -584,6 +585,7 @@ void SELuaMonitorPanel::OnCurFrameIndexChanged(int32 Index)
 void SELuaMonitorPanel::OnCloseTab(TSharedRef<SDockTab> Tab)
 {
     TabIsOpening = false;
+    TreeViewWidget = nullptr;
 }
 
 #undef LOCTEXT_NAMESPACE

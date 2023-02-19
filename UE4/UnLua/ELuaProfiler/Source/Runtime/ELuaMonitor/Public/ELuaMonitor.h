@@ -73,13 +73,15 @@ public:
 
     bool IsRuning() const { return State == RUNING; }
 
-    void Deserialize(const FString& Path);
+    void Deserialize(const FString& Path, ELuaMonitorMode& EMode);
 
     void Serialize(const FString& Path);
 
     void SetMonitorMode(ELuaMonitorMode Mode) { MonitorMode = Mode; }
 
     int32 GetTotalFrames() const { return FramesTraceTreeList.Num(); }
+
+    TArray<TSharedPtr<FELuaTraceInfoTree>> GetFrameList() const { return FramesTraceTreeList; }
 
     int32 GetCurFrameIndex() const { return CurFrameIndex; }
 

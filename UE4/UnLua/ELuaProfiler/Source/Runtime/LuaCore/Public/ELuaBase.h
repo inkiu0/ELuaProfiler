@@ -22,7 +22,7 @@
 
 #pragma once
 
-// #include <chrono>
+#include <chrono>
 #include "CoreMinimal.h"
 #include "CoreUObject.h"
 #include "lua.hpp"
@@ -33,11 +33,11 @@
 #define ELUA_PRINTF snprintf
 #endif
 
-// typedef std::chrono::high_resolution_clock Clock;
+typedef std::chrono::high_resolution_clock Clock;
 
-// __declspec(dllexport) int64 GetTimeNs() { return Clock::now().time_since_epoch().count(); }
+ELUACORE_API int64 GetTimeNs();
 
-// __declspec(dllexport) double GetTimeMs() { return Clock::now().time_since_epoch().count() * 0.000001; }
+ELUACORE_API double GetTimeMs();
 
 ELUACORE_API int32 GetStateMemB();
 

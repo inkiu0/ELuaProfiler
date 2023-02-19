@@ -255,7 +255,7 @@ TSharedPtr<FELuaTraceInfoNode> FELuaMonitor::GetRoot(uint32 FrameIndex /* = 0 */
         {
             if (GetTotalFrames() > 0)
             {
-                int32 Index = GetCurFrameIndex() < GetTotalFrames() ? CurFrameIndex - 1 : GetTotalFrames() - 1;
+	            const int32 Index = (0 < GetCurFrameIndex() && GetCurFrameIndex() < GetTotalFrames()) ? CurFrameIndex - 1 : GetTotalFrames() - 1;
                 return FramesTraceTreeList[Index]->GetRoot();
             }
             else
@@ -339,7 +339,7 @@ void FELuaMonitor::Tick(float DeltaTime)
     }
 }
 
-void FELuaMonitor::Deserialize(const FString& Path)
+void FELuaMonitor::Deserialize(const FString& Path, ELuaMonitorMode& EMode)
 {
     if (Path.IsEmpty())
         return;
@@ -348,10 +348,25 @@ void FELuaMonitor::Deserialize(const FString& Path)
     FFileHelper::LoadFileToArray(Buffer, *Path);
     FMemoryReader ReaderAr(Buffer);
 
-    CurTraceTree = MakeShared<FELuaTraceInfoTree>();
-    //int32 Mode;
-    //ReaderAr << Mode;
-    ReaderAr << CurTraceTree;
+    int32 Mode;
+    ReaderAr << Mode;
+    EMode = static_cast<ELuaMonitorMode>(Mode);
+    if (EMode == PerFrame)
+    {
+        int32 TreeNum;
+		ReaderAr << TreeNum;
+        for (int32 i = 0; i < TreeNum; i++)
+        {
+			TSharedPtr<FELuaTraceInfoTree> TraceTree = MakeShared<FELuaTraceInfoTree>();
+	        ReaderAr << TraceTree;
+            FramesTraceTreeList.Add(TraceTree);
+        }
+    }
+    else
+    {
+		CurTraceTree = MakeShared<FELuaTraceInfoTree>();
+		ReaderAr << CurTraceTree;
+    }
     State |= INITED;
 }
 
@@ -366,9 +381,22 @@ void FELuaMonitor::Serialize(const FString& Path)
     
     TArray<uint8> Buffer;
     FMemoryWriter MemoryAr(Buffer);
-    //int32 Mode = MonitorMode;
-    //ReaderAr << Mode;
-    MemoryAr << CurTraceTree;
+    int32 Mode = MonitorMode;
+    MemoryAr << Mode;
+    if (MonitorMode == PerFrame)
+    {
+        int32 TreeNum = FramesTraceTreeList.Num();
+		MemoryAr << TreeNum;
+        for (int32 i = 0; i < TreeNum; i++)
+        {
+	        MemoryAr << FramesTraceTreeList[i];
+        }
+        SetCurFrameIndex(TreeNum - 1);
+    }
+    else
+    {
+		MemoryAr << CurTraceTree;
+    }
 
     FFileHelper::SaveArrayToFile(Buffer, *FilePath);
 }

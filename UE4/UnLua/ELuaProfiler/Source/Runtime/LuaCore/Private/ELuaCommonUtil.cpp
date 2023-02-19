@@ -326,6 +326,16 @@ int32 lua_sizeof(lua_State* L, int32 idx)
 }
 #endif
 
+int64 GetTimeNs()
+{
+	return Clock::now().time_since_epoch().count();
+}
+
+double GetTimeMs()
+{
+	return Clock::now().time_since_epoch().count() * 0.000001;
+}
+
 int32 GetStateMemB()
 {
     if (lua_State* L = UnLua::GetState())

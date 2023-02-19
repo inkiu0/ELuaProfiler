@@ -109,7 +109,9 @@ private:
 
     TSharedPtr<STextBlock> TotalFrameText;
 
-    ELuaMonitorMode MonitorMode = Total;
+    const ELuaMonitorMode DEFAULT_MONITOR_MODE = PerFrame;
+
+    ELuaMonitorMode MonitorMode = MAX;
 
     float ElapsedTime = 0.f;
 

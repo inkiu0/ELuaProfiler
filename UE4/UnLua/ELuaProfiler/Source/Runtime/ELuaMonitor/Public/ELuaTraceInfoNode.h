@@ -25,8 +25,6 @@
 #include "ELuaBase.h"
 #include <chrono>
 
-typedef std::chrono::high_resolution_clock Clock;
-double GetTimeMs() { return Clock::now().time_since_epoch().count() * 0.000001; }
 
 struct ELUAMONITOR_API FELuaTraceInfoNode
 {

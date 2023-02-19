@@ -225,7 +225,7 @@ TSharedRef<class SDockTab> SELuaMonitorPanel::GetSDockTab()
     .Icon(FEditorStyle::GetBrush("Kismet.Tabs.Palette"))
     .Label(FText::FromName("ELuaMonitor"))
     [
-        SNew(SVerticalBox)
+        SAssignNew(MonitorVerticalPanel, SVerticalBox)
         + SVerticalBox::Slot().AutoHeight()
         [
             SNew(SBorder)
@@ -521,38 +521,61 @@ void SELuaMonitorPanel::OnGenerateFrameController()
             .Text(this, &SELuaMonitorPanel::OnGetTotalFrameText);
         }
 
+        if (!FramePanel)
+        {
+            SAssignNew(FramePanel, SBorder)
+            .Padding(0)
+            .BorderImage(FCoreStyle::Get().GetBrush("ToolPanel.GroupBorder"))
+            [
+				SNew(SELuaFramePanel)
+            ];
+        }
+
         if (ControllerBar.IsValid())
         {
-            ControllerBar->InsertSlot(2).HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
+            ControllerBar->InsertSlot(4).HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
             [
                 PrevFrameBtn.ToSharedRef()
             ];
-            ControllerBar->InsertSlot(4).HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
+            ControllerBar->InsertSlot(6).HAlign(HAlign_Center).VAlign(VAlign_Center).AutoWidth()
             [
                 NextFrameBtn.ToSharedRef()
             ];
-            ControllerBar->InsertSlot(6).HAlign(HAlign_Right).VAlign(VAlign_Center).AutoWidth()
+            ControllerBar->InsertSlot(8).HAlign(HAlign_Right).VAlign(VAlign_Center).AutoWidth()
             [
                 CurFrameSpin.ToSharedRef()
             ];
-            ControllerBar->InsertSlot(7).HAlign(HAlign_Right).VAlign(VAlign_Center).AutoWidth()
+            ControllerBar->InsertSlot(9).HAlign(HAlign_Right).VAlign(VAlign_Center).AutoWidth()
             [
                 TotalFrameText.ToSharedRef()
             ];
+        }
+
+        if (MonitorVerticalPanel.IsValid())
+        {
+	        MonitorVerticalPanel->InsertSlot(1).FillHeight(0.25f)
+	        [
+				FramePanel.ToSharedRef()
+	        ];
         }
     }
 }
 
 void SELuaMonitorPanel::OnRemoveFrameController()
 {
-    if (PrevFrameBtn && NextFrameBtn && MonitorMode != PerFrame)
+    if (MonitorMode != PerFrame)
     {
         if (ControllerBar.IsValid())
         {
-            ControllerBar->RemoveSlot(PrevFrameBtn.ToSharedRef());
-            ControllerBar->RemoveSlot(NextFrameBtn.ToSharedRef());
-            ControllerBar->RemoveSlot(CurFrameSpin.ToSharedRef());
-            ControllerBar->RemoveSlot(TotalFrameText.ToSharedRef());
+            if (PrevFrameBtn && PrevFrameBtn.IsValid()) { ControllerBar->RemoveSlot(PrevFrameBtn.ToSharedRef()); }
+            if (NextFrameBtn && NextFrameBtn.IsValid()) { ControllerBar->RemoveSlot(NextFrameBtn.ToSharedRef()); }
+            if (CurFrameSpin && CurFrameSpin.IsValid()) { ControllerBar->RemoveSlot(CurFrameSpin.ToSharedRef()); }
+            if (TotalFrameText && TotalFrameText.IsValid()) { ControllerBar->RemoveSlot(TotalFrameText.ToSharedRef()); }
+        }
+
+        if (MonitorVerticalPanel.IsValid())
+        {
+	        if (FramePanel && FramePanel.IsValid()) { MonitorVerticalPanel->RemoveSlot(FramePanel.ToSharedRef()); }
         }
     }
 }
@@ -585,6 +608,7 @@ void SELuaMonitorPanel::OnCurFrameIndexChanged(int32 Index)
 void SELuaMonitorPanel::OnCloseTab(TSharedRef<SDockTab> Tab)
 {
     TabIsOpening = false;
+    FramePanel = nullptr;
     TreeViewWidget = nullptr;
 }
 

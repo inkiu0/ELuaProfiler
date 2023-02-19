@@ -24,6 +24,7 @@
 
 #include "ELuaBase.h"
 #include "ELuaTraceInfoNode.h"
+#include "SELuaFramePanel.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SSpinBox.h"
 #include "Widgets/SCompoundWidget.h"
@@ -93,6 +94,11 @@ private:
     void OnCloseTab(TSharedRef<SDockTab> Tab);
 
 private:
+	/** The Frame panel */
+	TSharedPtr<SBorder> FramePanel;
+    
+    TSharedPtr<SVerticalBox> MonitorVerticalPanel;
+
     TSharedPtr<STreeView<TSharedPtr<FELuaTraceInfoNode>>> TreeViewWidget;
 
     TSharedPtr<FELuaTraceInfoNode> CurTIRoot;

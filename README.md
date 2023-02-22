@@ -18,8 +18,10 @@
 <img src="https://img.shields.io/github/stars/inkiu0/ELuaProfiler?style=for-the-badge">
 </p>
 
+
 ## Update
-2023.02.20 PerFrame模式支持柱状图
+
+#### 2023.02.20 PerFrame模式支持柱状图
 ![](Samples/PerFramePanel.png)
 
 

@@ -147,19 +147,16 @@ const void* lua_getaddr(lua_State* L, int32 idx)
 
 int32 lua_sizeof(lua_State* L, int32 idx)
 {
-    TValue* t = lua_index2addr(L, idx);
-    if (!t) return 0;
-
-    GCObject* o = obj2gco(t);
+    TValue* o = lua_index2addr(L, idx);
     if (!o) return 0;
 
-    switch (o->tt)
+    switch (tvtype(o))
     {
 
     case LUA_TABLE:
     {
         luaL_checkstack(L, LUA_MINSTACK, NULL);
-        Table* h = gco2t(o);
+        Table* h = hvalue(o);
         unsigned int sizearray = 0;
         if (h->alimit > 0)
         {
@@ -186,17 +183,17 @@ int32 lua_sizeof(lua_State* L, int32 idx)
     }
     case LUA_LCL:
     {
-        LClosure* cl = gco2lcl(o);
+    	LClosure* cl = clLvalue(o);
         return sizeLclosure(cl->nupvalues);
     }
     case LUA_CCL:
     {
-        CClosure* cl = gco2ccl(o);
+        CClosure* cl = clCvalue(o);
         return sizeCclosure(cl->nupvalues);
     }
     case LUA_TTHREAD:
     {
-        lua_State* th = gco2th(o);
+        lua_State* th = thvalue(o);
 
         return (sizeof(lua_State) + sizeof(lu_byte) * LUA_EXTRASPACE +
             sizeof(th->stack) * (stacksize(th) + EXTRA_STACK) +
@@ -205,7 +202,7 @@ int32 lua_sizeof(lua_State* L, int32 idx)
     }
     case LUA_PROTO:
     {
-        Proto* p = gco2p(o);
+        Proto* p = (Proto*)pvalue(o);
         return	sizeof(p) +
             sizeof(p->code) * p->sizecode +
             sizeof(p->p) * p->sizep +
@@ -218,8 +215,7 @@ int32 lua_sizeof(lua_State* L, int32 idx)
 
     case LUA_USERDATA:
     {
-
-        Udata* u = gco2u(o);
+        Udata* u = uvalue(o);
         return sizeudata(u->nuvalue, u->len);
     }
     case LUA_SHRSTR:

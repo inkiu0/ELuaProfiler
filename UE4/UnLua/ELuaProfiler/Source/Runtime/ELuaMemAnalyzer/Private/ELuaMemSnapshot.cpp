@@ -48,7 +48,7 @@ const void* FELuaMemSnapshot::Record(lua_State* L, const char* Desc, int32 Level
 {
     const void* ObjAddress = lua_getaddr(L, -1);
     int32 Size = lua_sizeof(L, -1);
-    const char* Type = lua_typename(L, lua_type(L, -1));
+    const char* Type = luaL_typename(L, -1);
 
     TSharedPtr<FELuaMemInfoNode> pnode = GetMemNode(Parent);
     if (TSharedPtr<FELuaMemInfoNode> node = GetMemNode(ObjAddress))

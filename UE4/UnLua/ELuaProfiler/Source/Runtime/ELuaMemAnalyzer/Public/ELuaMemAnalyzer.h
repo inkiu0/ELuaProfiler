@@ -87,7 +87,8 @@ public:
 
 private:
 
-    const char* key_tostring(lua_State* L, int index, char* buffer, const size_t bufsize);
+    int key_tostring(lua_State* L, int index, char* buffer, const size_t bufsize);
+    const char* value_tostring(lua_State* L, int index, char* buffer, const size_t bufsize, const int key_type);
     void update_node_desc(const void* p, const char* desc);
 
     /* create snapshot */
@@ -98,6 +99,7 @@ private:
     void TryOperateSnapshot();
 
     void traverse_lightuserdata(lua_State* L, const char* desc, int level, const void* parent);
+	void traverse_number(lua_State* L, const char* desc, int level, const void* parent);
     void traverse_string(lua_State* L, const char* desc, int level, const void* parent);
     void traverse_table(lua_State* L, const char* desc, int level, const void* parent);
     void traverse_userdata(lua_State* L, const char* desc, int level, const void* parent);

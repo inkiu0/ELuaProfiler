@@ -57,25 +57,83 @@ FELuaMemAnalyzer::~FELuaMemAnalyzer()
     Snapshots.Empty();
 }
 
-const char* FELuaMemAnalyzer::key_tostring(lua_State* L, int index, char* buffer, const size_t bufsize)
+int FELuaMemAnalyzer::key_tostring(lua_State* L, int index, char* buffer, const size_t bufsize)
 {
     int t = lua_type(L, index);
     switch (t)
     {
-    case LUA_TNUMBER:
-        ELUA_PRINTF(buffer, bufsize, "[TabVal:%lg]", lua_tonumber(L, index));
+    case LUA_TNIL:
+        ELUA_PRINTF(buffer, bufsize, "[nil]");
         break;
     case LUA_TBOOLEAN:
-        ELUA_PRINTF(buffer, bufsize, "[TabVal:%s]", lua_toboolean(L, index) ? "true" : "false");
+        ELUA_PRINTF(buffer, bufsize, "[%s]", lua_toboolean(L, index) ? "true" : "false");
         break;
-    case LUA_TNIL:
-        ELUA_PRINTF(buffer, bufsize, "[TabVal:nil]");
+    case LUA_TLIGHTUSERDATA:
+        ELUA_PRINTF(buffer, bufsize, "[%p]", lua_topointer(L, index));
         break;
+    case LUA_TNUMBER:
+        ELUA_PRINTF(buffer, bufsize, "[%lg]", lua_tonumber(L, index));
+        break;
+    case LUA_TTABLE:
+        ELUA_PRINTF(buffer, bufsize, "[%p]", lua_topointer(L, index));
+    case LUA_TFUNCTION:
+        ELUA_PRINTF(buffer, bufsize, "[%p]", lua_topointer(L, index));
+		break;
+    case LUA_TUSERDATA:
+        ELUA_PRINTF(buffer, bufsize, "[%p]", lua_topointer(L, index));
+        break;
+    case LUA_TTHREAD:
+        ELUA_PRINTF(buffer, bufsize, "[%p]", lua_topointer(L, index));
+		break;
+    case LUA_TUPVAL:
+        ELUA_PRINTF(buffer, bufsize, "[%p]", lua_topointer(L, index));
+		break;
+    case LUA_TPROTO:
+        ELUA_PRINTF(buffer, bufsize, "[%p]", lua_topointer(L, index));
+		break;
     case LUA_TSTRING:
     default:
-        ELUA_PRINTF(buffer, bufsize, "[TabVal:%.118s]", lua_tostring(L, index));
+        ELUA_PRINTF(buffer, bufsize, "[%.118s]", lua_tostring(L, index));
         break;
     }
+    return t;
+}
+
+const char* FELuaMemAnalyzer::value_tostring(lua_State* L, const int index, char* buffer, const size_t bufsize, const int key_type)
+{
+    char key[128] = "";
+	if(key_type == LUA_TNUMBER)
+	{
+        ELUA_PRINTF(key, 128, "%s", buffer);
+	}
+
+	const int type = lua_type(L, index);
+    switch (type)
+    {
+    case LUA_TNIL:
+        ELUA_PRINTF(buffer, bufsize, "%snil", key);
+        break;
+    case LUA_TBOOLEAN:
+        ELUA_PRINTF(buffer, bufsize, "%s%s", key, lua_toboolean(L, index) ? "true" : "false");
+        break;
+    case LUA_TNUMBER:
+        ELUA_PRINTF(buffer, bufsize, "%s%lg", key, lua_tonumber(L, index));
+        break;
+    case LUA_TLIGHTUSERDATA:
+    case LUA_TTABLE:
+    case LUA_TFUNCTION:
+    case LUA_TUSERDATA:
+    case LUA_TTHREAD:
+    case LUA_TUPVAL:
+    case LUA_TPROTO:
+        ELUA_PRINTF(buffer, bufsize, "%s%p", key, lua_topointer(L, index));
+		break;
+    case LUA_TSTRING:
+    default:
+        ELUA_PRINTF(buffer, bufsize, "%s%.118s", key, lua_tostring(L, index));
+        break;
+    }
+
     return buffer;
 }
 
@@ -88,9 +146,18 @@ void FELuaMemAnalyzer::traverse_lightuserdata(lua_State* L, const char* desc, in
     lua_pop(L, 1);														// [] pop lightuserdata
 }
 
+void FELuaMemAnalyzer::traverse_number(lua_State* L, const char* desc, int level, const void* parent)
+{
+    const void* p = CurSnapshot->Record(L, desc, level, parent);		// [number]
+    if (p == NULL)
+        return;															// [] stop expanding, pop number
+
+    lua_pop(L, 1);														// [] pop number
+}
+
 void FELuaMemAnalyzer::traverse_string(lua_State* L, const char* desc, int level, const void* parent)
 {
-    const void* p = CurSnapshot->Record(L, lua_tostring(L, -1), level, parent);		// [string]
+    const void* p = CurSnapshot->Record(L, desc, level, parent);		// [string]
     if (p == NULL)
         return;															// [] stop expanding, pop string
 
@@ -107,12 +174,12 @@ void FELuaMemAnalyzer::traverse_table(lua_State* L, const char* desc, int level,
     while (lua_next(L, -2) != 0)										// [(value, key), table]pop key slot; push (-2)key object and (-1)value object to the top of the stack if exists
     {
         char tmp[128];
-        key_tostring(L, -2, tmp, sizeof(tmp));
-        traverse_object(L, tmp, level + 1, p);							// [key, table] travel and pop value object
+        lua_pushvalue(L, -2);										// [key, value, key, table] copy key slot to the top of the stack
+        int type = key_tostring(L, -1, tmp, sizeof(tmp));
+        traverse_object(L, tmp, level + 1, p);							// [value, key, table] travel and pop key object
 
-        lua_pushvalue(L, -1);											// [key, key, table] copy key slot to the top of the stack
-        ELUA_PRINTF(tmp, sizeof(tmp), "[TabKey:%.118s]", lua_tostring(L, -1));
-        traverse_object(L, tmp, level + 1, p);							// [key, table] travel and pop key object
+        value_tostring(L, -1, tmp, sizeof(tmp), type);
+        traverse_object(L, tmp, level + 1, p);							// [key, table] travel and pop value object
     }																	// [table] last time call lua_net will pop key slot, do not push anything
     lua_pop(L, 1);														// [] pop table
 }
@@ -252,6 +319,9 @@ void FELuaMemAnalyzer::traverse_object(lua_State* L, const char* desc, int level
     case LUA_TTHREAD:
         traverse_thread(L, desc, level, parent);							// [] pop object
         break;
+    //case LUA_TNUMBER:
+    //    traverse_number(L, desc, level, parent);							// [] pop object
+    //    break;
     default:
         lua_pop(L, 1);													// [] pop object
         break;

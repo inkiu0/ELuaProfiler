@@ -339,8 +339,6 @@ void SELuaMonitorPanel::UpdateShowingRoot()
 
 void SELuaMonitorPanel::DeferredTick(float DeltaTime)
 {
-    FELuaMonitor::GetInstance()->Tick(DeltaTime);
-
     ElapsedTime += DeltaTime;
 
     if (MonitorMode == PerFrame || ElapsedTime > UPDATE_INTERVAL)

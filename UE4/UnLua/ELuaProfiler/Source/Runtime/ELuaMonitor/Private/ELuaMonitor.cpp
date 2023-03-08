@@ -44,6 +44,8 @@ void* FELuaMonitor::RunningCoroutine = nullptr;
 FELuaMonitor::FELuaMonitor()
 {
     CurTraceTree = MakeShared<FELuaTraceInfoTree>();
+    TickDelegate = FTickerDelegate::CreateRaw(this, &FELuaMonitor::Tick);
+    TickDelegateHandle = FTicker::GetCoreTicker().AddTicker(TickDelegate);
 }
 
 FELuaMonitor::~FELuaMonitor()
@@ -314,7 +316,7 @@ void FELuaMonitor::PerFrameModeUpdate(bool Manual /* = false */)
     }
 }
 
-void FELuaMonitor::Tick(float DeltaTime)
+bool FELuaMonitor::Tick(float DeltaTime)
 {
     if (State == RUNING)
     {
@@ -337,6 +339,7 @@ void FELuaMonitor::Tick(float DeltaTime)
             OnForward();
         }
     }
+    return true;
 }
 
 void FELuaMonitor::Deserialize(const FString& Path, ELuaMonitorMode& EMode)

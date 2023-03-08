@@ -63,7 +63,7 @@ public:
 
     void OnClear();
 
-    void Tick(float DeltaTime);
+    bool Tick(float DeltaTime);
 
     int32 GetMaxDepth() const { return MaxDepth; }
 
@@ -144,4 +144,7 @@ private:
     EMonitorSortMode MonitorSortMode = EMonitorSortMode::TotalTime;
 
     static void* RunningCoroutine;
+
+    FTickerDelegate TickDelegate;
+    FDelegateHandle TickDelegateHandle;
 };

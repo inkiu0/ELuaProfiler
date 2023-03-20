@@ -27,6 +27,8 @@
 
 #define LOCTEXT_NAMESPACE "SELuaFramePanel"
 
+static constexpr double LUA_CPU_BUDGET_PERCENT = 20.f / 100.f;	// ∈ [0, 1]
+
 SELuaFramePanel::SELuaFramePanel()
 {
 	Reset();
@@ -45,8 +47,8 @@ void SELuaFramePanel::Reset()
 	AxisX.SetScale(16.0f);
 
 	AxisY.Reset();
-	AxisY.SetScaleLimits(0.01, 1000000.0);
-	AxisY.SetScale(1500.0);
+	AxisY.SetScaleLimits(0.01, 1000000.0 / LUA_CPU_BUDGET_PERCENT);
+	AxisY.SetScale(1500.0 / LUA_CPU_BUDGET_PERCENT);
 
 	bIsPanelDirty = true;
 
@@ -180,7 +182,7 @@ int32 SELuaFramePanel::GetSelectFrameIndexByPos(float X, float Y)
 	{
 		const float BarWidth = AxisX.GetBarWidth();
 		const int32 StartIndex = AxisX.GetValueAtOffset(0.f);
-		const int32 FrameIndex = FMath::FloorToInt(X / BarWidth) + StartIndex;
+		const int32 FrameIndex = FMath::FloorToInt(X / BarWidth) + StartIndex + 1;
 		
 		if (FrameIndex >= 0 && FrameIndex < FELuaMonitor::GetInstance()->GetTotalFrames())
 		{
@@ -192,7 +194,7 @@ int32 SELuaFramePanel::GetSelectFrameIndexByPos(float X, float Y)
 
 void SELuaFramePanel::OnSelectFrameBar(float X, float Y)
 {
-	X = FMath::Clamp(X, 1.f, AxisX.GetSize() - 1);
+	X = FMath::Clamp(X, 1.f, AxisX.GetSize());
 	const int32 FrameIndex = GetSelectFrameIndexByPos(X, Y);
 	if (FrameIndex >= 0)
 	{
@@ -306,17 +308,17 @@ void SELuaFramePanel::DrawFrameBars(
 		const float X = BarWidth * (Index - StartIndex);
 		const TSharedPtr<FELuaTraceInfoNode> Root = FrameList[Index]->GetRoot();
 		const float Height = FMath::RoundToFloat(AxisY.GetOffsetForValue(Root->TotalTime / 1000));
-		if (Index == FELuaMonitor::GetInstance()->GetCurFrameIndex())
+		if (Index == FELuaMonitor::GetInstance()->GetCurFrameIndex() - 1)
 		{
 			BarColor = FLinearColor::White;
 		}
 		else
 		{
-			if (Root->TotalTime > 33.33333)
+			if (Root->TotalTime > 33.33333 * LUA_CPU_BUDGET_PERCENT)
 			{
 				BarColor = ExceedColor;
 			}
-			else if (Root->TotalTime > 16.66667)
+			else if (Root->TotalTime > 16.66667 * LUA_CPU_BUDGET_PERCENT)
 			{
 				BarColor = WarningColor;
 			}
@@ -416,21 +418,21 @@ void SELuaFramePanel::DrawVerticalAxisGrid(const FPaintArgs& Args, const FGeomet
 	const double GridValues[] =
 	{
 		0.0,
-		1.0 / 200.0, //    5 ms (200 fps)
-		1.0 / 120.0, //  8.3 ms (120 fps)
-		1.0 / 90.0,  // 11.1 ms (90 fps)
-		1.0 / 72.0,  // 13.9 ms (72 fps)
-		1.0 / 60.0,  // 16.7 ms (60 fps)
-		1.0 / 30.0,  // 33.3 ms (30 fps)
-		1.0 / 20.0,  //   50 ms (20 fps)
-		1.0 / 15.0,  // 66.7 ms (15 fps)
-		1.0 / 10.0,  //  100 ms (10 fps)
-		1.0 / 5.0,   //  200 ms (5 fps)
-		1.0,   // 1s
-		10.0,  // 10s
-		60.0,  // 1m
-		600.0, // 10m
-		3600.0 // 1h
+		1.0 / 200.0 * LUA_CPU_BUDGET_PERCENT, //    5 ms (200 fps)
+		1.0 / 120.0 * LUA_CPU_BUDGET_PERCENT, //  8.3 ms (120 fps)
+		1.0 / 90.0 * LUA_CPU_BUDGET_PERCENT,  // 11.1 ms (90 fps)
+		1.0 / 72.0 * LUA_CPU_BUDGET_PERCENT,  // 13.9 ms (72 fps)
+		1.0 / 60.0 * LUA_CPU_BUDGET_PERCENT,  // 16.7 ms (60 fps)
+		1.0 / 30.0 * LUA_CPU_BUDGET_PERCENT,  // 33.3 ms (30 fps)
+		1.0 / 20.0 * LUA_CPU_BUDGET_PERCENT,  //   50 ms (20 fps)
+		1.0 / 15.0 * LUA_CPU_BUDGET_PERCENT,  // 66.7 ms (15 fps)
+		1.0 / 10.0 * LUA_CPU_BUDGET_PERCENT,  //  100 ms (10 fps)
+		1.0 / 5.0 * LUA_CPU_BUDGET_PERCENT,   //  200 ms (5 fps)
+		1.0 * LUA_CPU_BUDGET_PERCENT,	// 1s
+		10.0 * LUA_CPU_BUDGET_PERCENT,	// 10s
+		60.0 * LUA_CPU_BUDGET_PERCENT,	// 1m
+		600.0 * LUA_CPU_BUDGET_PERCENT,	// 10m
+		3600.0 * LUA_CPU_BUDGET_PERCENT	// 1h
 	};
 	constexpr int32 NumGridValues = sizeof(GridValues) / sizeof(double);
 
@@ -440,8 +442,8 @@ void SELuaFramePanel::DrawVerticalAxisGrid(const FPaintArgs& Args, const FGeomet
 	{
 		const double Value = GridValues[Index];
 
-		constexpr double Time60fps = 1.0 / 60.0;
-		constexpr double Time30fps = 1.0 / 30.0;
+		constexpr double Time60fps = 1.0 / 60.0 * LUA_CPU_BUDGET_PERCENT;
+		constexpr double Time30fps = 1.0 / 30.0 * LUA_CPU_BUDGET_PERCENT;
 
 		FLinearColor TextColor;
 		if (Value <= Time60fps)
@@ -472,7 +474,7 @@ void SELuaFramePanel::DrawVerticalAxisGrid(const FPaintArgs& Args, const FGeomet
 		
 		FSlateDrawElement::MakeBox(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(FVector2D(ViewWidth, 1), FSlateLayoutTransform(1.f, FVector2D(0, Y))), Brush, DrawEffects, GridColor);
 
-		const FString LabelText = (Value == 0.0) ? TEXT("0") : FString::Printf(TEXT("%.2f)"), Value);
+		const FString LabelText = (Value == 0.0) ? TEXT("0") : FString::Printf(TEXT("%.1fms)"), Value * 1000);
 		const FVector2D LabelTextSize = FontMeasureService->Measure(LabelText, Font);
 		float LabelX = ViewWidth - LabelTextSize.X - 4.0f;
 		float LabelY = FMath::Clamp(Y - TextH / 2, 0.0f, RoundedViewHeight - TextH);

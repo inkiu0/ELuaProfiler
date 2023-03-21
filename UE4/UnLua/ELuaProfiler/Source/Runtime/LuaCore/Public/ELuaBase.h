@@ -87,3 +87,9 @@ enum ESnapshotOp : uint8
     SOP_OR = 1 << 2,
     SOP_XOR = 1 << 3
 };
+
+#if PLATFORM_WINDOWS
+const FString SandBoxPath = FPaths::Combine(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()), TEXT("Content/Script/"));
+#else
+const FString SandBoxPath = FPaths::ProjectDir() + TEXT("Content/Script/");
+#endif

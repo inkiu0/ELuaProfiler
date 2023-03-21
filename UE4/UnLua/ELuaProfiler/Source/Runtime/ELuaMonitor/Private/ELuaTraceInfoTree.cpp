@@ -88,7 +88,7 @@ void FELuaTraceInfoTree::OnHookReturn()
 TSharedPtr <FELuaTraceInfoNode> FELuaTraceInfoTree::GetChild(lua_Debug* ar)
 {
     TCHAR* Name = UTF8_TO_TCHAR(ar->name);
-    FString ID = FString::Printf(TEXT("%s:%d~%d %s"), UTF8_TO_TCHAR(ar->short_src), ar->linedefined, ar->lastlinedefined, Name);
+    FString ID = FString::Printf(TEXT("%s:%d~%d %s"), UTF8_TO_TCHAR(ar->source), ar->linedefined, ar->lastlinedefined, Name).Replace(*SandBoxPath, TEXT(""));
     TSharedPtr<FELuaTraceInfoNode> Child = CurNode->GetChild(ID);
     if (!Child)
     {

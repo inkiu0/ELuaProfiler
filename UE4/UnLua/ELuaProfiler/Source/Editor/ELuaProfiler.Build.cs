@@ -87,7 +87,7 @@ public class ELuaProfiler : ModuleRules
                 "Core",
                 "UMG",
                 "Lua",
-                "UnLua",
+                "UnLua", "ELuaMonitor",
                 // ... add other public dependencies that you statically link with here ...
             }
         );

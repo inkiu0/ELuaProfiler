@@ -192,7 +192,10 @@ FArchive& operator<<(FArchive& Ar, TSharedPtr<FELuaTraceInfoTree>& Tree)
     else
     {
         TSharedPtr<FELuaTraceInfoNode> TreeRoot = Tree->GetRoot();
-        Ar << TreeRoot;
+        if (TreeRoot.IsValid())
+        {
+            Ar << TreeRoot;
+        }
     }
     return Ar;
 }

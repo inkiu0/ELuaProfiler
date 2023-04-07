@@ -5,11 +5,6 @@
 <h1 align="center">ELuaProfiler</h1>
 
 <h4 align="center">☁️ Easy Lua Profile ☁️</h4><p align="center">
-<h4 align="center">🌞 我永远喜欢JetBrains 🌞</h4><p align="center">
-
-<p align="center">
-<img src="https://github.com/inkiu0/ELuaProfiler/blob/master/Samples/jetbrains.png" width="100" height="100">
-</p>
 
 <p align="center">
 <img src="https://img.shields.io/badge/version-2021.08.26-green.svg?longCache=true&style=for-the-badge">

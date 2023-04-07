@@ -19,6 +19,8 @@
 #### 2023.02.20 PerFrame模式支持柱状图
 ![](Samples/PerFramePanel.png)
 
+---
+
 #### 2023.02.07 支持序列化和反序列化
 UE4 Console输入:
 eluaprofiler start 0/1
@@ -26,6 +28,8 @@ eluaprofiler stop
 
 `elprof`文件会存放在`Saved/ELuaProfiler/`中
 > 后续优化: 流式保存PerFrame模式下的elprof文件
+
+---
 
 
 ## Supported Solutions

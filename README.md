@@ -7,7 +7,7 @@
 <h4 align="center">☁️ Easy Lua Profile ☁️</h4><p align="center">
 
 <p align="center">
-<img src="https://img.shields.io/badge/version-2021.08.26-green.svg?longCache=true&style=for-the-badge">
+<img src="https://img.shields.io/badge/version-2023.04.07-green.svg?longCache=true&style=for-the-badge">
 <img src="https://img.shields.io/appveyor/build/gruntjs/grunt?style=for-the-badge">
 <img src="http://img.shields.io/badge/license-MIT-blue.svg?longCache=true&style=for-the-badge">
 <img src="https://img.shields.io/github/stars/inkiu0/ELuaProfiler?style=for-the-badge">

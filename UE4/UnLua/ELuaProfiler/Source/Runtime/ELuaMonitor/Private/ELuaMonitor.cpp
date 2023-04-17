@@ -415,12 +415,17 @@ void FELuaMonitor::OnCommandStart(const TArray<FString>& Args)
     if (Args.Num() >= 2)
         Mode = FCString::Atoi(*Args[1]);
 
+    int32 Depth = 10;
+    if (Args.Num() >= 3)
+		Depth = FCString::Atoi(*Args[2]);
+
     if (ExeCommand.Equals(TEXT("start")))
     {
         if (Mode >= 0)
         {
             FELuaMonitor::GetInstance()->SetMonitorMode(static_cast<ELuaMonitorMode>(Mode));
         }
+        FELuaMonitor::GetInstance()->SetMaxDepth(Depth);
         FELuaMonitor::GetInstance()->Start();
     }
     else if (ExeCommand.Equals(TEXT("stop")))
@@ -447,6 +452,6 @@ void FELuaMonitor::OnCommandStart(const TArray<FString>& Args)
 
 static FAutoConsoleCommand ExecGMCommand(
     TEXT("ELuaProfiler"),
-    TEXT("ELuaProfiler, with 2 arg : start/stop/pause/resume/...; Mode Total/PerFrame/Statistics"),
+    TEXT("ELuaProfiler, with 3 arg : start/stop/pause/resume/...; Mode 0:PerFrame/1:Total/2:Statistics; Depth [10]"),
     FConsoleCommandWithArgsDelegate::CreateStatic(&FELuaMonitor::OnCommandStart)
 );

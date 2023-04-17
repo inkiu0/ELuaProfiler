@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "SLuaMonitorTreeWidgetItem.h"
 #include "SlateOptMacros.h"
@@ -33,7 +33,6 @@ void SLuaMonitorTreeWidgetItem::Construct(const FArguments& InArgs, const TShare
 	SMultiColumnTableRow< TSharedRef<FELuaTraceInfoNode> >::Construct(SMultiColumnTableRow< TSharedRef<FELuaTraceInfoNode> >::FArguments().Padding(0), InOwnerTableView);
 }
 
-BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 TSharedRef<SWidget> SLuaMonitorTreeWidgetItem::GenerateWidgetForColumn(const FName& ColumnName)
 {
 	if (ColumnName == NAME_NodeName )
@@ -60,78 +59,97 @@ TSharedRef<SWidget> SLuaMonitorTreeWidgetItem::GenerateWidgetForColumn(const FNa
 	else if (ColumnName == NAME_TotalTimeMs )
 	{
 		return 	SNew(STextBlock)
-			.Text(FText::AsNumber(this->Info->TotalTime));
+			.Text(TAttribute<FText>::Create([=]() {
+            return FText::AsNumber(this->Info->TotalTime);
+        }));
 	}
 	else if (ColumnName == NAME_TotalTimePct )
 	{
-		if (this->Info->Parent && this->Info->Parent->TotalTime > 0)
-		{
-			double d = this->Info->TotalTime / this->Info->Parent->TotalTime;
-			return 	SNew(STextBlock).Text(FText::AsPercent(d));
-		} 
-		else
-		{
-			return 	SNew(STextBlock).Text( FText::AsPercent(0.f));
-		}
-	
+		return 	SNew(STextBlock)
+			.Text(TAttribute<FText>::Create([=]() {
+			if (this->Info->Parent && this->Info->Parent->GCSize > 0)
+			{
+				double d = this->Info->TotalTime / this->Info->Parent->TotalTime;
+				return FText::AsPercent(d);
+			}
+			return FText::AsPercent(0.f);
+        }));
 	}
 	else if (ColumnName == NAME_SelfTimeMs )
 	{
 		return 	SNew(STextBlock)
-			.Text(FText::AsNumber(this->Info->SelfTime));
+			.Text(TAttribute<FText>::Create([=]() {
+            return FText::AsNumber(this->Info->SelfTime);
+        }));
 	}
 	else if (ColumnName == NAME_SelfTimePct )
 	{
-		if (this->Info && this->Info->TotalTime > 0)
-		{
-			double d = this->Info->SelfTime / this->Info->TotalTime;
-			return 	SNew(STextBlock).Text(FText::AsPercent(d));
-		}
-		return 	SNew(STextBlock).Text(FText::AsPercent(0.f));
+		return 	SNew(STextBlock)
+			.Text(TAttribute<FText>::Create([=]() {
+			if (this->Info->Parent && this->Info->Parent->GCSize > 0)
+			{
+				double d = this->Info->SelfTime / this->Info->TotalTime;
+				return FText::AsPercent(d);
+			}
+			return FText::AsPercent(0.f);
+        }));
 	}
 	else if (ColumnName == NAME_AverageMs )
 	{
 		return 	SNew(STextBlock)
-			.Text(FText::AsNumber(this->Info->Average));
+			.Text(TAttribute<FText>::Create([=]() {
+            return FText::AsNumber(this->Info->Average);
+        }));
 	}
 	else if (ColumnName == NAME_AllocKb )
 	{
 		return 	SNew(STextBlock)
-			.Text(FText::AsNumber(this->Info->AllocSize));
+			.Text(TAttribute<FText>::Create([=]() {
+            return FText::AsNumber(this->Info->AllocSize);
+        }));
 	}
 	else if (ColumnName == NAME_AllocPct )
 	{
-		if (this->Info->Parent && this->Info->Parent->AllocSize > 0)
-		{
-			float p = this->Info->AllocSize / this->Info->Parent->AllocSize;
-			return 	SNew(STextBlock).Text(FText::AsPercent(p));
-		}
-		return 	SNew(STextBlock).Text(FText::AsPercent(0.f));
+		return 	SNew(STextBlock)
+			.Text(TAttribute<FText>::Create([=]() {
+			if (this->Info->Parent && this->Info->Parent->GCSize > 0)
+			{
+				float p = this->Info->AllocSize / this->Info->Parent->AllocSize;
+				return FText::AsPercent(p);
+			}
+			return FText::AsPercent(0.f);
+        }));
 	}
 	else if (ColumnName == NAME_GCKb )
 	{
 		return 	SNew(STextBlock)
-			.Text(FText::AsNumber(this->Info->GCSize));
+			.Text(TAttribute<FText>::Create([=]() {
+            return FText::AsNumber(this->Info->GCSize);
+        }));
 	}
 	else if (ColumnName == NAME_GCPct )
 	{
-		if (this->Info->Parent && this->Info->Parent->GCSize > 0)
-		{
-			float p = this->Info->GCSize / this->Info->Parent->GCSize;
-			return 	SNew(STextBlock).Text(FText::AsPercent(p));
-		}
-		return 	SNew(STextBlock).Text(FText::AsPercent(0.f));
+		return 	SNew(STextBlock)
+			.Text(TAttribute<FText>::Create([=]() {
+			if (this->Info->Parent && this->Info->Parent->GCSize > 0)
+			{
+				float p = this->Info->GCSize / this->Info->Parent->GCSize;
+				return FText::AsPercent(p);
+			}
+			return FText::AsPercent(0.f);
+        }));
 	}
 	else if (ColumnName == NAME_Calls )
 	{
 		return 	SNew(STextBlock)
-			.Text(FText::AsNumber(this->Info->Count));
+			.Text(TAttribute<FText>::Create([=]() {
+            return (FText::AsNumber(this->Info->Count));
+        }));
 	}
 	else
 	{
 		return SNullWidget::NullWidget;
 	}
 }
-END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 #undef LOCTEXT_NAMESPACE

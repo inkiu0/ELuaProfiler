@@ -36,16 +36,15 @@ FELuaTraceInfoTree::~FELuaTraceInfoTree()
 void FELuaTraceInfoTree::Init()
 {
     FString RootName("Root");
-    Root = MakeShared<FELuaTraceInfoNode>(nullptr, RootName, TEXT("Root"), 0);
+    Root = MakeShared<FELuaTraceInfoNode>(nullptr, RootName);
     CurNode = Root;
 }
 
-void FELuaTraceInfoTree::OnHookCall(lua_State* L, lua_Debug* ar, bool IsStatistics/* = false */)
+void FELuaTraceInfoTree::OnHookCall(lua_State* L, void const* p, FString ID, bool IsStatistics/* = false */)
 {
     if (Root)
     {
-        lua_getinfo(L, "nS", ar);
-        TSharedPtr<FELuaTraceInfoNode> Child = GetChild(ar);
+        TSharedPtr<FELuaTraceInfoNode> Child = GetChild(p, ID);
         if (Child->Parent == Root)
         {
             Root->FakeBeginInvoke();
@@ -62,7 +61,6 @@ void FELuaTraceInfoTree::OnHookReturn(lua_State* L, lua_Debug* ar, bool IsStatis
     {
         CurNode->EndInvoke();
         CurNode = CurNode->Parent;
-        lua_getinfo(L, "nS", ar);
         --CurDepth;
         if (CurNode == Root)
         {
@@ -85,15 +83,13 @@ void FELuaTraceInfoTree::OnHookReturn()
     }
 }
 
-TSharedPtr <FELuaTraceInfoNode> FELuaTraceInfoTree::GetChild(lua_Debug* ar)
+TSharedPtr <FELuaTraceInfoNode> FELuaTraceInfoTree::GetChild(void const* p, FString ID)
 {
-    TCHAR* Name = UTF8_TO_TCHAR(ar->name);
-    FString ID = FString::Printf(TEXT("%s:%d~%d %s"), UTF8_TO_TCHAR(ar->source), ar->linedefined, ar->lastlinedefined, Name).Replace(*SandBoxPath, TEXT(""));
-    TSharedPtr<FELuaTraceInfoNode> Child = CurNode->GetChild(ID);
+    TSharedPtr<FELuaTraceInfoNode> Child = CurNode->GetChild(p);
     if (!Child)
     {
-        Child = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(CurNode, ID, Name, ar->event));
-        CurNode->AddChild(Child);
+        Child = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(CurNode, ID));
+        CurNode->AddChild(p, Child);
     }
     return Child;
 }
@@ -160,10 +156,10 @@ void FELuaTraceInfoTree::StatisticizeNode(TSharedPtr<FELuaTraceInfoNode> Node, T
 {
     if (Node)
     {
-        for (int32 i = 0; i < Node->Children.Num(); i++)
+        for (TPair<void const*, TSharedPtr<FELuaTraceInfoNode>> Entry : Node->ChildPtrMap)
         {
-            StatisticsNode->StatisticizeOtherNode(Node->Children[i]);
-            StatisticizeNode(Node->Children[i], StatisticsNode);
+            StatisticsNode->StatisticizeOtherNode(Entry.Key, Entry.Value);
+            StatisticizeNode(Entry.Value, StatisticsNode);
         }
     }
 }
@@ -192,9 +188,9 @@ FArchive& operator<<(FArchive& Ar, TSharedPtr<FELuaTraceInfoTree>& Tree)
     else
     {
         TSharedPtr<FELuaTraceInfoNode> TreeRoot = Tree->GetRoot();
-        if (TreeRoot.IsValid())
+        if(TreeRoot.IsValid())
         {
-            Ar << TreeRoot;
+			Ar << TreeRoot;
         }
     }
     return Ar;

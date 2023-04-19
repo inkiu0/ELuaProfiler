@@ -42,7 +42,7 @@ public:
 
     void Init();
 
-    void OnHookCall(lua_State* L, lua_Debug* ar, bool IsStatistics = false);
+    void OnHookCall(lua_State* L, void const* p, FString ID, bool IsStatistics = false);
 
     void OnHookReturn(lua_State* L, lua_Debug* ar, bool IsStatistics = false);
 
@@ -61,7 +61,7 @@ public:
     void Deserialize(TSharedPtr<FELuaTraceInfoNode>& TreeRoot);
 
 private:
-    TSharedPtr<FELuaTraceInfoNode> GetChild(lua_Debug* ar);
+    TSharedPtr<FELuaTraceInfoNode> GetChild(void const* p, FString ID);
 
     void CountNodeSelfTime(TSharedPtr<FELuaTraceInfoNode> Node, EMonitorSortMode SortMode);
 

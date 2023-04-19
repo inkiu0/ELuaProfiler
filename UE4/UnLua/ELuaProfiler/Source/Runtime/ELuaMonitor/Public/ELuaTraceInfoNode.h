@@ -76,24 +76,24 @@ struct ELUAMONITOR_API FELuaTraceInfoNode
     /* all child nodes */
     TArray<TSharedPtr<FELuaTraceInfoNode>> Children;
 
-    /* id map to FELuaTraceInfoNode */
-    TMap<FString, TSharedPtr<FELuaTraceInfoNode>> ChildIDMap;
+    /* LuaFuncPtr map to FELuaTraceInfoNode */
+    TMap<void const*, TSharedPtr<FELuaTraceInfoNode>> ChildPtrMap;
     
-    FELuaTraceInfoNode(TSharedPtr<FELuaTraceInfoNode> InParent, FString& InID, const TCHAR* InName, int32 InEvent)
+    FELuaTraceInfoNode(TSharedPtr<FELuaTraceInfoNode> InParent, FString& InID/*, const TCHAR* InName, int32 InEvent*/)
     {
         ID = InID;
-        if (InName)
-        {
-            Name = InName;
-        }
-        Event = InEvent;
+        // if (InName)
+        // {
+        //     Name = InName;
+        // }
+        // Event = InEvent;
         Parent = InParent;
     }
 
-    void AddChild(TSharedPtr<FELuaTraceInfoNode> Child)
+    void AddChild(void const* p, TSharedPtr<FELuaTraceInfoNode> Child)
     {
         Children.Add(Child);
-        ChildIDMap.Add(Child->ID, Child);
+        if (p) { ChildPtrMap.Add(p, Child); }
     }
 
     // 只有Root才会调用
@@ -123,36 +123,36 @@ struct ELUAMONITOR_API FELuaTraceInfoNode
         Count += 1;
     }
 
-    int32 EndInvoke()
+    void EndInvoke()
     {
         TotalTime += GetTimeMs() - CallTime;
 
         AllocSize += (ELuaProfiler::AllocSize - CallAllocSize) * 0.001f;
         GCSize += (ELuaProfiler::GCSize - CallGCSize) * 0.001f;
-        return Event;
+        // return Event;
     }
 
-    TSharedPtr<FELuaTraceInfoNode> GetChild(const FString& InID)
+    TSharedPtr<FELuaTraceInfoNode> GetChild(void const* p)
     {
-        if (ChildIDMap.Contains(InID))
+        if (ChildPtrMap.Contains(p))
         {
-            return ChildIDMap[InID];
+            return ChildPtrMap[p];
         }
         return nullptr;
     }
 
     void Empty()
     {
-        Name.Empty();
+        // Name.Empty();
         CallTime = 0.f;
         SelfTime = 0.f;
         TotalTime = 0.f;
         Count = 0;
-        Event = 0;
+        // Event = 0;
         ID.Empty();
         Parent = nullptr;
         Children.Empty();
-        ChildIDMap.Empty();
+        ChildPtrMap.Empty();
     }
 
     FELuaTraceInfoNode(TSharedPtr<FELuaTraceInfoNode> Other)
@@ -160,7 +160,7 @@ struct ELUAMONITOR_API FELuaTraceInfoNode
         if (Other)
         {
             ID = Other->ID;
-            Name = Other->Name;
+            // Name = Other->Name;
             CallTime = Other->CallTime;
             SelfTime = Other->SelfTime;
             TotalTime = Other->TotalTime;
@@ -169,16 +169,16 @@ struct ELUAMONITOR_API FELuaTraceInfoNode
             AllocSize = Other->AllocSize;
             GCSize = Other->GCSize;
             Count = Other->Count;
-            Event = Other->Event;
+            // Event = Other->Event;
             Parent = Other->Parent;
         }
     }
 
-    void StatisticizeOtherNode(TSharedPtr<FELuaTraceInfoNode> Other)
+    void StatisticizeOtherNode(void const* p, TSharedPtr<FELuaTraceInfoNode> Other)
     {
-        if (ChildIDMap.Contains(Other->ID))
+        if (ChildPtrMap.Contains(p))
         {
-            TSharedPtr<FELuaTraceInfoNode> CNode = ChildIDMap[Other->ID];
+            TSharedPtr<FELuaTraceInfoNode> CNode = ChildPtrMap[p];
             CNode->SelfTime += Other->SelfTime;
             CNode->TotalTime += Other->TotalTime;
             CNode->AllocSize += Other->AllocSize;
@@ -187,7 +187,7 @@ struct ELUAMONITOR_API FELuaTraceInfoNode
         }
         else
         {
-            AddChild(TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(Other)));
+            AddChild(p, TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(Other)));
         }
         TotalTime += Other->TotalTime;
         AllocSize += Other->AllocSize;
@@ -214,7 +214,7 @@ inline FArchive& operator<<(FArchive& Ar, TSharedPtr<FELuaTraceInfoNode>& Node)
         Ar << ChildrenNum;
         for (int32 i = 0; i < ChildrenNum; i++)
         {
-            Node->AddChild(MakeShared<FELuaTraceInfoNode>(nullptr));
+            Node->AddChild(nullptr, MakeShared<FELuaTraceInfoNode>(nullptr));
             Ar << Node->Children[i];
             Node->Children[i]->Parent = Node;
         }

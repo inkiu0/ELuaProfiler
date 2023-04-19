@@ -129,6 +129,8 @@ private:
 
     TArray<TSharedPtr<FELuaTraceInfoTree>> FramesTraceTreeList;
 
+    TMap<void const*, FString> LuaFuncPtrMap;
+
     uint32 CurFrameIndex = 0;
 
     bool Started = false;

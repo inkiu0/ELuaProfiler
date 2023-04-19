@@ -184,7 +184,7 @@ void FELuaMonitor::OnClear()
         // may be running a coroutine
         RunningCoroutine = L;
 
-        lua_getinfo(L, "nS", ar);
+        lua_getinfo(L, "n", ar);
         if (nullptr != ar->name && strcmp(ar->name, "yield") == 0)
         {
             if (LUA_HOOKCALL == ar->event)
@@ -213,13 +213,29 @@ void FELuaMonitor::OnClear()
     }
 }
 
+const void* GetLuaFuncPtr(lua_State* L, lua_Debug* ar)
+{
+	lua_getinfo(L, "f", ar);
+    const void* luaPtr = lua_topointer(L, -1);
+    lua_pop(L, 1);
+    return luaPtr;
+}
+
 void FELuaMonitor::OnHookCall(lua_State* L, lua_Debug* ar)
 {
     if (CurTraceTree)
     {
         if (CurDepth < MaxDepth)
         {
-            CurTraceTree->OnHookCall(L, ar, MonitorMode == Statistics);
+	        const void* lp = GetLuaFuncPtr(L, ar);
+            if (!LuaFuncPtrMap.Contains(lp))
+            {
+				lua_getinfo(L, "nS", ar);
+			    TCHAR* Name = UTF8_TO_TCHAR(ar->name);
+			    FString ID = FString::Printf(TEXT("%s:%d~%d %s"), UTF8_TO_TCHAR(ar->short_src), ar->linedefined, ar->lastlinedefined, Name).Replace(*SandBoxPath, TEXT(""));
+	            LuaFuncPtrMap.Add(lp, ID);
+            }
+            CurTraceTree->OnHookCall(L, lp, LuaFuncPtrMap[lp], MonitorMode == Statistics);
         }
         CurDepth++;
     }

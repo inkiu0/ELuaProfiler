@@ -19,6 +19,8 @@
 #### 2023.04.19 优化统计性能
 优化ELuaProfiler统计性能，约提高到300%
 
+---
+
 #### 2023.02.20 PerFrame模式支持柱状图
 ![](Samples/PerFramePanel.png)
 

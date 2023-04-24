@@ -70,6 +70,13 @@ struct ELUAMONITOR_API FELuaTraceInfoNode
     /* node id */
     FString ID;
 
+    /* is twigs
+     * -1: not evaluated
+     *  0: false
+     *  1: true
+     */
+    int8 FlagTwigs = -1;
+
     /* parent node */
     TSharedPtr<FELuaTraceInfoNode> Parent = nullptr;
 
@@ -153,6 +160,23 @@ struct ELUAMONITOR_API FELuaTraceInfoNode
         Parent = nullptr;
         Children.Empty();
         ChildPtrMap.Empty();
+    }
+
+    bool IsTwigs()
+    {
+        if (FlagTwigs < 0 && Count >= 10)
+        {
+	        if (TotalTime > TOLERANCE * Count)
+	        {
+		        FlagTwigs = 0;
+	        }
+            else
+            {
+                FlagTwigs = 1;
+            }
+        }
+
+	    return FlagTwigs == 1;
     }
 
     FELuaTraceInfoNode(TSharedPtr<FELuaTraceInfoNode> Other)

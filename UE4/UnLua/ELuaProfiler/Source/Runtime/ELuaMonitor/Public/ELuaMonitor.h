@@ -90,6 +90,8 @@ public:
     void SetSortMode(EMonitorSortMode Mode) { MonitorSortMode = Mode; }
 
     EMonitorSortMode GetSortMode() const { return MonitorSortMode; }
+
+    void OnPurning(void const* luaptr);
     
     static void OnCommandStart(const TArray<FString>& Args);
 private:
@@ -101,8 +103,6 @@ private:
     static void* LuaAllocator(void* ud, void* ptr, size_t osize, size_t nsize);
 
     void OnHookCall(lua_State* L, lua_Debug* ar);
-
-    void OnHookReturn(lua_State* L, lua_Debug* ar);
 
     void OnHookReturn();
 
@@ -117,6 +117,8 @@ private:
     void Resume();
 
     void PerFrameModeUpdate(bool Manual = false);
+    
+	void const* GetLuaFunc(lua_State* L, lua_Debug* ar);
 
 private:
     /* max depth of hook  tracking */
@@ -125,11 +127,16 @@ private:
     /* current depth of hook tracking */
     uint32 CurDepth = 0;
 
+    /* Purning Lua Twigs */
+    uint32 PurningDepth = 0;
+
     TSharedPtr<FELuaTraceInfoTree> CurTraceTree;
 
     TArray<TSharedPtr<FELuaTraceInfoTree>> FramesTraceTreeList;
 
     TMap<void const*, FString> LuaFuncPtrMap;
+
+    TArray<void const*> LuaTwigsFuncPtrList;
 
     uint32 CurFrameIndex = 0;
 

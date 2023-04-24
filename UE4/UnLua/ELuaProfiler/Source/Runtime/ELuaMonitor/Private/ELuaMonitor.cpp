@@ -51,6 +51,8 @@ FELuaMonitor::FELuaMonitor()
 FELuaMonitor::~FELuaMonitor()
 {
     CurTraceTree = nullptr;
+    LuaFuncPtrMap.Empty();
+    LuaTwigsFuncPtrList.Empty();
 }
 
 void FELuaMonitor::Init()
@@ -213,11 +215,19 @@ void FELuaMonitor::OnClear()
     }
 }
 
-const void* GetLuaFuncPtr(lua_State* L, lua_Debug* ar)
+void const* FELuaMonitor::GetLuaFunc(lua_State* L, lua_Debug* ar)
 {
 	lua_getinfo(L, "f", ar);
     const void* luaPtr = lua_topointer(L, -1);
     lua_pop(L, 1);
+
+    if (!LuaFuncPtrMap.Contains(luaPtr))
+    {
+		lua_getinfo(L, "nS", ar);
+	    TCHAR* Name = UTF8_TO_TCHAR(ar->name);
+	    FString ID = FString::Printf(TEXT("%s:%d~%d %s"), UTF8_TO_TCHAR(ar->short_src), ar->linedefined, ar->lastlinedefined, Name).Replace(*SandBoxPath, TEXT(""));
+        LuaFuncPtrMap.Add(luaPtr, ID);
+    }
     return luaPtr;
 }
 
@@ -227,29 +237,18 @@ void FELuaMonitor::OnHookCall(lua_State* L, lua_Debug* ar)
     {
         if (CurDepth < MaxDepth)
         {
-	        const void* lp = GetLuaFuncPtr(L, ar);
-            if (!LuaFuncPtrMap.Contains(lp))
+	        void const* luaptr = GetLuaFunc(L, ar);
+            if (PurningDepth == 0 && LuaTwigsFuncPtrList.Contains(luaptr))
             {
-				lua_getinfo(L, "nS", ar);
-			    TCHAR* Name = UTF8_TO_TCHAR(ar->name);
-			    FString ID = FString::Printf(TEXT("%s:%d~%d %s"), UTF8_TO_TCHAR(ar->short_src), ar->linedefined, ar->lastlinedefined, Name).Replace(*SandBoxPath, TEXT(""));
-	            LuaFuncPtrMap.Add(lp, ID);
+	            PurningDepth = CurDepth + 1;
             }
-            CurTraceTree->OnHookCall(L, lp, LuaFuncPtrMap[lp], MonitorMode == Statistics);
+
+            if (PurningDepth == 0)
+            {
+	            CurTraceTree->OnHookCall(L, luaptr, LuaFuncPtrMap[luaptr], MonitorMode == Statistics);
+            }
         }
         CurDepth++;
-    }
-}
-
-void FELuaMonitor::OnHookReturn(lua_State* L, lua_Debug* ar)
-{
-    if (CurTraceTree)
-    {
-        if (CurDepth <= MaxDepth)
-        {
-            CurTraceTree->OnHookReturn(L, ar, MonitorMode == Statistics);
-        }
-        CurDepth--;
     }
 }
 
@@ -259,9 +258,17 @@ void FELuaMonitor::OnHookReturn()
     {
         if (CurDepth <= MaxDepth)
         {
-            CurTraceTree->OnHookReturn();
+            if (PurningDepth == 0)
+            {
+				CurTraceTree->OnHookReturn();
+            }
         }
         CurDepth--;
+
+        if (CurDepth < PurningDepth/* && PurningDepth > 0*/)
+        {
+	        PurningDepth = 0;
+        }
     }
 }
 
@@ -464,6 +471,16 @@ void FELuaMonitor::OnCommandStart(const TArray<FString>& Args)
         }
     }
 }
+
+void FELuaMonitor::OnPurning(void const* luaptr)
+{
+	if (luaptr)
+	{
+		LuaTwigsFuncPtrList.Add(luaptr);
+        PurningDepth = CurDepth + 1;
+	}
+}
+
 
 
 static FAutoConsoleCommand ExecGMCommand(

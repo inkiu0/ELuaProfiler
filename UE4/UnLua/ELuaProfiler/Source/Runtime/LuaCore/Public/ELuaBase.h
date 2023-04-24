@@ -93,3 +93,9 @@ const FString SandBoxPath = FPaths::Combine(FPaths::ConvertRelativePathToFull(FP
 #else
 const FString SandBoxPath = FPaths::ProjectDir() + TEXT("Content/Script/");
 #endif
+
+#if PLATFORM_WINDOWS
+constexpr double TOLERANCE = 0.002;
+#else
+constexpr double TOLERANCE = 0.005;
+#endif

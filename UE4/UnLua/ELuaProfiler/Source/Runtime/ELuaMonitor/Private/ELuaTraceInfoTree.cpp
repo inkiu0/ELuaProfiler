@@ -22,6 +22,8 @@
 
 #include "ELuaTraceInfoTree.h"
 
+#include "ELuaMonitor.h"
+
 FELuaTraceInfoTree::FELuaTraceInfoTree()
 {
 
@@ -45,6 +47,11 @@ void FELuaTraceInfoTree::OnHookCall(lua_State* L, void const* p, FString ID, boo
     if (Root)
     {
         TSharedPtr<FELuaTraceInfoNode> Child = GetChild(p, ID);
+        if (Child->IsTwigs())
+        {
+			return FELuaMonitor::GetInstance()->OnPurning(p);
+        }
+
         if (Child->Parent == Root)
         {
             Root->FakeBeginInvoke();
@@ -52,20 +59,6 @@ void FELuaTraceInfoTree::OnHookCall(lua_State* L, void const* p, FString ID, boo
         Child->BeginInvoke();
         CurNode = Child;
         ++CurDepth;
-    }
-}
-
-void FELuaTraceInfoTree::OnHookReturn(lua_State* L, lua_Debug* ar, bool IsStatistics/* = false */)
-{
-    if (Root)
-    {
-        CurNode->EndInvoke();
-        CurNode = CurNode->Parent;
-        --CurDepth;
-        if (CurNode == Root)
-        {
-            Root->FakeEndInvoke();
-        }
     }
 }
 

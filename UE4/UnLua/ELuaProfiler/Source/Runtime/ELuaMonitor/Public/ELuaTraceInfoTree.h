@@ -44,8 +44,6 @@ public:
 
     void OnHookCall(lua_State* L, void const* p, FString ID, bool IsStatistics = false);
 
-    void OnHookReturn(lua_State* L, lua_Debug* ar, bool IsStatistics = false);
-
     void OnHookReturn();
 
     bool IsOnRoot() { return CurNode == Root; }

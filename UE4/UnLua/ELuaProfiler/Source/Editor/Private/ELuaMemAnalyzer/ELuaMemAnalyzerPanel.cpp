@@ -272,6 +272,12 @@ void SELuaMemAnalyzerPanel::DeferredTick(float DeltaTime)
 void SELuaMemAnalyzerPanel::OnCloseTab(TSharedRef<SDockTab> Tab)
 {
     TabIsOpening = false;
+    DockTab = nullptr;
+    MemToggleListWidget = nullptr;
+    TreeViewWidget = nullptr;
+    AndBtn = nullptr;
+    OrBtn = nullptr;
+    XorBtn = nullptr;
 }
 
 FReply SELuaMemAnalyzerPanel::OnSnapshotBtnClicked()

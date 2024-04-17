@@ -98,6 +98,8 @@ private:
     FELuaMonitor();
     ~FELuaMonitor();
 
+    static void RegisterLuaHook(lua_State* L);
+
     static void OnHook(lua_State* L, lua_Debug* ar);
     
     static void* LuaAllocator(void* ud, void* ptr, size_t osize, size_t nsize);
@@ -120,6 +122,8 @@ private:
     
 	void const* GetLuaFunc(lua_State* L, lua_Debug* ar);
 
+    lua_State* GetState();
+
 private:
     /* max depth of hook  tracking */
     uint32 MaxDepth = 100;
@@ -129,6 +133,8 @@ private:
 
     /* Purning Lua Twigs */
     uint32 PurningDepth = 0;
+
+    lua_State* CurrState = nullptr;
 
     TSharedPtr<FELuaTraceInfoTree> CurTraceTree;
 

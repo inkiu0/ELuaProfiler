@@ -55,9 +55,30 @@ FELuaMonitor::~FELuaMonitor()
     LuaTwigsFuncPtrList.Empty();
 }
 
+void FELuaMonitor::RegisterLuaHook(lua_State* L)
+{
+    lua_sethook(L, OnHook, ELuaProfiler::HookMask, 0);
+    lua_setallocf(L, FELuaMonitor::LuaAllocator, nullptr);
+}
+
+lua_State* FELuaMonitor::GetState()
+{
+    lua_State* L = UnLua::GetState();
+	if (L != CurrState)
+	{
+		CurrState = L;
+        if (State == RUNING)
+        {
+            // re-register lua hook when lua_State changed
+	        FELuaMonitor::RegisterLuaHook(CurrState);
+        }
+	}
+    return CurrState;
+}
+
 void FELuaMonitor::Init()
 {
-    if (UnLua::GetState())
+    if (GetState())
     {
         State |= INITED;
     }
@@ -105,10 +126,9 @@ void FELuaMonitor::Start()
     Init();
     if ((State & INITED) > 0)
     {
-        if (lua_State* L = UnLua::GetState())
+        if (lua_State* L = GetState())
         {
-            lua_sethook(L, OnHook, ELuaProfiler::HookMask, 0);
-            lua_setallocf(L, FELuaMonitor::LuaAllocator, nullptr);
+	        FELuaMonitor::RegisterLuaHook(CurrState);
         }
     }
     State |= STARTED;
@@ -118,7 +138,7 @@ void FELuaMonitor::Stop()
 {
     if (State == RUNING)
     {
-        if (lua_State* L = UnLua::GetState())
+        if (lua_State* L = GetState())
         {
             lua_sethook(L, nullptr, 0, 0);
         }
@@ -130,7 +150,7 @@ void FELuaMonitor::Pause()
 {
     if (State == RUNING)
     {
-        if (lua_State* L = UnLua::GetState())
+        if (lua_State* L = GetState())
         {
             lua_sethook(L, nullptr, 0, 0);
         }
@@ -143,7 +163,7 @@ void FELuaMonitor::Resume()
     if ((State & PAUSE) > 0)
     {
         State &= (~PAUSE);
-        if (lua_State* L = UnLua::GetState())
+        if (lua_State* L = GetState())
         {
             lua_sethook(L, OnHook, ELuaProfiler::HookMask, 0);
         }
@@ -344,7 +364,7 @@ bool FELuaMonitor::Tick(float DeltaTime)
     if (State == RUNING)
     {
         // game stop
-        if (!UnLua::GetState())
+        if (!GetState())
         {
             Stop();
         }
@@ -357,7 +377,7 @@ bool FELuaMonitor::Tick(float DeltaTime)
     else if(State == STARTED)
     {
         // waiting game start
-        if (UnLua::GetState())
+        if (GetState())
         {
             OnForward();
         }

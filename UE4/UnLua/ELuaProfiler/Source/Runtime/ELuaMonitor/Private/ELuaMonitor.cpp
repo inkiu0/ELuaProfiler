@@ -64,6 +64,8 @@ void FELuaMonitor::OnLuaStateCreate(lua_State* L) const
         // waiting game start
         // re-register lua hook when lua_State changed
         FELuaMonitor::RegisterLuaHook(L);
+	    ELuaProfiler::GCSize = 0;
+	    ELuaProfiler::AllocSize = 0;
     }
 }
 
@@ -71,8 +73,6 @@ void FELuaMonitor::RegisterLuaHook(lua_State* L)
 {
     lua_sethook(L, OnHook, ELuaProfiler::HookMask, 0);
     lua_setallocf(L, FELuaMonitor::LuaAllocator, nullptr);
-    ELuaProfiler::GCSize = 0;
-    ELuaProfiler::AllocSize = 0;
 }
 
 void FELuaMonitor::Init()

@@ -24,6 +24,7 @@
 
 #include "lstate.h"
 #include "UnLuaBase.h"
+#include "UnLuaDelegates.h"
 
 #define LOCTEXT_NAMESPACE "FELuaMonitorModule"
 
@@ -46,6 +47,7 @@ FELuaMonitor::FELuaMonitor()
     CurTraceTree = MakeShared<FELuaTraceInfoTree>();
     TickDelegate = FTickerDelegate::CreateRaw(this, &FELuaMonitor::Tick);
     TickDelegateHandle = FTicker::GetCoreTicker().AddTicker(TickDelegate);
+	FUnLuaDelegates::OnLuaStateCreated.AddRaw(this, &FELuaMonitor::OnLuaStateCreate);
 }
 
 FELuaMonitor::~FELuaMonitor()
@@ -55,30 +57,27 @@ FELuaMonitor::~FELuaMonitor()
     LuaTwigsFuncPtrList.Empty();
 }
 
+void FELuaMonitor::OnLuaStateCreate(lua_State* L) const
+{
+	if(State & STARTED)
+    {
+        // waiting game start
+        // re-register lua hook when lua_State changed
+        FELuaMonitor::RegisterLuaHook(L);
+    }
+}
+
 void FELuaMonitor::RegisterLuaHook(lua_State* L)
 {
     lua_sethook(L, OnHook, ELuaProfiler::HookMask, 0);
     lua_setallocf(L, FELuaMonitor::LuaAllocator, nullptr);
-}
-
-lua_State* FELuaMonitor::GetState()
-{
-    lua_State* L = UnLua::GetState();
-	if (L != CurrState)
-	{
-		CurrState = L;
-        if (State == RUNING)
-        {
-            // re-register lua hook when lua_State changed
-	        FELuaMonitor::RegisterLuaHook(CurrState);
-        }
-	}
-    return CurrState;
+    ELuaProfiler::GCSize = 0;
+    ELuaProfiler::AllocSize = 0;
 }
 
 void FELuaMonitor::Init()
 {
-    if (GetState())
+    if (UnLua::GetState())
     {
         State |= INITED;
     }
@@ -112,7 +111,13 @@ void* FELuaMonitor::LuaAllocator(void* ud, void* ptr, size_t osize, size_t nsize
         ELuaProfiler::GCSize += osize;
         FMemory::Free(ptr);
         return nullptr;
-    } 
+    }
+
+	if (!ptr)
+    {
+        ELuaProfiler::AllocSize += nsize;
+        return FMemory::Malloc(nsize);
+    }
     else
     {
         ELuaProfiler::GCSize += osize;
@@ -126,9 +131,9 @@ void FELuaMonitor::Start()
     Init();
     if ((State & INITED) > 0)
     {
-        if (lua_State* L = GetState())
+        if (lua_State* L = UnLua::GetState())
         {
-	        FELuaMonitor::RegisterLuaHook(CurrState);
+	        FELuaMonitor::RegisterLuaHook(L);
         }
     }
     State |= STARTED;
@@ -138,7 +143,7 @@ void FELuaMonitor::Stop()
 {
     if (State == RUNING)
     {
-        if (lua_State* L = GetState())
+        if (lua_State* L = UnLua::GetState())
         {
             lua_sethook(L, nullptr, 0, 0);
         }
@@ -150,7 +155,7 @@ void FELuaMonitor::Pause()
 {
     if (State == RUNING)
     {
-        if (lua_State* L = GetState())
+        if (lua_State* L = UnLua::GetState())
         {
             lua_sethook(L, nullptr, 0, 0);
         }
@@ -163,7 +168,7 @@ void FELuaMonitor::Resume()
     if ((State & PAUSE) > 0)
     {
         State &= (~PAUSE);
-        if (lua_State* L = GetState())
+        if (lua_State* L = UnLua::GetState())
         {
             lua_sethook(L, OnHook, ELuaProfiler::HookMask, 0);
         }
@@ -175,7 +180,9 @@ void FELuaMonitor::OnClear()
     Stop();
 
     State = CREATED;
-
+    
+    LuaFuncPtrMap.Empty();
+    LuaTwigsFuncPtrList.Empty();
     FramesTraceTreeList.Empty();
 
     CurFrameIndex = 0;
@@ -364,7 +371,7 @@ bool FELuaMonitor::Tick(float DeltaTime)
     if (State == RUNING)
     {
         // game stop
-        if (!GetState())
+        if (!UnLua::GetState())
         {
             Stop();
         }
@@ -377,7 +384,7 @@ bool FELuaMonitor::Tick(float DeltaTime)
     else if(State == STARTED)
     {
         // waiting game start
-        if (GetState())
+        if (UnLua::GetState())
         {
             OnForward();
         }

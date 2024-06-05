@@ -112,26 +112,26 @@ void FELuaTraceInfoTree::CountNodeSelfTime(TSharedPtr<FELuaTraceInfoNode> Node, 
             switch (SortMode)
             {
             case SelfTime:
-                return A->SelfTime > B->SelfTime;
+                return A->SelfTime == B->SelfTime ? A->CallTime < B->CallTime : A->SelfTime > B->SelfTime;
                 break;
             case Average:
-                return A->Average > B->Average;
+                return A->Average == B->Average ? A->CallTime < B->CallTime : A->Average > B->Average;
                 break;
             case Alloc:
-                return A->AllocSize > B->AllocSize;
+                return A->AllocSize == B->AllocSize ? A->CallTime < B->CallTime : A->AllocSize > B->AllocSize;
                 break;
             case GC:
-                return A->GCSize > B->GCSize;
+                return A->GCSize == B->GCSize ? A->CallTime < B->CallTime : A->GCSize > B->GCSize;
                 break;
             case Calls:
-                return A->Count > B->Count;
+                return A->Count == B->Count ? A->CallTime < B->CallTime : A->Count > B->Count;
                 break;
             case TotalTime:
             default:
-                return A->TotalTime > B->TotalTime;
+                return A->TotalTime == B->TotalTime ? A->CallTime < B->CallTime : A->TotalTime > B->TotalTime;
                 break;
             }
-            return A->TotalTime > B->TotalTime;
+            return A->TotalTime == B->TotalTime ? A->CallTime < B->CallTime : A->TotalTime > B->TotalTime;
         });
 
         // ifdef CORRECT_TIME sub profiler's own time overhead

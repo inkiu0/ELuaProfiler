@@ -185,6 +185,7 @@ void FELuaMonitor::OnClear()
     LuaTwigsFuncPtrList.Empty();
     FramesTraceTreeList.Empty();
 
+    CurDepth = 0;
     CurFrameIndex = 0;
 
     CurTraceTree = TSharedPtr<FELuaTraceInfoTree>(new FELuaTraceInfoTree());

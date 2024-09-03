@@ -110,6 +110,8 @@ private:
 
     void OnHookReturn();
 
+    void OnHookError();
+
     void Init();
 
     void Start();

@@ -46,13 +46,15 @@ public:
 
     void OnHookReturn();
 
+    void OnHookError();
+
     bool IsOnRoot() { return CurNode == Root; }
 
     void CountSelfTime(EMonitorSortMode SortMode);
 
     TSharedPtr<FELuaTraceInfoNode> GetRoot() { return Root; }
 
-    TSharedPtr<FELuaTraceInfoNode> Statisticize();
+    TSharedPtr<FELuaTraceInfoNode> Statisticize(EMonitorSortMode SortMode);
 
     void StatisticizeNode(TSharedPtr<FELuaTraceInfoNode> Node, TSharedPtr<FELuaTraceInfoNode> StatisticsNode);
     

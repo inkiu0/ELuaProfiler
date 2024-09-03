@@ -76,6 +76,20 @@ void FELuaTraceInfoTree::OnHookReturn()
     }
 }
 
+void FELuaTraceInfoTree::OnHookError()
+{
+    while (Root && CurNode && CurDepth > 0)
+    {
+        CurNode->EndInvoke();
+        CurNode = CurNode->Parent;
+        --CurDepth;
+        if (CurNode == Root)
+        {
+            Root->FakeEndInvoke();
+        }
+    }
+}
+
 TSharedPtr <FELuaTraceInfoNode> FELuaTraceInfoTree::GetChild(void const* p, FString ID)
 {
     TSharedPtr<FELuaTraceInfoNode> Child = CurNode->GetChild(p);
@@ -103,36 +117,45 @@ void FELuaTraceInfoTree::CountSelfTime(EMonitorSortMode SortMode)
 
     CountNodeSelfTime(Root, SortMode);
 }
+struct FCompareNode
+{
+    EMonitorSortMode SortMode;
+    FCompareNode(EMonitorSortMode InSortMode)
+        : SortMode(InSortMode)
+    {}
+    FORCEINLINE bool operator()(const TSharedPtr<FELuaTraceInfoNode>& A, const TSharedPtr <FELuaTraceInfoNode>& B) const
+    {
+        switch (SortMode)
+        {
+        case SelfTime:
+            return A->SelfTime == B->SelfTime ? A->CallTime < B->CallTime : A->SelfTime > B->SelfTime;
+            break;
+        case Average:
+            return A->Average == B->Average ? A->CallTime < B->CallTime : A->Average > B->Average;
+            break;
+        case Alloc:
+            return A->AllocSize == B->AllocSize ? A->CallTime < B->CallTime : A->AllocSize > B->AllocSize;
+            break;
+        case GC:
+            return A->GCSize == B->GCSize ? A->CallTime < B->CallTime : A->GCSize > B->GCSize;
+            break;
+        case Calls:
+            return A->Count == B->Count ? A->CallTime < B->CallTime : A->Count > B->Count;
+            break;
+        case TotalTime:
+        default:
+            return A->TotalTime == B->TotalTime ? A->CallTime < B->CallTime : A->TotalTime > B->TotalTime;
+            break;
+        }
+        return A->TotalTime == B->TotalTime ? A->CallTime < B->CallTime : A->TotalTime > B->TotalTime;
+    }
+};
 
 void FELuaTraceInfoTree::CountNodeSelfTime(TSharedPtr<FELuaTraceInfoNode> Node, EMonitorSortMode SortMode)
 {
     if (Node)
     {
-        Node->Children.Sort([SortMode](const TSharedPtr<FELuaTraceInfoNode>& A, const TSharedPtr <FELuaTraceInfoNode>& B) {
-            switch (SortMode)
-            {
-            case SelfTime:
-                return A->SelfTime == B->SelfTime ? A->CallTime < B->CallTime : A->SelfTime > B->SelfTime;
-                break;
-            case Average:
-                return A->Average == B->Average ? A->CallTime < B->CallTime : A->Average > B->Average;
-                break;
-            case Alloc:
-                return A->AllocSize == B->AllocSize ? A->CallTime < B->CallTime : A->AllocSize > B->AllocSize;
-                break;
-            case GC:
-                return A->GCSize == B->GCSize ? A->CallTime < B->CallTime : A->GCSize > B->GCSize;
-                break;
-            case Calls:
-                return A->Count == B->Count ? A->CallTime < B->CallTime : A->Count > B->Count;
-                break;
-            case TotalTime:
-            default:
-                return A->TotalTime == B->TotalTime ? A->CallTime < B->CallTime : A->TotalTime > B->TotalTime;
-                break;
-            }
-            return A->TotalTime == B->TotalTime ? A->CallTime < B->CallTime : A->TotalTime > B->TotalTime;
-        });
+        Node->Children.Sort(FCompareNode(SortMode));
 
         // ifdef CORRECT_TIME sub profiler's own time overhead
         Node->SelfTime = Node->TotalTime - DEVIATION * Node->Count;
@@ -157,10 +180,12 @@ void FELuaTraceInfoTree::StatisticizeNode(TSharedPtr<FELuaTraceInfoNode> Node, T
     }
 }
 
-TSharedPtr<FELuaTraceInfoNode> FELuaTraceInfoTree::Statisticize()
+TSharedPtr<FELuaTraceInfoNode> FELuaTraceInfoTree::Statisticize(EMonitorSortMode SortMode)
 {
     TSharedPtr<FELuaTraceInfoNode> StatisticsNode = MakeShared<FELuaTraceInfoNode>(Root);
     StatisticizeNode(Root, StatisticsNode);
+    StatisticsNode->Children.Sort(FCompareNode(SortMode));
+    
     return StatisticsNode;
 }
 

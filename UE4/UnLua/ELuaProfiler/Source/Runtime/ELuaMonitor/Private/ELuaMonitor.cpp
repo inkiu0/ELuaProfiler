@@ -229,6 +229,11 @@ void FELuaMonitor::OnClear()
             }
         }
     }
+
+    // if (UnLua::LuaIsError)
+    // {
+	   //  FELuaMonitor::GetInstance()->OnHookError();
+    // }
     
     switch (Event)
     {
@@ -300,6 +305,14 @@ void FELuaMonitor::OnHookReturn()
     }
 }
 
+void FELuaMonitor::OnHookError()
+{
+    if (CurTraceTree)
+    {
+		CurTraceTree->OnHookError();
+    }
+}
+
 TSharedPtr<FELuaTraceInfoNode> FELuaMonitor::GetRoot(uint32 FrameIndex /* = 0 */)
 {
     if ((State & INITED) > 0)
@@ -318,8 +331,7 @@ TSharedPtr<FELuaTraceInfoNode> FELuaMonitor::GetRoot(uint32 FrameIndex /* = 0 */
         }
         else if (MonitorMode == Statistics)
         {
-            CurTraceTree->CountSelfTime(MonitorSortMode);
-            return CurTraceTree->Statisticize();
+            return CurTraceTree->Statisticize(MonitorSortMode);
         }
         else
         {

@@ -63,6 +63,8 @@ public:
 
     void OnClear();
 
+    void ClearData();
+
     bool Tick(float DeltaTime);
 
     int32 GetMaxDepth() const { return MaxDepth; }

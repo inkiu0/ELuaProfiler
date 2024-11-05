@@ -33,6 +33,7 @@ FELuaTraceInfoTree::~FELuaTraceInfoTree()
 {
     Root = nullptr;
     CurNode = nullptr;
+    MemMap.Empty();
 }
 
 void FELuaTraceInfoTree::Init()
@@ -40,6 +41,7 @@ void FELuaTraceInfoTree::Init()
     FString RootName("Root");
     Root = MakeShared<FELuaTraceInfoNode>(nullptr, RootName);
     CurNode = Root;
+    MemMap.Empty();
 }
 
 void FELuaTraceInfoTree::OnHookCall(lua_State* L, void const* p, FString ID, bool IsStatistics/* = false */)
@@ -47,7 +49,7 @@ void FELuaTraceInfoTree::OnHookCall(lua_State* L, void const* p, FString ID, boo
     if (Root)
     {
         TSharedPtr<FELuaTraceInfoNode> Child = GetChild(p, ID);
-        if (Child->IsTwigs())
+        if (Child->IsTwigs(CurDepth))
         {
 			return FELuaMonitor::GetInstance()->OnPurning(p);
         }
@@ -87,6 +89,31 @@ void FELuaTraceInfoTree::OnHookError()
         {
             Root->FakeEndInvoke();
         }
+    }
+}
+
+void FELuaTraceInfoTree::OnAlloc(void* nptr, void* ptr, size_t osize, size_t nsize)
+{
+    if (CurNode)
+    {
+	    FELuaTraceInfoNode* Node = (ptr && MemMap.Contains(ptr)) ? MemMap[ptr] : CurNode.Get();
+	    if (nsize == 0)
+	    {
+	        Node->OnFree(osize);
+	        MemMap.Remove(ptr);
+	    }
+		else if (!ptr)
+	    {
+	        CurNode->OnMalloc(nsize);
+			MemMap.Add(nptr, CurNode.Get());
+	    }
+	    else
+	    {
+			Node->OnFree(osize);
+	        MemMap.Remove(ptr);
+	        CurNode->OnMalloc(nsize);
+			MemMap.Add(nptr, CurNode.Get());
+	    }
     }
 }
 
@@ -160,10 +187,14 @@ void FELuaTraceInfoTree::CountNodeSelfTime(TSharedPtr<FELuaTraceInfoNode> Node, 
         // ifdef CORRECT_TIME sub profiler's own time overhead
         Node->SelfTime = Node->TotalTime - DEVIATION * Node->Count;
         Node->Average = Node->Count > 0 ? Node->TotalTime / Node->Count : 0;
+        Node->AllocSize = Node->SelfAllocSize;
+        Node->GCSize = Node->SelfGCSize;
         for (int32 i = 0; i < Node->Children.Num(); i++)
         {
             Node->SelfTime -= Node->Children[i]->TotalTime;
             CountNodeSelfTime(Node->Children[i], SortMode);
+	        Node->AllocSize += Node->Children[i]->AllocSize;
+	        Node->GCSize += Node->Children[i]->GCSize;
         }
     }
 }

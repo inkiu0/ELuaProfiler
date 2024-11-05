@@ -42,17 +42,17 @@ struct ELUAMONITOR_API FELuaTraceInfoNode
 
     /* average time */
     double Average = 0;
+    
+    /* the memory allocated by this node */
+    float SelfAllocSize = 0;
+    
+    /* the memory released by this node */
+    float SelfGCSize = 0;
 
-    /* the allocated size of lua_State when this node invoke */
-    float CallAllocSize = 0;
-
-    /* the gced size of lua_State when this node return */
-    float CallGCSize;
-
-    /* the size of this node alloc */
+    /* the total memory allocated by this node and its children */
     float AllocSize = 0;
 
-    /* the size of this node release */
+    /* total memory released by this node and its children */
     float GCSize = 0;
 
     /* the num of calls */
@@ -107,8 +107,6 @@ struct ELUAMONITOR_API FELuaTraceInfoNode
     void FakeBeginInvoke()
     {
         CallTime = GetTimeMs();
-        CallAllocSize = ELuaProfiler::AllocSize;
-        CallGCSize = ELuaProfiler::GCSize;
     }
 
     // 只有Root和一帧结束尚未返回的函数会调用
@@ -117,26 +115,28 @@ struct ELUAMONITOR_API FELuaTraceInfoNode
         double NowTime = GetTimeMs();
         TotalTime += NowTime - CallTime;
         CallTime = NowTime;
-
-        AllocSize += (ELuaProfiler::AllocSize - CallAllocSize) * 0.001f;
-        GCSize += (ELuaProfiler::GCSize - CallGCSize) * 0.001f;
     }
 
     void BeginInvoke()
     {
         CallTime = GetTimeMs();
-        CallAllocSize = ELuaProfiler::AllocSize;
-        CallGCSize = ELuaProfiler::GCSize;
         Count += 1;
     }
 
     void EndInvoke()
     {
         TotalTime += GetTimeMs() - CallTime;
+    }
 
-        AllocSize += (ELuaProfiler::AllocSize - CallAllocSize) * 0.001f;
-        GCSize += (ELuaProfiler::GCSize - CallGCSize) * 0.001f;
-        // return Event;
+    void OnMalloc(size_t nsize)
+    {
+	    SelfAllocSize += nsize * 0.001f;
+    }
+
+    void OnFree(size_t osize)
+    {
+        SelfAllocSize -= osize * 0.001f;
+	    SelfGCSize += osize * 0.001f;
     }
 
     TSharedPtr<FELuaTraceInfoNode> GetChild(void const* p)
@@ -162,9 +162,9 @@ struct ELUAMONITOR_API FELuaTraceInfoNode
         ChildPtrMap.Empty();
     }
 
-    bool IsTwigs()
+    bool IsTwigs(uint32 CurDepth)
     {
-        if (FlagTwigs < 0 && Count >= 10)
+        if (FlagTwigs < 0 && Count >= 10 && CurDepth > 20)
         {
 	        if (TotalTime > TOLERANCE * Count)
 	        {
@@ -188,8 +188,8 @@ struct ELUAMONITOR_API FELuaTraceInfoNode
             CallTime = Other->CallTime;
             SelfTime = Other->SelfTime;
             TotalTime = Other->TotalTime;
-            CallAllocSize = Other->CallAllocSize;
-            CallGCSize = Other->CallGCSize;
+            SelfAllocSize = Other->SelfAllocSize;
+            SelfGCSize = Other->SelfGCSize;
             AllocSize = Other->AllocSize;
             GCSize = Other->GCSize;
             Count = Other->Count;
@@ -228,8 +228,8 @@ inline FArchive& operator<<(FArchive& Ar, TSharedPtr<FELuaTraceInfoNode>& Node)
         Ar << Node->CallTime;
         Ar << Node->SelfTime;
         Ar << Node->TotalTime;
-        Ar << Node->CallAllocSize;
-        Ar << Node->CallGCSize;
+        Ar << Node->SelfAllocSize;
+        Ar << Node->SelfGCSize;
         Ar << Node->AllocSize;
         Ar << Node->GCSize;
         Ar << Node->Count;
@@ -250,8 +250,8 @@ inline FArchive& operator<<(FArchive& Ar, TSharedPtr<FELuaTraceInfoNode>& Node)
         Ar << Node->CallTime;
         Ar << Node->SelfTime;
         Ar << Node->TotalTime;
-        Ar << Node->CallAllocSize;
-        Ar << Node->CallGCSize;
+        Ar << Node->SelfAllocSize;
+        Ar << Node->SelfGCSize;
         Ar << Node->AllocSize;
         Ar << Node->GCSize;
         Ar << Node->Count;

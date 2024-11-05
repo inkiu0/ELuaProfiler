@@ -64,8 +64,7 @@ void FELuaMonitor::OnLuaStateCreate(lua_State* L) const
         // waiting game start
         // re-register lua hook when lua_State changed
         FELuaMonitor::RegisterLuaHook(L);
-	    ELuaProfiler::GCSize = 0;
-	    ELuaProfiler::AllocSize = 0;
+        FELuaMonitor::GetInstance()->ClearData();
     }
 }
 
@@ -106,24 +105,25 @@ void FELuaMonitor::OnForward()
 
 void* FELuaMonitor::LuaAllocator(void* ud, void* ptr, size_t osize, size_t nsize)
 {
+    void* nptr = nullptr;
     if (nsize == 0)
     {
-        ELuaProfiler::GCSize += osize;
         FMemory::Free(ptr);
-        return nullptr;
     }
-
-	if (!ptr)
+	else if (!ptr)
     {
-        ELuaProfiler::AllocSize += nsize;
-        return FMemory::Malloc(nsize);
+        nptr = FMemory::Malloc(nsize);
     }
     else
     {
-        ELuaProfiler::GCSize += osize;
-        ELuaProfiler::AllocSize += nsize;
-        return FMemory::Realloc(ptr, nsize);
+        nptr = FMemory::Realloc(ptr, nsize);
     }
+
+    if (FELuaMonitor::GetInstance()->IsRuning() && FELuaMonitor::GetInstance()->CurTraceTree)
+    {
+	    FELuaMonitor::GetInstance()->CurTraceTree->OnAlloc(nptr, ptr, osize, nsize);
+    }
+    return nptr;
 }
 
 void FELuaMonitor::Start()
@@ -159,6 +159,7 @@ void FELuaMonitor::Pause()
         {
             lua_sethook(L, nullptr, 0, 0);
         }
+		State &= (~STARTED);
     }
     State |= PAUSE;
 }
@@ -172,6 +173,7 @@ void FELuaMonitor::Resume()
         {
             lua_sethook(L, OnHook, ELuaProfiler::HookMask, 0);
         }
+		State |= STARTED;
     }
 }
 
@@ -180,16 +182,22 @@ void FELuaMonitor::OnClear()
     Stop();
 
     State = CREATED;
-    
+
+    ClearData();
+
+    CurTraceTree = TSharedPtr<FELuaTraceInfoTree>(new FELuaTraceInfoTree());
+}
+
+void FELuaMonitor::ClearData()
+{
     LuaFuncPtrMap.Empty();
     LuaTwigsFuncPtrList.Empty();
     FramesTraceTreeList.Empty();
 
     CurDepth = 0;
     CurFrameIndex = 0;
-
-    CurTraceTree = TSharedPtr<FELuaTraceInfoTree>(new FELuaTraceInfoTree());
 }
+
 
 /*static*/ void FELuaMonitor::OnHook(lua_State* L, lua_Debug* ar)
 {
@@ -248,6 +256,16 @@ void FELuaMonitor::OnClear()
     }
 }
 
+const FString& GetSandBoxPath()
+{
+#if PLATFORM_WINDOWS
+    static FString SandBoxPath = FPaths::Combine(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()), TEXT("Content/Script/"));
+#else
+    static FString SandBoxPath = FPaths::ProjectDir() + TEXT("Content/Script/");
+#endif
+    return SandBoxPath;
+}
+
 void const* FELuaMonitor::GetLuaFunc(lua_State* L, lua_Debug* ar)
 {
 	lua_getinfo(L, "f", ar);
@@ -258,7 +276,8 @@ void const* FELuaMonitor::GetLuaFunc(lua_State* L, lua_Debug* ar)
     {
 		lua_getinfo(L, "nS", ar);
 	    TCHAR* Name = UTF8_TO_TCHAR(ar->name);
-	    FString ID = FString::Printf(TEXT("%s:%d~%d %s"), UTF8_TO_TCHAR(ar->short_src), ar->linedefined, ar->lastlinedefined, Name).Replace(*SandBoxPath, TEXT(""));
+
+	    FString ID = FString::Printf(TEXT("%s:%d~%d %s"), UTF8_TO_TCHAR(ar->short_src), ar->linedefined, ar->lastlinedefined, Name).Replace(*GetSandBoxPath(), TEXT(""));
         LuaFuncPtrMap.Add(luaPtr, ID);
     }
     return luaPtr;

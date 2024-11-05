@@ -56,10 +56,6 @@ namespace ELuaProfiler
     static const FString ELUA_PROF_FILE_SUFFIX(TEXT(".elprof"));
 
     const int HookMask = LUA_MASKCALL | LUA_MASKRET;
-
-    static uint32 AllocSize = 0;
-    
-    static uint32 GCSize = 0;
 }
 
 enum ELuaMonitorMode : uint8
@@ -88,14 +84,14 @@ enum ESnapshotOp : uint8
     SOP_XOR = 1 << 3
 };
 
-#if PLATFORM_WINDOWS
-const FString SandBoxPath = FPaths::Combine(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()), TEXT("Content/Script/"));
-#else
-const FString SandBoxPath = FPaths::ProjectDir() + TEXT("Content/Script/");
-#endif
+//#if PLATFORM_WINDOWS
+//const FString SandBoxPath = FPaths::Combine(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()), TEXT("Content/Script/"));
+//#else
+//const FString SandBoxPath = FPaths::ProjectDir() + TEXT("Content/Script/");
+//#endif
 
 #if PLATFORM_WINDOWS
-constexpr double TOLERANCE = 0.002;
+constexpr double TOLERANCE = 0.0002;
 #else
-constexpr double TOLERANCE = 0.005;
+constexpr double TOLERANCE = 0.0005;
 #endif

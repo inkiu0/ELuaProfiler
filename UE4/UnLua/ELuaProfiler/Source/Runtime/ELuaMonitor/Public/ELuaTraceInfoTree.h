@@ -48,6 +48,8 @@ public:
 
     void OnHookError();
 
+    void OnAlloc(void* nptr, void* ptr, size_t osize, size_t nsize);
+
     bool IsOnRoot() { return CurNode == Root; }
 
     void CountSelfTime(EMonitorSortMode SortMode);
@@ -68,6 +70,7 @@ private:
 private:
     TSharedPtr<FELuaTraceInfoNode> Root;
     TSharedPtr<FELuaTraceInfoNode> CurNode;
+    TMap<void*, FELuaTraceInfoNode*> MemMap;
     uint32 CurDepth = 0;
 };
 

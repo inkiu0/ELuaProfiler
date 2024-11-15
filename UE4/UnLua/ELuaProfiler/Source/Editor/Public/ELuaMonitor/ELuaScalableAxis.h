@@ -71,7 +71,7 @@ public:
 	double GetMinScale() const { return MinScale; }
 	double GetMaxScale() const { return MaxScale; }
 	double GetScale() const { return Scale; }
-	float GetBarWidth() const { return FMath::Max(1.0f, FMath::RoundToFloat(Scale)); }
+	float GetBarWidth() const { return Scale; }
 
 	void SetMinMaxValueInterval(const double InMinValue, const double InMaxValue)
 	{

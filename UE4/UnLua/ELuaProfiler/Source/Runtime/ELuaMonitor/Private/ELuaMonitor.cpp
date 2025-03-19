@@ -477,13 +477,18 @@ void FELuaMonitor::Deserialize(const FString& Path, ELuaMonitorMode& EMode)
     E_SERIALIZE_READING_PERF_DATA_VERSION = Default;
 }
 
-void FELuaMonitor::Serialize(const FString& Path)
+void FELuaMonitor::Serialize(const FString& SaveDir)
 {
-    FString FilePath = Path;
-    if (FilePath.IsEmpty())
+    FString FilePath = SaveDir;
+    if (SaveDir.IsEmpty())
     {
         const FString FileName = FApp::GetProjectName() + FDateTime::Now().ToString(TEXT("%Y%m%d_%H%M%S")) + ELuaProfiler::ELUA_PROF_FILE_SUFFIX;
         FilePath = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("ELuaProfiler"), FileName);
+    }
+    else
+    {
+        const FString FileName = FApp::GetProjectName() + FDateTime::Now().ToString(TEXT("%Y%m%d_%H%M%S")) + ELuaProfiler::ELUA_PROF_FILE_SUFFIX;
+        FilePath = FPaths::Combine(SaveDir, FileName);
     }
     
     TArray<uint8> Buffer;
@@ -530,16 +535,16 @@ void FELuaMonitor::OnCommandStart(const TArray<FString>& Args)
     
     const FString ExeCommand = Args[0].ToLower();
 
-    int32 Mode = -1;
-    if (Args.Num() >= 2)
-        Mode = FCString::Atoi(*Args[1]);
-
-    int32 Depth = 10;
-    if (Args.Num() >= 3)
-		Depth = FCString::Atoi(*Args[2]);
-
     if (ExeCommand.Equals(TEXT("start")))
     {
+	    int32 Mode = -1;
+	    if (Args.Num() >= 2)
+	        Mode = FCString::Atoi(*Args[1]);
+
+	    int32 Depth = 10;
+	    if (Args.Num() >= 3)
+			Depth = FCString::Atoi(*Args[2]);
+
         if (Mode >= 0)
         {
             FELuaMonitor::GetInstance()->SetMonitorMode(static_cast<ELuaMonitorMode>(Mode));
@@ -549,11 +554,19 @@ void FELuaMonitor::OnCommandStart(const TArray<FString>& Args)
     }
     else if (ExeCommand.Equals(TEXT("stop")))
     {
+	    FString SaveDir;
+	    if (Args.Num() >= 2)
+			SaveDir = Args[1];
+
         FELuaMonitor::GetInstance()->Stop();
-        FELuaMonitor::GetInstance()->Serialize("");
+        FELuaMonitor::GetInstance()->Serialize(SaveDir);
     }
     else
     {
+	    int32 Mode = -1;
+	    if (Args.Num() >= 2)
+	        Mode = FCString::Atoi(*Args[1]);
+
         if (Mode == ELuaMonitorMode::PerFrame)
         {
             if (ExeCommand.Equals(TEXT("pause")))

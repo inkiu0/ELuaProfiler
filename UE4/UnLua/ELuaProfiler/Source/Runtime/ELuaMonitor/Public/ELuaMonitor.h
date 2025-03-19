@@ -77,7 +77,7 @@ public:
 
     void Deserialize(const FString& Path, ELuaMonitorMode& EMode);
 
-    void Serialize(const FString& Path);
+    void Serialize(const FString& SaveDir);
 
     void SetMonitorMode(ELuaMonitorMode Mode) { MonitorMode = Mode; }
 

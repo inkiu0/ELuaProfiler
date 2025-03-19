@@ -432,9 +432,30 @@ void FELuaMonitor::Deserialize(const FString& Path, ELuaMonitorMode& EMode)
     TArray<uint8> Buffer;
     FFileHelper::LoadFileToArray(Buffer, *Path);
     FMemoryReader ReaderAr(Buffer);
-
+    
     int32 Mode;
-    ReaderAr << Mode;
+    int32 MagicNumber;
+    ReaderAr << MagicNumber;
+    if (MagicNumber == 742010247)
+    {
+        E_SERIALIZE_READING_PERF_DATA_VERSION = SymbolTable;
+        int32 Num = 0;
+        ReaderAr << Num;
+        for (int32 i = 0; i < Num; ++i)
+        {
+	        uint64 uip = 0;
+            ReaderAr << uip;
+            FString ID;
+            ReaderAr << ID;
+            LuaFuncPtrMap.Add(reinterpret_cast<void*>(uip), ID);
+        }
+        ReaderAr << Mode;
+    }
+    else
+    {
+		Mode = MagicNumber;
+    }
+
     EMode = static_cast<ELuaMonitorMode>(Mode);
     if (EMode == PerFrame)
     {
@@ -453,6 +474,7 @@ void FELuaMonitor::Deserialize(const FString& Path, ELuaMonitorMode& EMode)
 		ReaderAr << CurTraceTree;
     }
     State |= INITED;
+    E_SERIALIZE_READING_PERF_DATA_VERSION = Default;
 }
 
 void FELuaMonitor::Serialize(const FString& Path)
@@ -466,6 +488,21 @@ void FELuaMonitor::Serialize(const FString& Path)
     
     TArray<uint8> Buffer;
     FMemoryWriter MemoryAr(Buffer);
+
+    if (E_SERIALIZE_VERSION == SymbolTable)
+    {
+	    int32 MagicNumber = 742010247;
+	    MemoryAr << MagicNumber;
+	    int32 Num = LuaFuncPtrMap.Num();
+	    MemoryAr << Num;
+	    for (TPair<const void*, FString>& Entry : LuaFuncPtrMap)
+	    {
+	        uint64 uip = reinterpret_cast<uint64>(Entry.Key);
+	        MemoryAr << uip;
+	        MemoryAr << Entry.Value;
+	    }
+    }
+
     int32 Mode = MonitorMode;
     MemoryAr << Mode;
     if (MonitorMode == PerFrame)

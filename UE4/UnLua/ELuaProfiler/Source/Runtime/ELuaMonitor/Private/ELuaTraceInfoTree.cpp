@@ -38,8 +38,7 @@ FELuaTraceInfoTree::~FELuaTraceInfoTree()
 
 void FELuaTraceInfoTree::Init()
 {
-    FString RootName("Root");
-    Root = MakeShared<FELuaTraceInfoNode>(nullptr, RootName);
+    Root = MakeShared<FELuaTraceInfoNode>(nullptr, nullptr, true);
     CurNode = Root;
     MemMap.Empty();
 }
@@ -122,7 +121,7 @@ TSharedPtr <FELuaTraceInfoNode> FELuaTraceInfoTree::GetChild(void const* p, FStr
     TSharedPtr<FELuaTraceInfoNode> Child = CurNode->GetChild(p);
     if (!Child)
     {
-        Child = TSharedPtr<FELuaTraceInfoNode>(new FELuaTraceInfoNode(CurNode, ID));
+        Child = MakeShared<FELuaTraceInfoNode>(CurNode, p);
         CurNode->AddChild(p, Child);
     }
     return Child;

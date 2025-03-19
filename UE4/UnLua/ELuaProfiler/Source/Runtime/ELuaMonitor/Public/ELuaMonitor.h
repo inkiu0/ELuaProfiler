@@ -142,8 +142,6 @@ private:
 
     TArray<TSharedPtr<FELuaTraceInfoTree>> FramesTraceTreeList;
 
-    TMap<void const*, FString> LuaFuncPtrMap;
-
     TArray<void const*> LuaTwigsFuncPtrList;
 
     uint32 CurFrameIndex = 0;

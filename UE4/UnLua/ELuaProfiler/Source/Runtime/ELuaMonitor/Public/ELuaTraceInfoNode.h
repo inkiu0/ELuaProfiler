@@ -77,6 +77,8 @@ struct ELUAMONITOR_API FELuaTraceInfoNode
      */
     int8 FlagTwigs = -1;
 
+    const void* LuaFuncPtr = nullptr;
+
     /* parent node */
     TSharedPtr<FELuaTraceInfoNode> Parent = nullptr;
 
@@ -86,14 +88,17 @@ struct ELUAMONITOR_API FELuaTraceInfoNode
     /* LuaFuncPtr map to FELuaTraceInfoNode */
     TMap<void const*, TSharedPtr<FELuaTraceInfoNode>> ChildPtrMap;
     
-    FELuaTraceInfoNode(TSharedPtr<FELuaTraceInfoNode> InParent, FString& InID/*, const TCHAR* InName, int32 InEvent*/)
+    FELuaTraceInfoNode(const TSharedPtr<FELuaTraceInfoNode>& InParent, const void* LuaPtr, bool IsRoot = false)
     {
-        ID = InID;
-        // if (InName)
-        // {
-        //     Name = InName;
-        // }
-        // Event = InEvent;
+        LuaFuncPtr = LuaPtr;
+        if (IsRoot)
+        {
+	        ID = TEXT("Root");
+        }
+        else
+        {
+			ID = LuaFuncPtrMap.Contains(LuaFuncPtr) ? LuaFuncPtrMap[LuaFuncPtr] : Name;
+        }
         Parent = InParent;
     }
 
@@ -194,6 +199,7 @@ struct ELUAMONITOR_API FELuaTraceInfoNode
             GCSize = Other->GCSize;
             Count = Other->Count;
             // Event = Other->Event;
+            LuaFuncPtr = Other->LuaFuncPtr;
             Parent = Other->Parent;
         }
     }
@@ -223,7 +229,20 @@ inline FArchive& operator<<(FArchive& Ar, TSharedPtr<FELuaTraceInfoNode>& Node)
 {
     if (Ar.IsLoading())
     {
-        Ar << Node->ID;
+        if (E_SERIALIZE_READING_PERF_DATA_VERSION == SymbolTable)
+        {
+	        uint64 up = 0;
+            Ar << up;
+            void* LuaPtr = reinterpret_cast<void*>(up);
+            if (LuaFuncPtrMap.Contains(LuaPtr))
+            {
+	            Node->ID = LuaFuncPtrMap[LuaPtr];
+            }
+        }
+        else
+        {
+			Ar << Node->ID;
+        }
         Ar << Node->Name;
         Ar << Node->CallTime;
         Ar << Node->SelfTime;
@@ -245,7 +264,15 @@ inline FArchive& operator<<(FArchive& Ar, TSharedPtr<FELuaTraceInfoNode>& Node)
     }
     else
     {
-        Ar << Node->ID;
+        if (E_SERIALIZE_VERSION == SymbolTable)
+        {
+	        uint64 up = reinterpret_cast<uint64>(Node->LuaFuncPtr);
+			Ar << up;
+        }
+        else
+        {
+			Ar << Node->ID;
+        }
         Ar << Node->Name;
         Ar << Node->CallTime;
         Ar << Node->SelfTime;

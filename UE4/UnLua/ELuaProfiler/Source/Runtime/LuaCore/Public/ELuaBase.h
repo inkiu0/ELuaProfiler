@@ -95,3 +95,15 @@ constexpr double TOLERANCE = 0.0002;
 #else
 constexpr double TOLERANCE = 0.0005;
 #endif
+
+enum EPerfDataSerializeVersion : uint8
+{
+	Default,
+    SymbolTable
+};
+
+constexpr  EPerfDataSerializeVersion E_SERIALIZE_VERSION = SymbolTable;
+
+static EPerfDataSerializeVersion E_SERIALIZE_READING_PERF_DATA_VERSION = Default;
+
+static TMap<void const*, FString> LuaFuncPtrMap;
